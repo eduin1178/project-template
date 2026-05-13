@@ -1,0 +1,1 @@
+Analiza este proyecto y crea el archivo AGENTS.md
