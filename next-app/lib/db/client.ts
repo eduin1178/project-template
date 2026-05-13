@@ -14,17 +14,17 @@ if (!databaseUrl) {
 }
 
 const globalForDb = globalThis as unknown as {
-  __edunetDbClient?: ReturnType<typeof postgres>;
+  __docentixDbClient?: ReturnType<typeof postgres>;
 };
 
 const client =
-  globalForDb.__edunetDbClient ??
+  globalForDb.__docentixDbClient ??
   postgres(databaseUrl, {
     max: process.env.NODE_ENV === "production" ? 10 : 1,
   });
 
 if (process.env.NODE_ENV !== "production") {
-  globalForDb.__edunetDbClient = client;
+  globalForDb.__docentixDbClient = client;
 }
 
 export const db = drizzle(client, { schema });

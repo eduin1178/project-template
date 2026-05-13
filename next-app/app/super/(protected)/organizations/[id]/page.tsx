@@ -35,7 +35,7 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const detail = await getOrganizationDetail(id);
-  return { title: `${detail?.name ?? "Organización"} — Edunet` };
+  return { title: `${detail?.name ?? "Organización"} — Docentix` };
 }
 
 export default async function OrganizationDetailPage({

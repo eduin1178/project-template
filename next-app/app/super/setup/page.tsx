@@ -15,7 +15,7 @@ import { SetupForm } from "./setup-form";
 
 void eq;
 
-export const metadata = { title: "Configura el primer super admin — Edunet" };
+export const metadata = { title: "Configura el primer super admin — Docentix" };
 export const dynamic = "force-dynamic";
 
 export default async function SuperSetupPage() {

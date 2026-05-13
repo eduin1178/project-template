@@ -5,7 +5,7 @@ import type { SidebarConfig } from "../types";
 
 export const adminSidebarConfig: SidebarConfig = {
   brand: {
-    label: "Edunet",
+    label: "Docentix",
     description: "Panel admin",
     href: "/admin",
     icon: createElement(HouseIcon, { weight: "fill" }),

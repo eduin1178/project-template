@@ -65,7 +65,7 @@ export async function generateMetadata({
     .from(organization)
     .where(eq(organization.id, id))
     .limit(1);
-  return { title: `${org?.name ?? "Organización"} — Edunet` };
+  return { title: `${org?.name ?? "Organización"} — Docentix` };
 }
 
 export default async function AccountOrgDetailPage({

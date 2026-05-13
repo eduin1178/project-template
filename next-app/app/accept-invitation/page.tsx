@@ -18,7 +18,7 @@ import {
 import { AcceptOrgInvitationForm } from "./_components/accept-form";
 import { AcceptLoggedIn } from "./_components/accept-logged-in";
 
-export const metadata = { title: "Acepta tu invitación — Edunet" };
+export const metadata = { title: "Acepta tu invitación — Docentix" };
 export const dynamic = "force-dynamic";
 
 export default async function AcceptInvitationPage({
@@ -72,7 +72,7 @@ export default async function AcceptInvitationPage({
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Acepta tu invitación</CardTitle>
           <CardDescription>
-            Fuiste invitado a administrar <strong>{orgName}</strong> en Edunet.
+            Fuiste invitado a administrar <strong>{orgName}</strong> en Docentix.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -100,7 +100,7 @@ function InvalidInvitation() {
         <h1 className="text-2xl font-semibold">Invitación no válida</h1>
         <p className="text-muted-foreground">
           El enlace que abriste expiró, ya fue usado o no es válido. Solicita
-          una nueva invitación a tu contacto en Edunet.
+          una nueva invitación a tu contacto en Docentix.
         </p>
         <Button asChild>
           <Link href="/login">Ir a iniciar sesión</Link>

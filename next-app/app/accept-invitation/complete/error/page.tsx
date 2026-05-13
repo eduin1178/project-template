@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
-export const metadata = { title: "No pudimos completar la invitación — Edunet" };
+export const metadata = { title: "No pudimos completar la invitación — Docentix" };
 export const dynamic = "force-dynamic";
 
 export default async function CompleteAcceptInvitationErrorPage({

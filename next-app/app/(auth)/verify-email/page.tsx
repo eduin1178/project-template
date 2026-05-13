@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth/server";
 
-export const metadata = { title: "Verificación de correo — Edunet" };
+export const metadata = { title: "Verificación de correo — Docentix" };
 
 export default async function VerifyEmailPage({
   searchParams,

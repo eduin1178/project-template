@@ -15,7 +15,7 @@ import {
 
 import { listOrganizations } from "./actions";
 
-export const metadata = { title: "Organizaciones — Edunet" };
+export const metadata = { title: "Organizaciones — Docentix" };
 export const dynamic = "force-dynamic";
 
 const dateFormatter = new Intl.DateTimeFormat("es", {

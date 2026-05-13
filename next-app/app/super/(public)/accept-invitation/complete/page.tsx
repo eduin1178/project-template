@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { completeInvitationFromGoogleAction } from "../actions";
 
-export const metadata = { title: "Finalizando invitación — Edunet" };
+export const metadata = { title: "Finalizando invitación — Docentix" };
 export const dynamic = "force-dynamic";
 
 export default async function CompleteInvitationPage({

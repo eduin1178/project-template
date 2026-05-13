@@ -1,18 +1,18 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: edunet-postgres
+    container_name: docentix-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-edunet}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-edunet_dev}
-      POSTGRES_DB: ${POSTGRES_DB:-edunet}
+      POSTGRES_USER: ${POSTGRES_USER:-docentix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-docentix_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-docentix}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-edunet} -d ${POSTGRES_DB:-edunet}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-docentix} -d ${POSTGRES_DB:-docentix}"]
       interval: 5s
       timeout: 5s
       retries: 10

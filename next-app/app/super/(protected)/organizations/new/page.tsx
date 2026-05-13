@@ -12,7 +12,7 @@ import {
 
 import { NewOrganizationForm } from "./new-organization-form";
 
-export const metadata = { title: "Nueva organización — Edunet" };
+export const metadata = { title: "Nueva organización — Docentix" };
 
 export default function NewOrganizationPage() {
   return (

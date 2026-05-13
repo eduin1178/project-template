@@ -5,7 +5,7 @@ import type { SidebarConfig } from "../types";
 
 export const appSidebarConfig: SidebarConfig = {
   brand: {
-    label: "Edunet",
+    label: "Docentix",
     description: "Mi espacio",
     href: "/app",
     icon: createElement(HouseIcon, { weight: "fill" }),

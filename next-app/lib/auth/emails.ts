@@ -3,7 +3,7 @@ import "server-only";
 import { Resend } from "resend";
 
 const resendApiKey = process.env.RESEND_API_KEY;
-const emailFrom = process.env.EMAIL_FROM ?? "Edunet <onboarding@resend.dev>";
+const emailFrom = process.env.EMAIL_FROM ?? "Docentix <onboarding@resend.dev>";
 
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
@@ -56,8 +56,8 @@ export async function sendOrgAdminInvitationEmail({
 
   return sendEmail({
     to,
-    subject: `Invitación para administrar ${organizationName} en Edunet`,
-    text: `Hola,\n\nTe invitamos a administrar la organización "${organizationName}" en Edunet.\n\nAbre este enlace para aceptar la invitación y crear tu cuenta:\n${url}\n\nEl enlace expira en ${ttlDays} ${ttlDays === 1 ? "día" : "días"}.\n\nSi no esperabas esta invitación, ignora este mensaje.`,
+    subject: `Invitación para administrar ${organizationName} en Docentix`,
+    text: `Hola,\n\nTe invitamos a administrar la organización "${organizationName}" en Docentix.\n\nAbre este enlace para aceptar la invitación y crear tu cuenta:\n${url}\n\nEl enlace expira en ${ttlDays} ${ttlDays === 1 ? "día" : "días"}.\n\nSi no esperabas esta invitación, ignora este mensaje.`,
   });
 }
 
@@ -82,8 +82,8 @@ export async function sendTenantInvitationEmail({
 
   return sendEmail({
     to,
-    subject: `Invitación para unirte a ${organizationName} en Edunet`,
-    text: `Hola,\n\nTe invitamos a unirte como ${roleLabel} a la organización "${organizationName}" en Edunet.\n\nAbre este enlace para aceptar la invitación:\n${url}\n\nEl enlace expira en ${ttlDays} ${ttlDays === 1 ? "día" : "días"}.\n\nSi no esperabas esta invitación, ignora este mensaje.`,
+    subject: `Invitación para unirte a ${organizationName} en Docentix`,
+    text: `Hola,\n\nTe invitamos a unirte como ${roleLabel} a la organización "${organizationName}" en Docentix.\n\nAbre este enlace para aceptar la invitación:\n${url}\n\nEl enlace expira en ${ttlDays} ${ttlDays === 1 ? "día" : "días"}.\n\nSi no esperabas esta invitación, ignora este mensaje.`,
   });
 }
 

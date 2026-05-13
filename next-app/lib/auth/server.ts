@@ -53,7 +53,7 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, url }) => {
       await sendEmail({
         to: user.email,
-        subject: "Restablece tu contraseña — Edunet",
+        subject: "Restablece tu contraseña — Docentix",
         text: `Hola${user.name ? ` ${user.name}` : ""},\n\nRecibimos una solicitud para restablecer tu contraseña.\n\nAbre este enlace para continuar:\n${url}\n\nSi no fuiste tú, ignora este mensaje.`,
       });
     },
@@ -65,7 +65,7 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, url }) => {
       await sendEmail({
         to: user.email,
-        subject: "Verifica tu correo — Edunet",
+        subject: "Verifica tu correo — Docentix",
         text: `Hola${user.name ? ` ${user.name}` : ""},\n\nConfirma tu correo abriendo este enlace:\n${url}\n\nSi no creaste esta cuenta, ignora este mensaje.`,
       });
     },

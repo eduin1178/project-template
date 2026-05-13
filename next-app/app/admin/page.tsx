@@ -1,4 +1,4 @@
-export const metadata = { title: "Panel de administración — Edunet" };
+export const metadata = { title: "Panel de administración — Docentix" };
 
 export default function AdminPage() {
   return (

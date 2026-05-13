@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 
-export const metadata = { title: "Mis organizaciones — Edunet" };
+export const metadata = { title: "Mis organizaciones — Docentix" };
 
 function formatDate(value: Date | string | null): string {
   if (!value) return "—";

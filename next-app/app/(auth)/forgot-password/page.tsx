@@ -8,7 +8,7 @@ import {
 
 import { ForgotPasswordForm } from "./forgot-password-form";
 
-export const metadata = { title: "Recupera tu contraseña — Edunet" };
+export const metadata = { title: "Recupera tu contraseña — Docentix" };
 
 export default function ForgotPasswordPage() {
   return (

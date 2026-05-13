@@ -15,7 +15,7 @@ import {
 import { InviteSuperForm } from "../_components/invite-super-form";
 import { PendingInvitations } from "../_components/pending-invitations";
 
-export const metadata = { title: "Super admins — Edunet" };
+export const metadata = { title: "Super admins — Docentix" };
 
 export default async function SuperAdminsPage() {
   const session = await auth.api.getSession({ headers: await headers() });

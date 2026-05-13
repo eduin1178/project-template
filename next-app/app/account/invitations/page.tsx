@@ -10,7 +10,7 @@ import { invitation, organization } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 
-export const metadata = { title: "Invitaciones — Edunet" };
+export const metadata = { title: "Invitaciones — Docentix" };
 
 function formatDate(value: Date | string | null): string {
   if (!value) return "—";

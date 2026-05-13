@@ -12,7 +12,7 @@ import {
 import { LoginForm } from "./login-form";
 
 export const metadata = {
-  title: "Iniciar sesión — Edunet",
+  title: "Iniciar sesión — Docentix",
 };
 
 export default async function LoginPage() {

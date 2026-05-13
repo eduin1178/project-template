@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
-export const metadata = { title: "Revisa tu correo — Edunet" };
+export const metadata = { title: "Revisa tu correo — Docentix" };
 
 export default function CheckEmailPage() {
   return (

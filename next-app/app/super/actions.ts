@@ -50,8 +50,8 @@ export async function createSuperInvitationAction(
 
   await sendEmail({
     to: parsed.data.email,
-    subject: "Te invitamos al panel super de Edunet",
-    text: `Hola,\n\nTe invitamos a unirte como super admin de Edunet.\n\nAbre este enlace para aceptar la invitación:\n${url}\n\nEl enlace expira en ${INVITATION_TTL_DAYS} días.`,
+    subject: "Te invitamos al panel super de Docentix",
+    text: `Hola,\n\nTe invitamos a unirte como super admin de Docentix.\n\nAbre este enlace para aceptar la invitación:\n${url}\n\nEl enlace expira en ${INVITATION_TTL_DAYS} días.`,
   });
 
   return { ok: true };

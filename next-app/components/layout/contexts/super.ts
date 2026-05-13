@@ -5,7 +5,7 @@ import type { SidebarConfig } from "../types";
 
 export const superSidebarConfig: SidebarConfig = {
   brand: {
-    label: "Edunet",
+    label: "Docentix",
     description: "Panel super",
     href: "/super",
     icon: createElement(ShieldStarIcon, { weight: "fill" }),

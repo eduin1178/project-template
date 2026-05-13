@@ -14,7 +14,7 @@ import { LinkedAccountsSection } from "./_components/linked-accounts-section";
 import { PasswordSection } from "./_components/password-section";
 import { ProfileForm } from "./_components/profile-form";
 
-export const metadata = { title: "Mi perfil — Edunet" };
+export const metadata = { title: "Mi perfil — Docentix" };
 
 export default async function ProfilePage() {
   const session = await auth.api.getSession({ headers: await headers() });

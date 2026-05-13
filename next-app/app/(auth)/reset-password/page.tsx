@@ -8,7 +8,7 @@ import {
 
 import { ResetPasswordForm } from "./reset-password-form";
 
-export const metadata = { title: "Define tu nueva contraseña — Edunet" };
+export const metadata = { title: "Define tu nueva contraseña — Docentix" };
 
 export default async function ResetPasswordPage({
   searchParams,
