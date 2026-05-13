@@ -22,6 +22,7 @@ La aplicación usa:
 - `react-hook-form`
 - `zod`
 - `next-themes`
+- Nextjs 16 no usa middleware.ts en su lugar usa proxy.ts
 
 ## Verificación de Next.js
 

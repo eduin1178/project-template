@@ -1,17 +1,22 @@
 "use client";
 
-/**
- * Estado de autenticación expuesto al UI. El contrato es estable: cuando llegue
- * la spec real de autenticación, la implementación pasa a leer de la fuente
- * real (cookies HttpOnly, next-auth, etc.) sin que los consumidores cambien.
- *
- * En v1 el stub retorna siempre { status: "unauthenticated" }.
- */
+import { authClient } from "./client";
+
 export type AuthStatus =
   | { status: "loading" }
   | { status: "unauthenticated" }
   | { status: "authenticated"; dashboardHref: string };
 
 export function useAuthStatus(): AuthStatus {
-  return { status: "unauthenticated" };
+  const { data, isPending } = authClient.useSession();
+
+  if (isPending) return { status: "loading" };
+  if (!data?.user) return { status: "unauthenticated" };
+
+  const role = (data.user as { role?: string | null }).role;
+  // Para super_admin el destino es directo. Para los demás roles, /post-login
+  // resuelve membership en el servidor y redirige a /admin o /app.
+  const dashboardHref = role === "super_admin" ? "/super" : "/post-login";
+
+  return { status: "authenticated", dashboardHref };
 }
