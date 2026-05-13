@@ -12,12 +12,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { InviteSuperForm } from "./_components/invite-super-form";
-import { PendingInvitations } from "./_components/pending-invitations";
+import { InviteSuperForm } from "../_components/invite-super-form";
+import { PendingInvitations } from "../_components/pending-invitations";
 
-export const metadata = { title: "Panel super — Edunet" };
+export const metadata = { title: "Super admins — Edunet" };
 
-export default async function SuperDashboardPage() {
+export default async function SuperAdminsPage() {
   const session = await auth.api.getSession({ headers: await headers() });
 
   const pending = await db

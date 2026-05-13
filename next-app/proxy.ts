@@ -13,10 +13,12 @@ function hasSessionCookie(request: NextRequest): boolean {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // /accept-invitation y /super/setup deben ser accesibles sin sesión.
+  // Rutas públicas dentro de prefijos protegidos: deben quedar accesibles sin
+  // sesión. Incluye setup, redirect legacy y los flujos de aceptación.
   if (
     pathname.startsWith("/accept-invitation") ||
-    pathname.startsWith("/super/setup")
+    pathname.startsWith("/super/setup") ||
+    pathname.startsWith("/super/accept-invitation")
   ) {
     return NextResponse.next();
   }

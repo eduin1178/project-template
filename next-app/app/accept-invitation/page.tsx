@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { headers } from "next/headers";
+import { permanentRedirect } from "next/navigation";
+import { and, eq, gt } from "drizzle-orm";
 
+import { auth } from "@/lib/auth/server";
 import { db } from "@/lib/db/client";
-import { superInvitation } from "@/lib/db/schema";
+import { invitation, organization } from "@/lib/db/schema";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,9 +14,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
-import { AcceptInvitationForm } from "./_components/accept-form";
+import { AcceptOrgInvitationForm } from "./_components/accept-form";
+import { AcceptLoggedIn } from "./_components/accept-logged-in";
 
 export const metadata = { title: "Acepta tu invitación — Edunet" };
 export const dynamic = "force-dynamic";
@@ -20,45 +24,69 @@ export const dynamic = "force-dynamic";
 export default async function AcceptInvitationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string }>;
+  searchParams: Promise<{ token?: string; invitationId?: string }>;
 }) {
-  const { token } = await searchParams;
+  const { token, invitationId } = await searchParams;
 
-  if (!token) {
+  if (token && !invitationId) {
+    permanentRedirect(
+      `/super/accept-invitation?token=${encodeURIComponent(token)}`,
+    );
+  }
+
+  if (!invitationId) {
     return <InvalidInvitation />;
   }
 
-  const [invitation] = await db
-    .select()
-    .from(superInvitation)
+  const [row] = await db
+    .select({
+      id: invitation.id,
+      email: invitation.email,
+      status: invitation.status,
+      expiresAt: invitation.expiresAt,
+      role: invitation.role,
+      organizationId: invitation.organizationId,
+      organizationName: organization.name,
+    })
+    .from(invitation)
+    .leftJoin(organization, eq(invitation.organizationId, organization.id))
     .where(
       and(
-        eq(superInvitation.token, token),
-        isNull(superInvitation.acceptedAt),
-        gt(superInvitation.expiresAt, new Date()),
+        eq(invitation.id, invitationId),
+        eq(invitation.status, "pending"),
+        gt(invitation.expiresAt, new Date()),
       ),
     )
     .limit(1);
 
-  if (!invitation) {
+  if (!row) {
     return <InvalidInvitation />;
   }
 
+  const session = await auth.api.getSession({ headers: await headers() });
+  const orgName = row.organizationName ?? "tu organización";
+
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4">
+    <div className="bg-background flex min-h-screen items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Acepta tu invitación</CardTitle>
           <CardDescription>
-            Fuiste invitado como super admin de Edunet. Crea tu cuenta o ingresa
-            con Google.
+            Fuiste invitado a administrar <strong>{orgName}</strong> en Edunet.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AcceptInvitationForm
-            token={invitation.token}
-            invitedEmail={invitation.invitedEmail}
-          />
+          {session?.user ? (
+            <AcceptLoggedIn
+              invitationId={row.id}
+              currentEmail={session.user.email}
+            />
+          ) : (
+            <AcceptOrgInvitationForm
+              invitationId={row.id}
+              invitedEmail={row.email}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

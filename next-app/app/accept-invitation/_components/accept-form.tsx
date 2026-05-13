@@ -1,40 +1,47 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import Link from "next/link";
 
 import { authClient } from "@/lib/auth/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import {
-  acceptSuperInvitationEmailAction,
+  acceptOrgInvitationEmailAction,
+  setPendingInvitationCookieAction,
   type AcceptResult,
 } from "../actions";
 
-export function AcceptInvitationForm({
-  token,
+export function AcceptOrgInvitationForm({
+  invitationId,
   invitedEmail,
 }: {
-  token: string;
+  invitationId: string;
   invitedEmail: string;
 }) {
   const [state, formAction, isPending] = useActionState<
     AcceptResult | null,
     FormData
-  >(acceptSuperInvitationEmailAction, null);
+  >(acceptOrgInvitationEmailAction, null);
 
+  const [isGooglePending, startGoogle] = useTransition();
   const [googleError, setGoogleError] = useState<string | null>(null);
 
-  async function onGoogle() {
+  function onGoogle() {
     setGoogleError(null);
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: `/accept-invitation/complete?token=${encodeURIComponent(
-        token,
-      )}`,
+    startGoogle(async () => {
+      try {
+        await setPendingInvitationCookieAction(invitationId);
+        await authClient.signIn.social({
+          provider: "google",
+          callbackURL: "/accept-invitation/complete",
+        });
+      } catch {
+        setGoogleError("No pudimos iniciar el flujo de Google. Intenta de nuevo.");
+      }
     });
   }
 
@@ -43,8 +50,8 @@ export function AcceptInvitationForm({
       <div className="space-y-4">
         <Alert>
           <AlertDescription>
-            Tu cuenta quedó creada como super admin. Te enviamos un correo de
-            verificación; ábrelo para iniciar sesión.
+            Tu cuenta quedó creada. Te enviamos un correo de verificación; al
+            confirmarlo podrás iniciar sesión en tu organización.
           </AlertDescription>
         </Alert>
         <Button asChild className="w-full">
@@ -57,7 +64,7 @@ export function AcceptInvitationForm({
   return (
     <div className="space-y-6">
       <form action={formAction} className="space-y-4">
-        <input type="hidden" name="token" value={token} />
+        <input type="hidden" name="invitationId" value={invitationId} />
 
         {state && !state.ok ? (
           <Alert variant="destructive">
@@ -121,8 +128,9 @@ export function AcceptInvitationForm({
         variant="outline"
         className="w-full"
         onClick={onGoogle}
+        disabled={isGooglePending}
       >
-        Continuar con Google
+        {isGooglePending ? "Redirigiendo…" : "Continuar con Google"}
       </Button>
     </div>
   );

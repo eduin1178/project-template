@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   createSuperInvitationAction,
   type InviteResult,
-} from "../actions";
+} from "../../actions";
 
 export function InviteSuperForm() {
   const [state, formAction, isPending] = useActionState<

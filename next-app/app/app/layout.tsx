@@ -3,6 +3,17 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { auth } from "@/lib/auth/server";
+import { signOutAction } from "@/lib/auth/actions";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { appSidebarConfig } from "@/components/layout/contexts/app";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default async function AppLayout({
   children,
@@ -16,5 +27,29 @@ export default async function AppLayout({
   if (session.user.role === "super_admin") {
     redirect("/super");
   }
-  return <div className="min-h-screen">{children}</div>;
+
+  return (
+    <TooltipProvider>
+      <SidebarProvider>
+        <AppSidebar
+          config={appSidebarConfig}
+          user={{
+            name: session.user.name ?? session.user.email,
+            email: session.user.email,
+            image: session.user.image ?? null,
+          }}
+          signOutAction={signOutAction}
+        />
+        <SidebarInset>
+          <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <span className="text-sm font-medium">Mi espacio</span>
+          </header>
+          <main className="flex-1 px-6 py-8">{children}</main>
+        </SidebarInset>
+        <Toaster />
+      </SidebarProvider>
+    </TooltipProvider>
+  );
 }

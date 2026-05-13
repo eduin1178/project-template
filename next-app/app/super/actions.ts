@@ -46,7 +46,7 @@ export async function createSuperInvitationAction(
 
   const baseUrl =
     process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
-  const url = `${baseUrl}/accept-invitation?token=${token}`;
+  const url = `${baseUrl}/super/accept-invitation?token=${token}`;
 
   await sendEmail({
     to: parsed.data.email,

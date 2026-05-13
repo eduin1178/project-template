@@ -1,28 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
-import { completeInvitationFromGoogleAction } from "../actions";
+import { completeOrgInvitationFromGoogleAction } from "../actions";
 
 export const metadata = { title: "Finalizando invitación — Edunet" };
 export const dynamic = "force-dynamic";
 
-export default async function CompleteInvitationPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ token?: string }>;
-}) {
-  const { token } = await searchParams;
-  if (!token) {
-    redirect("/login");
-  }
-
-  const result = await completeInvitationFromGoogleAction(token!);
+export default async function CompleteAcceptInvitationPage() {
+  const result = await completeOrgInvitationFromGoogleAction();
 
   if (result.ok) {
-    redirect("/super");
+    redirect("/admin");
   }
 
   return (
