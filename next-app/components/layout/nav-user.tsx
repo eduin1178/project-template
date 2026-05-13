@@ -1,5 +1,13 @@
 "use client";
 
+import Link from "next/link";
+import {
+  BuildingsIcon,
+  CaretUpDownIcon,
+  EnvelopeSimpleIcon,
+  UserIcon,
+} from "@phosphor-icons/react";
+
 import {
   Avatar,
   AvatarFallback,
@@ -19,8 +27,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { CaretUpDownIcon, SignOutIcon } from "@phosphor-icons/react";
+import {
+  getUserMenuItems,
+  type MenuItemKey,
+  type MenuRole,
+} from "@/lib/auth/role-menu";
 
+import { SignOutMenuItem } from "./sign-out-menu-item";
 import type { SidebarUser } from "./types";
 
 function getInitials(user: SidebarUser) {
@@ -34,15 +47,22 @@ function getInitials(user: SidebarUser) {
     .toUpperCase();
 }
 
+const ICONS: Record<Exclude<MenuItemKey, "sign-out">, React.ElementType> = {
+  profile: UserIcon,
+  organizations: BuildingsIcon,
+  invitations: EnvelopeSimpleIcon,
+};
+
 export function NavUser({
   user,
-  signOutAction,
+  role,
 }: {
   user: SidebarUser;
-  signOutAction: () => void | Promise<void>;
+  role: MenuRole;
 }) {
   const { isMobile } = useSidebar();
   const initials = getInitials(user);
+  const items = getUserMenuItems(role);
 
   return (
     <SidebarMenu>
@@ -91,14 +111,21 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <form action={signOutAction}>
-              <DropdownMenuItem asChild>
-                <button type="submit" className="w-full">
-                  <SignOutIcon />
-                  Cerrar sesión
-                </button>
-              </DropdownMenuItem>
-            </form>
+            {items
+              .filter((item) => item.key !== "sign-out")
+              .map((item) => {
+                const Icon = ICONS[item.key as Exclude<MenuItemKey, "sign-out">];
+                return (
+                  <DropdownMenuItem key={item.key} asChild>
+                    <Link href={item.href ?? "#"}>
+                      <Icon />
+                      {item.label}
+                    </Link>
+                  </DropdownMenuItem>
+                );
+              })}
+            <DropdownMenuSeparator />
+            <SignOutMenuItem />
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

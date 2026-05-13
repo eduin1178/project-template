@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { auth } from "@/lib/auth/server";
 import { loadMembershipsFor } from "@/lib/auth/guards";
-import { signOutAction } from "@/lib/auth/actions";
+import { deriveMenuRole } from "@/lib/auth/role-menu";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { adminSidebarConfig } from "@/components/layout/contexts/admin";
 import {
@@ -46,7 +46,7 @@ export default async function AdminLayout({
             email: session.user.email,
             image: session.user.image ?? null,
           }}
-          signOutAction={signOutAction}
+          role={deriveMenuRole(session, memberships)}
         />
         <SidebarInset>
           <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">

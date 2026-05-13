@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  CaretLeftIcon,
-  UserPlusIcon,
-} from "@phosphor-icons/react/dist/ssr";
+import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,10 +10,15 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { OrgAvatar } from "@/components/organizations/org-avatar";
+import { MembersTable } from "@/components/organizations/members-table";
+import { InvitationsTable } from "@/components/organizations/invitations-table";
 
-import { getOrganizationDetail } from "../actions";
-import { InvitationsTable } from "./invitations-table";
-import { MembersTable } from "./members-table";
+import {
+  deleteOrgInvitationAction,
+  getOrganizationDetail,
+  resendOrgInvitationAction,
+} from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -45,9 +47,11 @@ export default async function OrganizationDetailPage({
   const detail = await getOrganizationDetail(id);
   if (!detail) notFound();
 
-  const hasAdmin = detail.members.some((m) => m.role === "admin");
+  const hasAdmin = detail.members.some(
+    (m) => m.role === "admin" || m.role === "owner",
+  );
   const pendingCount = detail.invitations.filter(
-    (i) => i.status === "pending",
+    (i) => i.status === "pending" && !i.isExpired,
   ).length;
 
   return (
@@ -60,14 +64,17 @@ export default async function OrganizationDetailPage({
       </Button>
 
       <header className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">{detail.name}</h1>
-          <p className="text-muted-foreground font-mono text-xs">
-            {detail.slug}
-          </p>
-          <p className="text-muted-foreground text-sm">
-            Creada el {dateFormatter.format(detail.createdAt)}
-          </p>
+        <div className="flex items-start gap-4">
+          <OrgAvatar name={detail.name} logo={detail.logo} className="size-14" />
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold">{detail.name}</h1>
+            <p className="text-muted-foreground font-mono text-xs">
+              {detail.slug}
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Creada el {dateFormatter.format(detail.createdAt)}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {!hasAdmin ? <Badge variant="destructive">Sin admin</Badge> : null}
@@ -94,13 +101,12 @@ export default async function OrganizationDetailPage({
         </TabsContent>
 
         <TabsContent value="invitations" className="mt-4 space-y-4">
-          <div className="flex justify-end">
-            <Button variant="outline" size="sm" disabled>
-              <UserPlusIcon />
-              Nueva invitación (próximamente)
-            </Button>
-          </div>
-          <InvitationsTable invitations={detail.invitations} />
+          <InvitationsTable
+            invitations={detail.invitations}
+            canManage
+            onResend={resendOrgInvitationAction}
+            onDelete={deleteOrgInvitationAction}
+          />
         </TabsContent>
       </Tabs>
     </div>

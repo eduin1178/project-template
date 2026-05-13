@@ -61,6 +61,32 @@ export async function sendOrgAdminInvitationEmail({
   });
 }
 
+type TenantInvitationArgs = {
+  to: string;
+  organizationName: string;
+  role: string;
+  invitationId: string;
+  ttlDays: number;
+};
+
+export async function sendTenantInvitationEmail({
+  to,
+  organizationName,
+  role,
+  invitationId,
+  ttlDays,
+}: TenantInvitationArgs) {
+  const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+  const url = `${baseUrl}/accept-invitation?invitationId=${encodeURIComponent(invitationId)}`;
+  const roleLabel = role === "admin" || role === "owner" ? "administrador" : "miembro";
+
+  return sendEmail({
+    to,
+    subject: `Invitación para unirte a ${organizationName} en Edunet`,
+    text: `Hola,\n\nTe invitamos a unirte como ${roleLabel} a la organización "${organizationName}" en Edunet.\n\nAbre este enlace para aceptar la invitación:\n${url}\n\nEl enlace expira en ${ttlDays} ${ttlDays === 1 ? "día" : "días"}.\n\nSi no esperabas esta invitación, ignora este mensaje.`,
+  });
+}
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")

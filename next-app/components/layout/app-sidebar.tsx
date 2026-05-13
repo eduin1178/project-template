@@ -8,6 +8,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
+import type { MenuRole } from "@/lib/auth/role-menu";
+
 import { NavBrand } from "./nav-brand";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
@@ -16,13 +18,13 @@ import type { SidebarConfig, SidebarUser } from "./types";
 type AppSidebarProps = ComponentProps<typeof Sidebar> & {
   config: SidebarConfig;
   user: SidebarUser;
-  signOutAction: () => void | Promise<void>;
+  role: MenuRole;
 };
 
 export function AppSidebar({
   config,
   user,
-  signOutAction,
+  role,
   ...sidebarProps
 }: AppSidebarProps) {
   return (
@@ -34,7 +36,7 @@ export function AppSidebar({
         <NavMain items={config.items} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} signOutAction={signOutAction} />
+        <NavUser user={user} role={role} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

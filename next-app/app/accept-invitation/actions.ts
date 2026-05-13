@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 
 import { headers, cookies } from "next/headers";
-import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth/server";
@@ -168,36 +168,7 @@ export async function setPendingInvitationCookieAction(invitationId: string) {
   });
 }
 
-export async function consumePendingInvitationCookie(): Promise<string | null> {
-  const jar = await cookies();
-  const value = jar.get(PENDING_COOKIE)?.value ?? null;
-  if (value) {
-    jar.delete(PENDING_COOKIE);
-  }
-  return value;
-}
-
-export async function completeOrgInvitationFromGoogleAction(): Promise<AcceptResult> {
-  const invitationId = await consumePendingInvitationCookie();
-  if (!invitationId) {
-    return {
-      ok: false,
-      error: "No encontramos la invitación. Vuelve a abrir el link del correo.",
-    };
-  }
-
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session?.user) {
-    return { ok: false, error: "No detectamos tu sesión. Intenta nuevamente." };
-  }
-
-  const row = await loadActiveInvitation(invitationId);
-  if (!row) {
-    return { ok: false, error: "La invitación ya no está disponible." };
-  }
-
-  // isNull import retainer to placate lint if drizzle deps shift
-  void isNull;
-
-  return acceptForUser(invitationId, session.user.id);
-}
+// El flujo de retorno desde Google ahora vive en
+// `app/accept-invitation/complete/route.ts` porque necesita borrar la cookie
+// `pending-invitation-id`, y Next.js solo permite modificar cookies desde
+// Server Actions o Route Handlers — no desde server components.

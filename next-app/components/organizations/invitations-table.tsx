@@ -11,8 +11,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import type { OrganizationInvitation } from "../actions";
-import { InvitationRowActions } from "./invitation-row-actions";
+import {
+  InvitationRowActions,
+  type ActionResult,
+} from "./invitation-row-actions";
+
+export type InvitationRow = {
+  id: string;
+  email: string;
+  role: string | null;
+  status: string;
+  expiresAt: Date;
+  createdAt: Date;
+  isExpired: boolean;
+};
 
 const dateFormatter = new Intl.DateTimeFormat("es", {
   day: "2-digit",
@@ -49,10 +61,22 @@ function statusLabel(status: string) {
   }
 }
 
+function roleLabel(role: string | null) {
+  if (role === "admin" || role === "owner") return "Admin";
+  if (role === "member") return "Miembro";
+  return role ?? "—";
+}
+
 export function InvitationsTable({
   invitations,
+  canManage,
+  onResend,
+  onDelete,
 }: {
-  invitations: OrganizationInvitation[];
+  invitations: InvitationRow[];
+  canManage: boolean;
+  onResend?: (id: string) => Promise<ActionResult>;
+  onDelete?: (id: string) => Promise<ActionResult>;
 }) {
   if (invitations.length === 0) {
     return (
@@ -73,7 +97,9 @@ export function InvitationsTable({
             <TableHead>Rol</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead>Expira</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
+            {canManage ? (
+              <TableHead className="text-right">Acciones</TableHead>
+            ) : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -84,7 +110,7 @@ export function InvitationsTable({
               <TableRow key={inv.id}>
                 <TableCell className="font-medium">{inv.email}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {inv.role ?? "—"}
+                  {roleLabel(inv.role)}
                 </TableCell>
                 <TableCell>
                   <Badge variant={statusVariant(displayStatus)}>
@@ -94,12 +120,16 @@ export function InvitationsTable({
                 <TableCell className="text-muted-foreground text-sm">
                   {dateFormatter.format(inv.expiresAt)}
                 </TableCell>
-                <TableCell className="text-right">
-                  <InvitationRowActions
-                    invitationId={inv.id}
-                    status={displayStatus}
-                  />
-                </TableCell>
+                {canManage && onResend && onDelete ? (
+                  <TableCell className="text-right">
+                    <InvitationRowActions
+                      invitationId={inv.id}
+                      status={displayStatus}
+                      onResend={onResend}
+                      onDelete={onDelete}
+                    />
+                  </TableCell>
+                ) : null}
               </TableRow>
             );
           })}

@@ -252,6 +252,7 @@ export type OrganizationDetail = {
   id: string;
   name: string;
   slug: string;
+  logo: string | null;
   createdAt: Date;
   members: OrganizationMember[];
   invitations: OrganizationInvitation[];
@@ -267,6 +268,7 @@ export async function getOrganizationDetail(
       id: organization.id,
       name: organization.name,
       slug: organization.slug,
+      logo: organization.logo,
       createdAt: organization.createdAt,
     })
     .from(organization)

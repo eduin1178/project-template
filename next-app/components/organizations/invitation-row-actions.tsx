@@ -22,17 +22,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-import {
-  deleteOrgInvitationAction,
-  resendOrgInvitationAction,
-} from "../actions";
+export type ActionResult = { ok: true } | { ok: false; error: string };
 
 export function InvitationRowActions({
   invitationId,
   status,
+  onResend,
+  onDelete,
 }: {
   invitationId: string;
   status: string;
+  onResend: (id: string) => Promise<ActionResult>;
+  onDelete: (id: string) => Promise<ActionResult>;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -50,17 +51,17 @@ export function InvitationRowActions({
     }
   }
 
-  function onResend() {
+  function onResendClick() {
     startTransition(async () => {
-      const result = await resendOrgInvitationAction(invitationId);
+      const result = await onResend(invitationId);
       if (result.ok) toast.success("Invitación reenviada.");
       else toast.error(result.error);
     });
   }
 
-  function onDelete() {
+  function onDeleteConfirm() {
     startTransition(async () => {
-      const result = await deleteOrgInvitationAction(invitationId);
+      const result = await onDelete(invitationId);
       if (result.ok) {
         toast.success("Invitación eliminada.");
         setOpenDelete(false);
@@ -86,7 +87,7 @@ export function InvitationRowActions({
       <Button
         variant="ghost"
         size="icon"
-        onClick={onResend}
+        onClick={onResendClick}
         title="Reenviar"
         disabled={!isPendingStatus || isPending}
       >
@@ -118,7 +119,7 @@ export function InvitationRowActions({
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
-                onDelete();
+                onDeleteConfirm();
               }}
               disabled={isPending}
             >

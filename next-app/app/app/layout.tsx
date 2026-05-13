@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { auth } from "@/lib/auth/server";
-import { signOutAction } from "@/lib/auth/actions";
+import { loadMembershipsFor } from "@/lib/auth/guards";
+import { deriveMenuRole } from "@/lib/auth/role-menu";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { appSidebarConfig } from "@/components/layout/contexts/app";
 import {
@@ -27,6 +28,13 @@ export default async function AppLayout({
   if (session.user.role === "super_admin") {
     redirect("/super");
   }
+  const memberships = await loadMembershipsFor(session.user.id);
+  const isTenantAdmin = memberships.some(
+    (m) => m.role === "admin" || m.role === "owner",
+  );
+  if (isTenantAdmin) {
+    redirect("/admin");
+  }
 
   return (
     <TooltipProvider>
@@ -38,7 +46,7 @@ export default async function AppLayout({
             email: session.user.email,
             image: session.user.image ?? null,
           }}
-          signOutAction={signOutAction}
+          role={deriveMenuRole(session, memberships)}
         />
         <SidebarInset>
           <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">

@@ -14,8 +14,6 @@ import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-import { signOutAction } from "../actions-session";
-
 export default async function SuperProtectedLayout({
   children,
 }: {
@@ -36,7 +34,7 @@ export default async function SuperProtectedLayout({
             email: session.user.email,
             image: session.user.image ?? null,
           }}
-          signOutAction={signOutAction}
+          role="super_admin"
         />
         <SidebarInset>
           <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">

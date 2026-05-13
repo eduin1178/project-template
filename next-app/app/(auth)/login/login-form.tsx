@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { authClient } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-import { redirectAfterLoginAction } from "./actions";
-
 const schema = z.object({
   email: z.string().email("Ingresa un email válido."),
   password: z.string().min(1, "Ingresa tu contraseña."),
@@ -30,12 +28,12 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function LoginForm() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") ?? undefined;
   const verified = searchParams.get("verified") === "1";
 
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -52,9 +50,12 @@ export function LoginForm() {
       setError(result.error.message ?? "No pudimos iniciar tu sesión.");
       return;
     }
-    startTransition(() => {
-      redirectAfterLoginAction(next);
-    });
+    const target =
+      next && next.startsWith("/") && !next.startsWith("//")
+        ? next
+        : "/post-login";
+    router.push(target);
+    router.refresh();
   }
 
   async function onGoogle() {
@@ -123,9 +124,9 @@ export function LoginForm() {
           <Button
             type="submit"
             className="w-full"
-            disabled={form.formState.isSubmitting || isPending}
+            disabled={form.formState.isSubmitting}
           >
-            {form.formState.isSubmitting || isPending
+            {form.formState.isSubmitting
               ? "Iniciando sesión…"
               : "Iniciar sesión"}
           </Button>

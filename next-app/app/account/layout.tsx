@@ -1,0 +1,51 @@
+import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
+import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
+
+import { auth } from "@/lib/auth/server";
+import { loadMembershipsFor } from "@/lib/auth/guards";
+import { deriveDashboardHref } from "@/lib/auth/derive-dashboard-href";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
+export default async function AccountLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const memberships =
+    session.user.role === "super_admin"
+      ? []
+      : await loadMembershipsFor(session.user.id);
+  const backHref = deriveDashboardHref({
+    user: { role: session.user.role ?? null },
+    memberships,
+  });
+
+  return (
+    <TooltipProvider>
+      <div className="bg-background text-foreground min-h-screen">
+        <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b px-6">
+          <Link
+            href={backHref}
+            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
+          >
+            <ArrowLeftIcon className="size-4" />
+            Volver al panel
+          </Link>
+          <span className="bg-border h-4 w-px" aria-hidden />
+          <h1 className="text-sm font-medium">Mi cuenta</h1>
+        </header>
+        <main className="mx-auto w-full max-w-3xl px-6 py-8">{children}</main>
+        <Toaster />
+      </div>
+    </TooltipProvider>
+  );
+}
