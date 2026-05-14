@@ -27,6 +27,8 @@ import {
   transitionVisibility,
 } from "@/lib/tasks/actions";
 
+import type { TaskCapabilities } from "./capabilities";
+
 const VISIBILITY_LABEL: Record<TaskVisibility, string> = {
   draft: "Borrador",
   active: "Activa",
@@ -53,17 +55,16 @@ const STATUS_ALLOWED: Record<TaskStatus, TaskStatus[]> = {
 
 export function TaskRowActions({
   task,
-  currentUserId,
+  capabilities,
 }: {
   task: {
     id: string;
     visibility: TaskVisibility;
     status: TaskStatus;
-    authorId: string;
     dueAt: Date | null;
     responsibleId: string | null;
   };
-  currentUserId: string;
+  capabilities: TaskCapabilities;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -112,7 +113,15 @@ export function TaskRowActions({
 
   const visibilityTargets = VISIBILITY_ALLOWED[task.visibility];
   const statusTargets = STATUS_ALLOWED[task.status];
-  const canClaim = task.authorId !== currentUserId;
+
+  const showVisibility = capabilities.canTransitionVisibility;
+  const showStatus = capabilities.canTransitionStatus;
+  const showClaim = capabilities.canClaim;
+  const showDelete = capabilities.canDelete;
+
+  if (!showVisibility && !showStatus && !showClaim && !showDelete) {
+    return null;
+  }
 
   return (
     <DropdownMenu>
@@ -127,48 +136,56 @@ export function TaskRowActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Cambiar visibilidad</DropdownMenuLabel>
-        {TASK_VISIBILITY_VALUES.map((v) => {
-          const allowed = visibilityTargets.includes(v);
-          if (v === task.visibility) return null;
-          return (
-            <DropdownMenuItem
-              key={`vis-${v}`}
-              disabled={!allowed || isPending}
-              onSelect={() => onTransitionVisibility(v)}
-            >
-              {VISIBILITY_LABEL[v]}
-              {!allowed ? (
-                <span className="text-muted-foreground ml-auto text-xs">
-                  bloqueada
-                </span>
-              ) : null}
-            </DropdownMenuItem>
-          );
-        })}
+        {showVisibility ? (
+          <>
+            <DropdownMenuLabel>Cambiar visibilidad</DropdownMenuLabel>
+            {TASK_VISIBILITY_VALUES.map((v) => {
+              const allowed = visibilityTargets.includes(v);
+              if (v === task.visibility) return null;
+              return (
+                <DropdownMenuItem
+                  key={`vis-${v}`}
+                  disabled={!allowed || isPending}
+                  onSelect={() => onTransitionVisibility(v)}
+                >
+                  {VISIBILITY_LABEL[v]}
+                  {!allowed ? (
+                    <span className="text-muted-foreground ml-auto text-xs">
+                      bloqueada
+                    </span>
+                  ) : null}
+                </DropdownMenuItem>
+              );
+            })}
+          </>
+        ) : null}
 
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel>Cambiar estado</DropdownMenuLabel>
-        {TASK_STATUS_VALUES.map((s) => {
-          const allowed = statusTargets.includes(s);
-          if (s === task.status) return null;
-          return (
-            <DropdownMenuItem
-              key={`st-${s}`}
-              disabled={!allowed || isPending}
-              onSelect={() => onTransitionStatus(s)}
-            >
-              {STATUS_LABEL[s]}
-              {!allowed ? (
-                <span className="text-muted-foreground ml-auto text-xs">
-                  bloqueada
-                </span>
-              ) : null}
-            </DropdownMenuItem>
-          );
-        })}
+        {showStatus ? (
+          <>
+            {showVisibility ? <DropdownMenuSeparator /> : null}
+            <DropdownMenuLabel>Cambiar estado</DropdownMenuLabel>
+            {TASK_STATUS_VALUES.map((s) => {
+              const allowed = statusTargets.includes(s);
+              if (s === task.status) return null;
+              return (
+                <DropdownMenuItem
+                  key={`st-${s}`}
+                  disabled={!allowed || isPending}
+                  onSelect={() => onTransitionStatus(s)}
+                >
+                  {STATUS_LABEL[s]}
+                  {!allowed ? (
+                    <span className="text-muted-foreground ml-auto text-xs">
+                      bloqueada
+                    </span>
+                  ) : null}
+                </DropdownMenuItem>
+              );
+            })}
+          </>
+        ) : null}
 
-        {canClaim ? (
+        {showClaim ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled={isPending} onSelect={onClaim}>
@@ -177,7 +194,7 @@ export function TaskRowActions({
           </>
         ) : null}
 
-        {task.visibility === "draft" ? (
+        {showDelete ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem

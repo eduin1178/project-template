@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { computeTaskCapabilities } from "@/components/tasks/capabilities";
 import { EmptyState } from "@/components/ui/empty-state";
 import { requireOrgAdmin } from "@/lib/auth/guards";
 import {
@@ -15,10 +16,10 @@ import {
   listTasks,
 } from "@/lib/tasks/queries";
 
-import { CreateTaskDialog } from "./_components/create-task-dialog";
-import { TaskDetailPane } from "./_components/task-detail-pane";
-import { TasksFiltersPanel } from "./_components/tasks-filters-panel";
-import { TasksListPanel } from "./_components/tasks-list-panel";
+import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
+import { TaskDetailPane } from "@/components/tasks/task-detail-pane";
+import { TasksFiltersPanel } from "@/components/tasks/tasks-filters-panel";
+import { TasksListPanel } from "@/components/tasks/tasks-list-panel";
 
 export const metadata = { title: "Tareas — Docentix" };
 
@@ -95,8 +96,11 @@ export default async function AdminTasksPage({
         {selected ? (
           <TaskDetailPane
             task={selected}
-            currentUserId={ctx.userId}
             members={members}
+            capabilities={computeTaskCapabilities({
+              task: selected,
+              viewer: { userId: ctx.userId, role: ctx.role },
+            })}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center p-8">

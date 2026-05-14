@@ -159,7 +159,8 @@ export function CreateTaskDialog({ members }: { members: OrgMemberOption[] }) {
                   <FormControl>
                     <Textarea
                       placeholder="Describe la tarea (opcional)."
-                      rows={4}
+                      rows={8}
+                      className="min-h-50 max-h-100 resize-y"
                       {...field}
                     />
                   </FormControl>

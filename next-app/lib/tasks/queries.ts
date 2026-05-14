@@ -134,9 +134,11 @@ export async function listTasks({
 export async function listTasksForMember({
   orgId,
   userId,
+  filters,
 }: {
   orgId: string;
   userId: string;
+  filters?: Pick<TaskListFilters, "status">;
 }): Promise<TaskListItem[]> {
   const assigneeExists = exists(
     db
@@ -147,22 +149,25 @@ export async function listTasksForMember({
       ),
   );
 
+  const conditions = [
+    eq(task.organizationId, orgId),
+    eq(task.visibility, "active"),
+    or(
+      eq(task.authorId, userId),
+      eq(task.responsibleId, userId),
+      assigneeExists,
+    )!,
+  ];
+  if (filters?.status && filters.status.length > 0) {
+    conditions.push(inArray(task.status, filters.status));
+  }
+
   const rows = await db
     .select(TASK_SELECT_SHAPE)
     .from(task)
     .leftJoin(authorUser, eq(task.authorId, authorUser.id))
     .leftJoin(responsibleUser, eq(task.responsibleId, responsibleUser.id))
-    .where(
-      and(
-        eq(task.organizationId, orgId),
-        eq(task.visibility, "active"),
-        or(
-          eq(task.authorId, userId),
-          eq(task.responsibleId, userId),
-          assigneeExists,
-        ),
-      ),
-    )
+    .where(and(...conditions))
     .orderBy(desc(task.createdAt));
 
   return attachAssignees(rows.map((r) => normalizeRow(r as Record<string, unknown>)));

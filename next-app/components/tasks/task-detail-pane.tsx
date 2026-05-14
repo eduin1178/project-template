@@ -1,5 +1,11 @@
+"use client";
+
+import { useState } from "react";
+import { PencilSimpleIcon } from "@phosphor-icons/react";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   type TaskStatus,
@@ -7,6 +13,8 @@ import {
 } from "@/lib/db/schema/task";
 import type { OrgMemberOption, TaskListItem } from "@/lib/tasks/queries";
 
+import type { TaskCapabilities } from "./capabilities";
+import { EditTaskDialog } from "./edit-task-dialog";
 import { TaskCommentsPlaceholder } from "./task-comments-placeholder";
 import { TaskDetailActions } from "./task-detail-actions";
 import { TaskRowActions } from "./task-row-actions";
@@ -65,19 +73,23 @@ function personLabel(name: string | null, email: string | null): string {
 
 export function TaskDetailPane({
   task,
-  currentUserId,
   members,
+  capabilities,
 }: {
   task: TaskListItem;
-  currentUserId: string;
   members: OrgMemberOption[];
+  capabilities: TaskCapabilities;
 }) {
   const visibility = task.visibility as TaskVisibility;
   const status = task.status as TaskStatus;
   const authorLabel = personLabel(task.authorName, task.authorEmail);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const showEdit =
+    capabilities.canEditContent || capabilities.canEditDueAt;
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
+    <div className="flex h-full flex-col">
       <header className="flex items-start justify-between gap-4 border-b p-5">
         <div className="flex items-start gap-3">
           <Avatar className="size-9">
@@ -97,18 +109,35 @@ export function TaskDetailPane({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <TaskTeamSummary task={task} members={members} />
+          <TaskTeamSummary
+            task={task}
+            members={members}
+            canManageTeam={capabilities.canManageTeam}
+          />
+          {showEdit ? (
+            <>
+              <Separator orientation="vertical" className="h-7" />
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setEditOpen(true)}
+              >
+                <PencilSimpleIcon />
+                Editar
+              </Button>
+            </>
+          ) : null}
           <Separator orientation="vertical" className="h-7" />
           <TaskRowActions
             task={{
               id: task.id,
               visibility,
               status,
-              authorId: task.authorId,
               dueAt: task.dueAt,
               responsibleId: task.responsibleId,
             }}
-            currentUserId={currentUserId}
+            capabilities={capabilities}
           />
         </div>
       </header>
@@ -133,14 +162,13 @@ export function TaskDetailPane({
           id: task.id,
           visibility,
           status,
-          authorId: task.authorId,
           dueAt: task.dueAt,
           responsibleId: task.responsibleId,
         }}
-        currentUserId={currentUserId}
+        capabilities={capabilities}
       />
 
-      <div className="flex-1 px-5 py-6">
+      <div className="flex-1 overflow-y-auto px-5 py-6">
         {task.description ? (
           <p className="whitespace-pre-wrap text-sm leading-relaxed">
             {task.description}
@@ -153,6 +181,24 @@ export function TaskDetailPane({
       </div>
 
       <TaskCommentsPlaceholder authorLabel={authorLabel} />
+
+      {showEdit ? (
+        <EditTaskDialog
+          task={{
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            dueAt: task.dueAt,
+            visibility,
+          }}
+          capabilities={{
+            canEditContent: capabilities.canEditContent,
+            canEditDueAt: capabilities.canEditDueAt,
+          }}
+          open={editOpen}
+          onOpenChange={setEditOpen}
+        />
+      ) : null}
     </div>
   );
 }

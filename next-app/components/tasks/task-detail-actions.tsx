@@ -25,21 +25,22 @@ import {
   transitionVisibility,
 } from "@/lib/tasks/actions";
 
+import type { TaskCapabilities } from "./capabilities";
+
 type Task = {
   id: string;
   visibility: TaskVisibility;
   status: TaskStatus;
-  authorId: string;
   dueAt: Date | null;
   responsibleId: string | null;
 };
 
 export function TaskDetailActions({
   task,
-  currentUserId,
+  capabilities,
 }: {
   task: Task;
-  currentUserId: string;
+  capabilities: TaskCapabilities;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -76,12 +77,23 @@ export function TaskDetailActions({
     runAction(() => deleteTask({ taskId: task.id }));
   }
 
-  const canClaim = task.authorId !== currentUserId;
-  const canDelete = task.visibility === "draft";
+  const showVisibilityButton = capabilities.canTransitionVisibility;
+  const showStatusButton = capabilities.canTransitionStatus;
+  const showClaim = capabilities.canClaim;
+  const showDelete = capabilities.canDelete;
+
+  if (
+    !showVisibilityButton &&
+    !showStatusButton &&
+    !showClaim &&
+    !showDelete
+  ) {
+    return null;
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3">
-      {task.visibility === "draft" ? (
+      {showVisibilityButton && task.visibility === "draft" ? (
         <Button
           type="button"
           size="sm"
@@ -94,7 +106,7 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {task.visibility === "active" ? (
+      {showVisibilityButton && task.visibility === "active" ? (
         <Button
           type="button"
           size="sm"
@@ -111,7 +123,7 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {task.visibility === "archived" ? (
+      {showVisibilityButton && task.visibility === "archived" ? (
         <Button
           type="button"
           size="sm"
@@ -128,7 +140,7 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {task.status === "pending" ? (
+      {showStatusButton && task.status === "pending" ? (
         <Button
           type="button"
           size="sm"
@@ -145,7 +157,7 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {task.status === "in_progress" ? (
+      {showStatusButton && task.status === "in_progress" ? (
         <Button
           type="button"
           size="sm"
@@ -162,7 +174,7 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {task.status === "done" ? (
+      {showStatusButton && task.status === "done" ? (
         <Button
           type="button"
           size="sm"
@@ -179,7 +191,7 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {canClaim ? (
+      {showClaim ? (
         <Button
           type="button"
           size="sm"
@@ -192,7 +204,7 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {canDelete ? (
+      {showDelete ? (
         <Button
           type="button"
           size="sm"

@@ -95,10 +95,14 @@ export function TasksFiltersPanel({
   initialVisibility,
   initialStatus,
   counts,
+  basePath = "/admin/tasks",
+  showVisibility = true,
 }: {
   initialVisibility: TaskVisibility[];
   initialStatus: TaskStatus[];
   counts: TaskCounts;
+  basePath?: string;
+  showVisibility?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -120,7 +124,7 @@ export function TasksFiltersPanel({
     params.delete("taskId");
     const qs = params.toString();
     startTransition(() => {
-      router.replace(qs ? `/admin/tasks?${qs}` : "/admin/tasks");
+      router.replace(qs ? `${basePath}?${qs}` : basePath);
     });
   }
 
@@ -129,32 +133,34 @@ export function TasksFiltersPanel({
 
   return (
     <div className={cn("space-y-6", isPending && "opacity-70")}>
-      <div className="space-y-2">
-        <div className="text-muted-foreground px-3 text-xs font-medium uppercase tracking-wide">
-          Visibilidad
+      {showVisibility ? (
+        <div className="space-y-2">
+          <div className="text-muted-foreground px-3 text-xs font-medium uppercase tracking-wide">
+            Visibilidad
+          </div>
+          <nav className="space-y-1">
+            {TASK_VISIBILITY_VALUES.map((v) => {
+              const meta = VISIBILITY_META[v];
+              return (
+                <FilterItem
+                  key={v}
+                  label={meta.label}
+                  icon={meta.icon}
+                  count={counts.visibility[v]}
+                  active={initialVisibility.includes(v)}
+                  disabled={isPending}
+                  onClick={() =>
+                    applyFilters({
+                      visibility: toggleValue(initialVisibility, v),
+                      status: initialStatus,
+                    })
+                  }
+                />
+              );
+            })}
+          </nav>
         </div>
-        <nav className="space-y-1">
-          {TASK_VISIBILITY_VALUES.map((v) => {
-            const meta = VISIBILITY_META[v];
-            return (
-              <FilterItem
-                key={v}
-                label={meta.label}
-                icon={meta.icon}
-                count={counts.visibility[v]}
-                active={initialVisibility.includes(v)}
-                disabled={isPending}
-                onClick={() =>
-                  applyFilters({
-                    visibility: toggleValue(initialVisibility, v),
-                    status: initialStatus,
-                  })
-                }
-              />
-            );
-          })}
-        </nav>
-      </div>
+      ) : null}
 
       <div className="space-y-2">
         <div className="text-muted-foreground px-3 text-xs font-medium uppercase tracking-wide">

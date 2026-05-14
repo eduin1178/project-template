@@ -70,54 +70,63 @@ function buildTeamList(task: TaskListItem): TeamMember[] {
 export function TaskTeamSummary({
   task,
   members,
+  canManageTeam,
 }: {
   task: TaskListItem;
   members: OrgMemberOption[];
+  canManageTeam: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const team = buildTeamList(task);
   const visible = team.slice(0, MAX_VISIBLE);
   const overflow = team.length - visible.length;
 
+  const avatars =
+    team.length === 0 ? (
+      <span className="text-muted-foreground text-xs italic">Sin equipo</span>
+    ) : (
+      <div className="flex -space-x-2">
+        {visible.map((m) => (
+          <Tooltip key={m.userId}>
+            <TooltipTrigger asChild>
+              <Avatar
+                className={cn(
+                  "ring-background size-7 ring-2",
+                  m.role === "responsible" && "ring-primary",
+                )}
+              >
+                <AvatarFallback className="text-[10px]">
+                  {personInitials(m.name, m.email)}
+                </AvatarFallback>
+              </Avatar>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs font-medium">
+                {personLabel(m.name, m.email)}
+              </p>
+              <p className="text-muted-foreground text-[10px]">
+                {m.role === "responsible" ? "Responsable" : "Equipo de apoyo"}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+        {overflow > 0 ? (
+          <Avatar className="ring-background bg-muted size-7 ring-2">
+            <AvatarFallback className="text-[10px]">
+              +{overflow}
+            </AvatarFallback>
+          </Avatar>
+        ) : null}
+      </div>
+    );
+
+  if (!canManageTeam) {
+    return <div className="flex items-center gap-1.5">{avatars}</div>;
+  }
+
   return (
     <div className="flex items-center gap-1.5">
-      {team.length === 0 ? (
-        <span className="text-muted-foreground text-xs italic">Sin equipo</span>
-      ) : (
-        <div className="flex -space-x-2">
-          {visible.map((m) => (
-            <Tooltip key={m.userId}>
-              <TooltipTrigger asChild>
-                <Avatar
-                  className={cn(
-                    "ring-background size-7 ring-2",
-                    m.role === "responsible" && "ring-primary",
-                  )}
-                >
-                  <AvatarFallback className="text-[10px]">
-                    {personInitials(m.name, m.email)}
-                  </AvatarFallback>
-                </Avatar>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs font-medium">
-                  {personLabel(m.name, m.email)}
-                </p>
-                <p className="text-muted-foreground text-[10px]">
-                  {m.role === "responsible" ? "Responsable" : "Equipo de apoyo"}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          ))}
-          {overflow > 0 ? (
-            <Avatar className="ring-background bg-muted size-7 ring-2">
-              <AvatarFallback className="text-[10px]">
-                +{overflow}
-              </AvatarFallback>
-            </Avatar>
-          ) : null}
-        </div>
-      )}
+      {avatars}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <Tooltip>

@@ -63,9 +63,11 @@ function formatRelative(date: Date): string {
 export function TasksListPanel({
   tasks,
   selectedId,
+  basePath = "/admin/tasks",
 }: {
   tasks: TaskListItem[];
   selectedId: string | null;
+  basePath?: string;
 }) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
@@ -84,7 +86,7 @@ export function TasksListPanel({
   function buildHref(taskId: string): string {
     const params = new URLSearchParams(searchParams.toString());
     params.set("taskId", taskId);
-    return `/admin/tasks?${params.toString()}`;
+    return `${basePath}?${params.toString()}`;
   }
 
   return (
