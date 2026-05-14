@@ -4,8 +4,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db/client";
-import { member } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { member, organization } from "@/lib/db/schema";
+import { and, asc, eq } from "drizzle-orm";
 
 import { auth } from "./server";
 
@@ -64,6 +64,59 @@ export async function loadActiveMembershipsFor(userId: string) {
     .select({ role: member.role, organizationId: member.organizationId })
     .from(member)
     .where(and(eq(member.userId, userId), eq(member.status, "active")));
+}
+
+export type ActiveOrgSummary = {
+  id: string;
+  name: string;
+  logo: string | null;
+  role: string;
+};
+
+export async function loadActiveOrganizationsFor(
+  userId: string,
+): Promise<ActiveOrgSummary[]> {
+  const rows = await db
+    .select({
+      id: organization.id,
+      name: organization.name,
+      logo: organization.logo,
+      role: member.role,
+    })
+    .from(member)
+    .innerJoin(organization, eq(member.organizationId, organization.id))
+    .where(and(eq(member.userId, userId), eq(member.status, "active")))
+    .orderBy(asc(organization.name));
+  return rows;
+}
+
+export type ResolveActiveOrgArgs = {
+  sessionActiveOrgId: string | null | undefined;
+  lastActiveOrgId: string | null | undefined;
+  activeOrgs: ActiveOrgSummary[];
+};
+
+export type ResolveActiveOrgResult = {
+  activeOrgId: string | null;
+  needsPersist: boolean;
+};
+
+export function resolveActiveOrganization({
+  sessionActiveOrgId,
+  lastActiveOrgId,
+  activeOrgs,
+}: ResolveActiveOrgArgs): ResolveActiveOrgResult {
+  const ids = new Set(activeOrgs.map((o) => o.id));
+  if (sessionActiveOrgId && ids.has(sessionActiveOrgId)) {
+    return { activeOrgId: sessionActiveOrgId, needsPersist: false };
+  }
+  if (lastActiveOrgId && ids.has(lastActiveOrgId)) {
+    return { activeOrgId: lastActiveOrgId, needsPersist: true };
+  }
+  if (activeOrgs.length > 0) {
+    return { activeOrgId: activeOrgs[0].id, needsPersist: true };
+  }
+  return { activeOrgId: null, needsPersist: false };
 }
 
 export async function redirectToDashboard() {

@@ -3,10 +3,18 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { auth } from "@/lib/auth/server";
-import { loadActiveMembershipsFor } from "@/lib/auth/guards";
+import {
+  loadActiveMembershipsFor,
+  loadActiveOrganizationsFor,
+  resolveActiveOrganization,
+} from "@/lib/auth/guards";
 import { deriveMenuRole } from "@/lib/auth/role-menu";
+import { db } from "@/lib/db/client";
+import { user as userTable } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { adminSidebarConfig } from "@/components/layout/contexts/admin";
+import { switchActiveOrganizationAction } from "@/components/layout/team-switcher-actions";
 import {
   SidebarInset,
   SidebarProvider,
@@ -22,7 +30,8 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const requestHeaders = await headers();
+  const session = await auth.api.getSession({ headers: requestHeaders });
   if (!session?.user) {
     redirect("/login");
   }
@@ -37,6 +46,39 @@ export default async function AdminLayout({
     redirect("/app");
   }
 
+  const activeOrgs = await loadActiveOrganizationsFor(session.user.id);
+  if (activeOrgs.length === 0) {
+    redirect("/account/organizations");
+  }
+
+  const sessionActiveOrgId =
+    (session.session as { activeOrganizationId?: string | null } | undefined)
+      ?.activeOrganizationId ?? null;
+  const lastActiveOrgId =
+    (session.user as { lastActiveOrganizationId?: string | null })
+      .lastActiveOrganizationId ?? null;
+
+  const resolved = resolveActiveOrganization({
+    sessionActiveOrgId,
+    lastActiveOrgId,
+    activeOrgs,
+  });
+
+  if (resolved.needsPersist && resolved.activeOrgId) {
+    try {
+      await auth.api.setActiveOrganization({
+        body: { organizationId: resolved.activeOrgId },
+        headers: requestHeaders,
+      });
+      await db
+        .update(userTable)
+        .set({ lastActiveOrganizationId: resolved.activeOrgId })
+        .where(eq(userTable.id, session.user.id));
+    } catch (err) {
+      console.error("[admin/layout] persistencia de org activa falló", err);
+    }
+  }
+
   return (
     <TooltipProvider>
       <SidebarProvider>
@@ -48,6 +90,15 @@ export default async function AdminLayout({
             image: session.user.image ?? null,
           }}
           role={deriveMenuRole(session, memberships)}
+          teams={{
+            orgs: activeOrgs.map((o) => ({
+              id: o.id,
+              name: o.name,
+              logo: o.logo,
+            })),
+            activeOrgId: resolved.activeOrgId,
+            onSwitch: switchActiveOrganizationAction,
+          }}
         />
         <SidebarInset>
           <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">

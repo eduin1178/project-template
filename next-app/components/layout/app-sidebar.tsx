@@ -13,24 +13,31 @@ import type { MenuRole } from "@/lib/auth/role-menu";
 import { NavBrand } from "./nav-brand";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
-import type { SidebarConfig, SidebarUser } from "./types";
+import { TeamSwitcher } from "./team-switcher";
+import type { SidebarConfig, SidebarUser, TeamsConfig } from "./types";
 
 type AppSidebarProps = ComponentProps<typeof Sidebar> & {
   config: SidebarConfig;
   user: SidebarUser;
   role: MenuRole;
+  teams?: TeamsConfig;
 };
 
 export function AppSidebar({
   config,
   user,
   role,
+  teams,
   ...sidebarProps
 }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" {...sidebarProps}>
       <SidebarHeader>
-        <NavBrand brand={config.brand} />
+        {teams && teams.orgs.length > 0 ? (
+          <TeamSwitcher teams={teams} />
+        ) : (
+          <NavBrand brand={config.brand} />
+        )}
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={config.items} />

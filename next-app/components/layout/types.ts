@@ -24,3 +24,17 @@ export type SidebarConfig = {
   brand: SidebarBrand;
   items: SidebarItem[];
 };
+
+export type TeamSwitcherOrg = {
+  id: string;
+  name: string;
+  logo: string | null;
+};
+
+export type TeamsConfig = {
+  orgs: TeamSwitcherOrg[];
+  activeOrgId: string | null;
+  onSwitch: (
+    orgId: string,
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
+};
