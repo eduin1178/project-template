@@ -44,6 +44,44 @@ export async function requireTenantAdmin() {
   return { session, memberships };
 }
 
+export type OrgAdminContext = {
+  userId: string;
+  orgId: string;
+  role: "admin" | "owner";
+};
+
+export async function requireOrgAdmin(): Promise<OrgAdminContext> {
+  const session = await requireSession();
+  const activeOrgId =
+    (session.session as { activeOrganizationId?: string | null } | undefined)
+      ?.activeOrganizationId ?? null;
+  if (!activeOrgId) {
+    throw new Error("FORBIDDEN");
+  }
+  const [row] = await db
+    .select({ role: member.role, status: member.status })
+    .from(member)
+    .where(
+      and(
+        eq(member.userId, session.user.id),
+        eq(member.organizationId, activeOrgId),
+      ),
+    )
+    .limit(1);
+  if (
+    !row ||
+    row.status !== "active" ||
+    (row.role !== "admin" && row.role !== "owner")
+  ) {
+    throw new Error("FORBIDDEN");
+  }
+  return {
+    userId: session.user.id,
+    orgId: activeOrgId,
+    role: row.role as "admin" | "owner",
+  };
+}
+
 export async function requireAnyUser() {
   return requireSession();
 }

@@ -1,5 +1,5 @@
 import { createElement } from "react";
-import { HouseIcon } from "@phosphor-icons/react/dist/ssr";
+import { HouseIcon, ListChecksIcon } from "@phosphor-icons/react/dist/ssr";
 
 import type { SidebarConfig } from "../types";
 
@@ -15,6 +15,11 @@ export const adminSidebarConfig: SidebarConfig = {
       label: "Inicio",
       href: "/admin",
       icon: createElement(HouseIcon),
+    },
+    {
+      label: "Tareas",
+      href: "/admin/tasks",
+      icon: createElement(ListChecksIcon),
     },
   ],
 };

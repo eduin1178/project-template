@@ -15,6 +15,13 @@
       "when": 1778719298043,
       "tag": "0001_new_sleepwalker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778728513740,
+      "tag": "0002_broken_reptil",
+      "breakpoints": true
     }
   ]
 }
