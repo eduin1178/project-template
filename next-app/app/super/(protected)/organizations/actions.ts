@@ -235,6 +235,7 @@ export type OrganizationMember = {
   name: string;
   email: string;
   role: string;
+  status: "active" | "inactive";
   joinedAt: Date;
 };
 
@@ -276,18 +277,23 @@ export async function getOrganizationDetail(
     .limit(1);
   if (!org) return null;
 
-  const members = await db
+  const memberRows = await db
     .select({
       id: member.id,
       userId: member.userId,
       name: user.name,
       email: user.email,
       role: member.role,
+      status: member.status,
       joinedAt: member.createdAt,
     })
     .from(member)
     .innerJoin(user, eq(member.userId, user.id))
     .where(eq(member.organizationId, organizationId));
+  const members: OrganizationMember[] = memberRows.map((m) => ({
+    ...m,
+    status: m.status === "inactive" ? "inactive" : "active",
+  }));
 
   const rows = await db
     .select({

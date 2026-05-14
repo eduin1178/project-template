@@ -16,7 +16,10 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { OrgAvatar } from "@/components/organizations/org-avatar";
-import { MembersTable } from "@/components/organizations/members-table";
+import {
+  MembersTable,
+  type MemberRow,
+} from "@/components/organizations/members-table";
 import {
   InvitationsTable,
   type InvitationRow,
@@ -27,6 +30,8 @@ import { EditOrgDialog } from "./_components/edit-org-dialog";
 import {
   deleteTenantInvitationAction,
   resendTenantInvitationAction,
+  setMemberStatusAction,
+  updateMemberRoleAction,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -78,11 +83,14 @@ export default async function AccountOrgDetailPage({
   if (!session?.user) redirect("/login");
 
   const [membership] = await db
-    .select({ role: member.role })
+    .select({ role: member.role, status: member.status })
     .from(member)
     .where(and(eq(member.organizationId, id), eq(member.userId, session.user.id)))
     .limit(1);
   if (!membership) notFound();
+  if (membership.status === "inactive") {
+    redirect(`/account/suspended?org=${encodeURIComponent(id)}`);
+  }
 
   const isAdmin = membership.role === "admin" || membership.role === "owner";
 
@@ -99,18 +107,24 @@ export default async function AccountOrgDetailPage({
     .limit(1);
   if (!org) notFound();
 
-  const members = await db
+  const memberRows = await db
     .select({
       id: member.id,
       userId: member.userId,
       name: user.name,
       email: user.email,
       role: member.role,
+      status: member.status,
       joinedAt: member.createdAt,
     })
     .from(member)
     .innerJoin(user, eq(member.userId, user.id))
     .where(eq(member.organizationId, id));
+
+  const members: MemberRow[] = memberRows.map((m) => ({
+    ...m,
+    status: m.status === "inactive" ? "inactive" : "active",
+  }));
 
   const inviteRows = await db
     .select({
@@ -180,7 +194,19 @@ export default async function AccountOrgDetailPage({
         </TabsList>
 
         <TabsContent value="members" className="mt-4">
-          <MembersTable members={members} currentUserId={session.user.id} />
+          <MembersTable
+            members={members}
+            currentUserId={session.user.id}
+            canManage={isAdmin}
+            actions={
+              isAdmin
+                ? {
+                    onChangeRole: updateMemberRoleAction,
+                    onSetStatus: setMemberStatusAction,
+                  }
+                : undefined
+            }
+          />
         </TabsContent>
 
         <TabsContent value="invitations" className="mt-4 space-y-4">

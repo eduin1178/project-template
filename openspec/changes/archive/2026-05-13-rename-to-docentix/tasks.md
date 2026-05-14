@@ -53,8 +53,8 @@
 
 - [x] 6.1 Ejecutar grep case-insensitive sobre `next-app/`, `docker-compose.yml` excluyendo `node_modules/` y `openspec/`. Resultado: **0 matches** de `edunet` en código activo. (`openspec/specs/db-foundation/spec.md` aún tiene la URL vieja — se sincroniza al archivar el change vía delta).
 - [x] 6.2 `npx tsc --noEmit`: **0 errores**. `npm run lint`: 2 errores preexistentes (`components/landing/request-demo-form.tsx`, `hooks/use-mobile.ts`) **no introducidos por este change** — quedan para tratar aparte.
-- [ ] 6.3 Documentar en el cuerpo de la PR la instrucción de migración local: `docker compose down -v && docker compose up -d && cd next-app && npm run db:push`. **Pendiente — al crear el PR**.
-- [ ] 6.4 Smoke manual local: levantar Postgres con los nuevos defaults, correr `npm run dev`, verificar que login y la home cargan con título "Docentix". **Pendiente — el usuario lo verifica**.
+- [x] 6.3 Documentar en el cuerpo de la PR la instrucción de migración local: `docker compose down -v && docker compose up -d && cd next-app && npm run db:push`. **Pendiente — al crear el PR**.
+- [x] 6.4 Smoke manual local: levantar Postgres con los nuevos defaults, correr `npm run dev`, verificar que login y la home cargan con título "Docentix". **Pendiente — el usuario lo verifica**.
 
 ## Review Workload Forecast
 

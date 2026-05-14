@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import { sendTenantInvitationEmail } from "@/lib/auth/emails";
@@ -37,7 +37,7 @@ type ActionResult = { ok: true } | { ok: false; error: string };
 async function requireTenantAdminFor(organizationId: string) {
   const session = await requireSession();
   const [row] = await db
-    .select({ role: member.role })
+    .select({ role: member.role, status: member.status })
     .from(member)
     .where(
       and(
@@ -46,7 +46,11 @@ async function requireTenantAdminFor(organizationId: string) {
       ),
     )
     .limit(1);
-  if (!row || (row.role !== "admin" && row.role !== "owner")) {
+  if (
+    !row ||
+    row.status !== "active" ||
+    (row.role !== "admin" && row.role !== "owner")
+  ) {
     throw new Error("FORBIDDEN");
   }
   return session;
@@ -308,6 +312,156 @@ export async function resendTenantInvitationAction(
     console.error("[orgs] reenvío falló", err);
     return { ok: false, error: "No pudimos reenviar el email." };
   }
+  return { ok: true };
+}
+
+const updateMemberRoleSchema = z.object({
+  memberId: z.string().min(1),
+  role: z.enum(["admin", "member"]),
+});
+
+export async function updateMemberRoleAction(
+  input: z.infer<typeof updateMemberRoleSchema>,
+): Promise<ActionResult> {
+  const parsed = updateMemberRoleSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Datos inválidos.",
+    };
+  }
+
+  const [target] = await db
+    .select({
+      id: member.id,
+      organizationId: member.organizationId,
+      userId: member.userId,
+      role: member.role,
+      status: member.status,
+    })
+    .from(member)
+    .where(eq(member.id, parsed.data.memberId))
+    .limit(1);
+  if (!target) return { ok: false, error: "El miembro no existe." };
+
+  let session;
+  try {
+    session = await requireTenantAdminFor(target.organizationId);
+  } catch {
+    return { ok: false, error: "No tienes permisos en esta organización." };
+  }
+
+  if (target.userId === session.user.id) {
+    return { ok: false, error: "No puedes cambiar tu propio rol." };
+  }
+
+  const isTargetPrivileged =
+    target.role === "admin" || target.role === "owner";
+  if (parsed.data.role === "member" && isTargetPrivileged) {
+    const survivors = await db
+      .select({ id: member.id })
+      .from(member)
+      .where(
+        and(
+          eq(member.organizationId, target.organizationId),
+          eq(member.status, "active"),
+          inArray(member.role, ["admin", "owner"]),
+        ),
+      );
+    const otherActiveAdmins = survivors.filter((m) => m.id !== target.id);
+    if (otherActiveAdmins.length === 0) {
+      return {
+        ok: false,
+        error:
+          "No puedes degradar al último admin activo de la organización.",
+      };
+    }
+  }
+
+  if (parsed.data.role === target.role) {
+    return { ok: true };
+  }
+
+  await db
+    .update(member)
+    .set({ role: parsed.data.role })
+    .where(eq(member.id, target.id));
+  revalidatePath(`/account/organizations/${target.organizationId}`);
+  return { ok: true };
+}
+
+const setMemberStatusSchema = z.object({
+  memberId: z.string().min(1),
+  status: z.enum(["active", "inactive"]),
+});
+
+export async function setMemberStatusAction(
+  input: z.infer<typeof setMemberStatusSchema>,
+): Promise<ActionResult> {
+  const parsed = setMemberStatusSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Datos inválidos.",
+    };
+  }
+
+  const [target] = await db
+    .select({
+      id: member.id,
+      organizationId: member.organizationId,
+      userId: member.userId,
+      role: member.role,
+      status: member.status,
+    })
+    .from(member)
+    .where(eq(member.id, parsed.data.memberId))
+    .limit(1);
+  if (!target) return { ok: false, error: "El miembro no existe." };
+
+  let session;
+  try {
+    session = await requireTenantAdminFor(target.organizationId);
+  } catch {
+    return { ok: false, error: "No tienes permisos en esta organización." };
+  }
+
+  if (target.userId === session.user.id) {
+    return { ok: false, error: "No puedes suspender tu propio acceso." };
+  }
+
+  const isTargetPrivileged =
+    target.role === "admin" || target.role === "owner";
+  if (parsed.data.status === "inactive" && isTargetPrivileged) {
+    const survivors = await db
+      .select({ id: member.id })
+      .from(member)
+      .where(
+        and(
+          eq(member.organizationId, target.organizationId),
+          eq(member.status, "active"),
+          inArray(member.role, ["admin", "owner"]),
+        ),
+      );
+    const otherActiveAdmins = survivors.filter((m) => m.id !== target.id);
+    if (otherActiveAdmins.length === 0) {
+      return {
+        ok: false,
+        error:
+          "No puedes suspender al último admin activo de la organización.",
+      };
+    }
+  }
+
+  if (parsed.data.status === target.status) {
+    return { ok: true };
+  }
+
+  await db
+    .update(member)
+    .set({ status: parsed.data.status })
+    .where(eq(member.id, target.id));
+  revalidatePath(`/account/organizations/${target.organizationId}`);
   return { ok: true };
 }
 

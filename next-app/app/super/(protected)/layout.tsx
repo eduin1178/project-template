@@ -13,6 +13,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export default async function SuperProtectedLayout({
   children,
@@ -37,10 +38,13 @@ export default async function SuperProtectedLayout({
           role="super_admin"
         />
         <SidebarInset>
-          <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">
+          <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Separator orientation="vertical" className="mr-2 h-16" />
             <span className="text-sm font-medium">Panel super</span>
+            <div className="ml-auto flex items-center">
+              <ThemeToggle />
+            </div>
           </header>
           <main className="flex-1 px-6 py-8">{children}</main>
         </SidebarInset>

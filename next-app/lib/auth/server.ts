@@ -79,7 +79,13 @@ export const auth = betterAuth({
   },
 
   user: {
-    additionalFields: {},
+    additionalFields: {
+      lastActiveOrganizationId: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+    },
   },
 
   plugins: [
@@ -92,7 +98,20 @@ export const auth = betterAuth({
         user: userAc,
       },
     }),
-    organization(),
+    organization({
+      schema: {
+        member: {
+          additionalFields: {
+            status: {
+              type: "string",
+              required: true,
+              defaultValue: "active",
+              input: false,
+            },
+          },
+        },
+      },
+    }),
     nextCookies(),
   ],
 });

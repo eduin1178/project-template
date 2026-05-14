@@ -16,7 +16,7 @@ El repositorio SHALL incluir un `docker-compose.yml` en su raíz que defina un s
 
 #### Scenario: Levantar Postgres localmente
 - **WHEN** se ejecuta `docker compose up -d` en una máquina dev
-- **THEN** Postgres queda disponible en `postgresql://edunet:edunet_dev@localhost:5432/edunet` (o credenciales equivalentes documentadas en `.env.example`)
+- **THEN** Postgres queda disponible en `postgresql://docentix:docentix_dev@localhost:5432/docentix` (o credenciales equivalentes documentadas en `.env.example`)
 
 ### Requirement: Drizzle ORM configurado
 

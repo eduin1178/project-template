@@ -56,6 +56,7 @@ export default async function OrganizationsPage() {
       slug: organization.slug,
       logo: organization.logo,
       role: member.role,
+      status: member.status,
       joinedAt: member.createdAt,
     })
     .from(member)
@@ -82,8 +83,15 @@ export default async function OrganizationsPage() {
         <ul className="divide-border divide-y rounded-md border">
           {rows.map((row) => {
             const isAdmin = row.role === "admin" || row.role === "owner";
+            const isInactive = row.status === "inactive";
+            const detailHref = isInactive
+              ? `/account/suspended?org=${encodeURIComponent(row.organizationId)}`
+              : `/account/organizations/${row.organizationId}`;
             return (
-              <li key={row.organizationId} className="flex items-center gap-4 p-4">
+              <li
+                key={row.organizationId}
+                className={`flex items-center gap-4 p-4${isInactive ? " opacity-70" : ""}`}
+              >
                 <div className="bg-muted flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md text-sm font-medium">
                   {row.logo ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
@@ -99,12 +107,16 @@ export default async function OrganizationsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <Link
-                      href={`/account/organizations/${row.organizationId}`}
+                      href={detailHref}
                       className="hover:underline truncate text-sm font-medium"
                     >
                       {row.name}
                     </Link>
-                    {isAdmin ? <Badge variant="secondary">Admin</Badge> : null}
+                    {isInactive ? (
+                      <Badge variant="destructive">Suspendida</Badge>
+                    ) : isAdmin ? (
+                      <Badge variant="secondary">Admin</Badge>
+                    ) : null}
                   </div>
                   <p className="text-muted-foreground truncate text-xs">
                     {row.slug} · Miembro desde {formatDate(row.joinedAt)}

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { auth } from "@/lib/auth/server";
-import { loadMembershipsFor } from "@/lib/auth/guards";
+import { loadActiveMembershipsFor } from "@/lib/auth/guards";
 import { deriveMenuRole } from "@/lib/auth/role-menu";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { adminSidebarConfig } from "@/components/layout/contexts/admin";
@@ -15,6 +15,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export default async function AdminLayout({
   children,
@@ -28,7 +29,7 @@ export default async function AdminLayout({
   if (session.user.role === "super_admin") {
     redirect("/super");
   }
-  const memberships = await loadMembershipsFor(session.user.id);
+  const memberships = await loadActiveMembershipsFor(session.user.id);
   const isAdmin = memberships.some(
     (m) => m.role === "admin" || m.role === "owner",
   );
@@ -49,10 +50,13 @@ export default async function AdminLayout({
           role={deriveMenuRole(session, memberships)}
         />
         <SidebarInset>
-          <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b px-4">
+          <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Separator orientation="vertical" className="mr-2 h-16" />
             <span className="text-sm font-medium">Panel admin</span>
+            <div className="ml-auto flex items-center">
+              <ThemeToggle />
+            </div>
           </header>
           <main className="flex-1 px-6 py-8">{children}</main>
         </SidebarInset>

@@ -9,6 +9,7 @@ import { loadMembershipsFor } from "@/lib/auth/guards";
 import { deriveDashboardHref } from "@/lib/auth/derive-dashboard-href";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export default async function AccountLayout({
   children,
@@ -42,6 +43,9 @@ export default async function AccountLayout({
           </Link>
           <span className="bg-border h-4 w-px" aria-hidden />
           <h1 className="text-sm font-medium">Mi cuenta</h1>
+          <div className="ml-auto flex items-center">
+            <ThemeToggle />
+          </div>
         </header>
         <main className="mx-auto w-full max-w-3xl px-6 py-8">{children}</main>
         <Toaster />

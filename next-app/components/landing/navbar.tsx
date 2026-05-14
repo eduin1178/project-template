@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Logo } from "./logo";
 import { AuthCta } from "./auth-cta";
 import { RequestDemoButton } from "./request-demo-button";
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { siteContent } from "@/content/landing";
 
 export function Navbar() {

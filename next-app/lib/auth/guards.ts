@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db/client";
 import { member } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { auth } from "./server";
 
@@ -50,9 +50,20 @@ export async function requireAnyUser() {
 
 export async function loadMembershipsFor(userId: string) {
   return db
-    .select({ role: member.role, organizationId: member.organizationId })
+    .select({
+      role: member.role,
+      organizationId: member.organizationId,
+      status: member.status,
+    })
     .from(member)
     .where(eq(member.userId, userId));
+}
+
+export async function loadActiveMembershipsFor(userId: string) {
+  return db
+    .select({ role: member.role, organizationId: member.organizationId })
+    .from(member)
+    .where(and(eq(member.userId, userId), eq(member.status, "active")));
 }
 
 export async function redirectToDashboard() {
@@ -61,7 +72,7 @@ export async function redirectToDashboard() {
     redirect("/login");
   }
   if (session.user.role === "super_admin") redirect("/super");
-  const memberships = await loadMembershipsFor(session.user.id);
+  const memberships = await loadActiveMembershipsFor(session.user.id);
   const isTenantAdmin = memberships.some(
     (m) => m.role === "admin" || m.role === "owner",
   );
