@@ -83,6 +83,19 @@ export const deleteTaskSchema = z.object({
   taskId: taskIdSchema,
 });
 
+export const createCommentSchema = z.object({
+  taskId: taskIdSchema,
+  body: z
+    .string()
+    .trim()
+    .min(1, "El comentario no puede estar vacío.")
+    .max(2000, "El comentario no puede superar los 2000 caracteres."),
+});
+
+export const deleteCommentSchema = z.object({
+  commentId: z.string().min(1, "Comentario inválido."),
+});
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskContentInput = z.infer<typeof updateTaskContentSchema>;
 export type TransitionVisibilityInput = z.infer<typeof transitionVisibilitySchema>;
@@ -93,3 +106,5 @@ export type ClearResponsibleInput = z.infer<typeof clearResponsibleSchema>;
 export type AddAssigneeInput = z.infer<typeof addAssigneeSchema>;
 export type RemoveAssigneeInput = z.infer<typeof removeAssigneeSchema>;
 export type DeleteTaskInput = z.infer<typeof deleteTaskSchema>;
+export type CreateCommentInput = z.infer<typeof createCommentSchema>;
+export type DeleteCommentInput = z.infer<typeof deleteCommentSchema>;

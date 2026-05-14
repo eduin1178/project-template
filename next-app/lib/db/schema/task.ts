@@ -99,3 +99,41 @@ export const taskAssigneeRelations = relations(taskAssignee, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+export const taskComment = pgTable(
+  "task_comment",
+  {
+    id: text("id").primaryKey(),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade" }),
+    authorId: text("author_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    deletedByName: text("deleted_by_name"),
+    deletedByEmail: text("deleted_by_email"),
+  },
+  (table) => [
+    index("task_comment_task_id_created_at_idx").on(
+      table.taskId,
+      table.createdAt,
+    ),
+    index("task_comment_author_id_idx").on(table.authorId),
+  ],
+);
+
+export const taskCommentRelations = relations(taskComment, ({ one }) => ({
+  task: one(task, {
+    fields: [taskComment.taskId],
+    references: [task.id],
+  }),
+  author: one(user, {
+    fields: [taskComment.authorId],
+    references: [user.id],
+  }),
+}));

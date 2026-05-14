@@ -12,6 +12,7 @@ import {
 import {
   getTaskCounts,
   getTaskWithAuthorById,
+  listCommentsForTask,
   listOrgMembers,
   listTasks,
 } from "@/lib/tasks/queries";
@@ -69,6 +70,14 @@ export default async function AdminTasksPage({
 
   const selected = selectedExplicit ?? (tasks.length > 0 ? tasks[0] : null);
 
+  const comments = selected
+    ? await listCommentsForTask({
+        taskId: selected.id,
+        viewerUserId: ctx.userId,
+        isAdmin: true,
+      })
+    : [];
+
   return (
     <div className="bg-background -mx-6 -my-8 flex h-[calc(100vh-4rem)] overflow-hidden">
       <aside className="bg-muted/30 hidden w-64 shrink-0 overflow-y-auto border-r p-4 md:block">
@@ -101,6 +110,7 @@ export default async function AdminTasksPage({
               task: selected,
               viewer: { userId: ctx.userId, role: ctx.role },
             })}
+            comments={comments}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center p-8">

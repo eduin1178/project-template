@@ -4,13 +4,21 @@ import { and, desc, eq, exists, inArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/lib/db/client";
-import { member, task, taskAssignee, user } from "@/lib/db/schema";
+import {
+  member,
+  task,
+  taskAssignee,
+  taskComment,
+  user,
+} from "@/lib/db/schema";
 import {
   TASK_STATUS_VALUES,
   TASK_VISIBILITY_VALUES,
   type TaskStatus,
   type TaskVisibility,
 } from "@/lib/db/schema/task";
+
+import { isWithinEditWindow } from "./comments";
 
 const authorUser = alias(user, "author_user");
 const responsibleUser = alias(user, "responsible_user");
@@ -310,6 +318,75 @@ export async function listOrgMembers({
     email: r.email,
     role: r.role,
   }));
+}
+
+export type TaskCommentView = {
+  id: string;
+  taskId: string;
+  authorId: string;
+  authorName: string | null;
+  authorEmail: string | null;
+  authorImage: string | null;
+  body: string | null;
+  createdAt: Date;
+  deletedAt: Date | null;
+  deletedByName: string | null;
+  deletedByEmail: string | null;
+  canDelete: boolean;
+  isOwn: boolean;
+};
+
+export async function listCommentsForTask({
+  taskId,
+  viewerUserId,
+  isAdmin,
+}: {
+  taskId: string;
+  viewerUserId: string;
+  isAdmin: boolean;
+}): Promise<TaskCommentView[]> {
+  const rows = await db
+    .select({
+      id: taskComment.id,
+      taskId: taskComment.taskId,
+      authorId: taskComment.authorId,
+      authorName: user.name,
+      authorEmail: user.email,
+      authorImage: user.image,
+      body: taskComment.body,
+      createdAt: taskComment.createdAt,
+      deletedAt: taskComment.deletedAt,
+      deletedByName: taskComment.deletedByName,
+      deletedByEmail: taskComment.deletedByEmail,
+    })
+    .from(taskComment)
+    .leftJoin(user, eq(taskComment.authorId, user.id))
+    .where(eq(taskComment.taskId, taskId))
+    .orderBy(taskComment.createdAt);
+
+  const now = new Date();
+  return rows.map((row) => {
+    const isDeleted = row.deletedAt !== null;
+    const isAuthor = row.authorId === viewerUserId;
+    const canDelete =
+      !isDeleted &&
+      (isAdmin || (isAuthor && isWithinEditWindow(row.createdAt, now)));
+    return {
+      id: row.id,
+      taskId: row.taskId,
+      authorId: row.authorId,
+      authorName: row.authorName ?? null,
+      authorEmail: row.authorEmail ?? null,
+      authorImage: row.authorImage ?? null,
+      body: isDeleted ? null : row.body,
+      createdAt: row.createdAt,
+      deletedAt: row.deletedAt,
+      deletedByName: row.deletedByName,
+      deletedByEmail: row.deletedByEmail,
+      canDelete,
+      isOwn: isAuthor,
+    };
+  });
 }
 
 export async function isUserMemberOfOrg({

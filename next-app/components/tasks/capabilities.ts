@@ -9,6 +9,7 @@ export type TaskCapabilities = {
   canTransitionStatus: boolean;
   canDelete: boolean;
   canClaim: boolean;
+  canComment: boolean;
 };
 
 export type TaskCapabilitiesInput = {
@@ -44,6 +45,7 @@ export function computeTaskCapabilities({
   const canTransitionStatus = isAdmin || isParticipant;
   const canDelete = (isAdmin || isAuthor) && visibility === "draft";
   const canClaim = isAdmin && !isAuthor;
+  const canComment = isAdmin || (visibility === "active" && isParticipant);
 
   return {
     canEditContent,
@@ -53,5 +55,6 @@ export function computeTaskCapabilities({
     canTransitionStatus,
     canDelete,
     canClaim,
+    canComment,
   };
 }

@@ -7,15 +7,20 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   type TaskStatus,
   type TaskVisibility,
 } from "@/lib/db/schema/task";
-import type { OrgMemberOption, TaskListItem } from "@/lib/tasks/queries";
+import type {
+  OrgMemberOption,
+  TaskCommentView,
+  TaskListItem,
+} from "@/lib/tasks/queries";
 
 import type { TaskCapabilities } from "./capabilities";
 import { EditTaskDialog } from "./edit-task-dialog";
-import { TaskCommentsPlaceholder } from "./task-comments-placeholder";
+import { TaskCommentsPanel } from "./task-comments-panel";
 import { TaskDetailActions } from "./task-detail-actions";
 import { TaskRowActions } from "./task-row-actions";
 import { TaskTeamSummary } from "./task-team-summary";
@@ -75,10 +80,12 @@ export function TaskDetailPane({
   task,
   members,
   capabilities,
+  comments,
 }: {
   task: TaskListItem;
   members: OrgMemberOption[];
   capabilities: TaskCapabilities;
+  comments: TaskCommentView[];
 }) {
   const visibility = task.visibility as TaskVisibility;
   const status = task.status as TaskStatus;
@@ -168,19 +175,44 @@ export function TaskDetailPane({
         capabilities={capabilities}
       />
 
-      <div className="flex-1 overflow-y-auto px-5 py-6">
-        {task.description ? (
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">
-            {task.description}
-          </p>
-        ) : (
-          <p className="text-muted-foreground text-sm italic">
-            Esta tarea no tiene descripción.
-          </p>
-        )}
-      </div>
-
-      <TaskCommentsPlaceholder authorLabel={authorLabel} />
+      <Tabs
+        defaultValue="detail"
+        className="flex min-h-0 flex-1 flex-col gap-0"
+      >
+        <TabsList className="mx-5 mt-3 w-fit">
+          <TabsTrigger value="detail">Detalle</TabsTrigger>
+          <TabsTrigger value="comments">
+            Comentarios
+            {comments.filter((c) => c.deletedAt === null).length > 0
+              ? ` (${comments.filter((c) => c.deletedAt === null).length})`
+              : ""}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent
+          value="detail"
+          className="mt-0 flex-1 overflow-y-auto px-5 py-6"
+        >
+          {task.description ? (
+            <p className="whitespace-pre-wrap text-sm leading-relaxed">
+              {task.description}
+            </p>
+          ) : (
+            <p className="text-muted-foreground text-sm italic">
+              Esta tarea no tiene descripción.
+            </p>
+          )}
+        </TabsContent>
+        <TabsContent
+          value="comments"
+          className="mt-0 flex min-h-0 flex-1 flex-col"
+        >
+          <TaskCommentsPanel
+            taskId={task.id}
+            comments={comments}
+            canComment={capabilities.canComment}
+          />
+        </TabsContent>
+      </Tabs>
 
       {showEdit ? (
         <EditTaskDialog
