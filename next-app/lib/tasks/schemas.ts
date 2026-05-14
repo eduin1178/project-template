@@ -26,33 +26,61 @@ const dueAtSchema = z
   .transform((value) => (value instanceof Date ? value : new Date(value)))
   .refine((d) => !Number.isNaN(d.getTime()), "Fecha inválida.");
 
+const userIdSchema = z.string().min(1, "Usuario inválido.");
+const taskIdSchema = z.string().min(1);
+
 export const createTaskSchema = z.object({
   title: titleSchema,
   description: descriptionSchema,
   dueAt: dueAtSchema.optional(),
   visibility: taskVisibilitySchema.optional(),
+  responsibleId: userIdSchema.optional(),
 });
 
 export const updateTaskContentSchema = z.object({
-  taskId: z.string().min(1),
+  taskId: taskIdSchema,
   title: titleSchema.optional(),
   description: descriptionSchema,
   dueAt: dueAtSchema.nullable().optional(),
 });
 
 export const transitionVisibilitySchema = z.object({
-  taskId: z.string().min(1),
+  taskId: taskIdSchema,
   to: taskVisibilitySchema,
   dueAt: dueAtSchema.optional(),
+  responsibleId: userIdSchema.optional(),
 });
 
 export const transitionStatusSchema = z.object({
-  taskId: z.string().min(1),
+  taskId: taskIdSchema,
   to: taskStatusSchema,
 });
 
 export const claimAuthorshipSchema = z.object({
-  taskId: z.string().min(1),
+  taskId: taskIdSchema,
+});
+
+export const setResponsibleSchema = z.object({
+  taskId: taskIdSchema,
+  userId: userIdSchema,
+});
+
+export const clearResponsibleSchema = z.object({
+  taskId: taskIdSchema,
+});
+
+export const addAssigneeSchema = z.object({
+  taskId: taskIdSchema,
+  userId: userIdSchema,
+});
+
+export const removeAssigneeSchema = z.object({
+  taskId: taskIdSchema,
+  userId: userIdSchema,
+});
+
+export const deleteTaskSchema = z.object({
+  taskId: taskIdSchema,
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
@@ -60,3 +88,8 @@ export type UpdateTaskContentInput = z.infer<typeof updateTaskContentSchema>;
 export type TransitionVisibilityInput = z.infer<typeof transitionVisibilitySchema>;
 export type TransitionStatusInput = z.infer<typeof transitionStatusSchema>;
 export type ClaimAuthorshipInput = z.infer<typeof claimAuthorshipSchema>;
+export type SetResponsibleInput = z.infer<typeof setResponsibleSchema>;
+export type ClearResponsibleInput = z.infer<typeof clearResponsibleSchema>;
+export type AddAssigneeInput = z.infer<typeof addAssigneeSchema>;
+export type RemoveAssigneeInput = z.infer<typeof removeAssigneeSchema>;
+export type DeleteTaskInput = z.infer<typeof deleteTaskSchema>;

@@ -27,3 +27,7 @@ export function isStatusTransitionAllowed(
   if (from === to) return true;
   return STATUS_TRANSITIONS[from].includes(to);
 }
+
+export function requiresResponsibleForActive(to: TaskVisibility): boolean {
+  return to === "active";
+}

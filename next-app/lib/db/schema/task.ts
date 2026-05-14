@@ -3,6 +3,7 @@ import {
   check,
   index,
   pgTable,
+  primaryKey,
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
@@ -27,6 +28,9 @@ export const task = pgTable(
     authorId: text("author_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    responsibleId: text("responsible_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
     organizationId: text("organization_id")
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
@@ -39,6 +43,7 @@ export const task = pgTable(
   (table) => [
     index("task_organization_id_idx").on(table.organizationId),
     index("task_author_id_idx").on(table.authorId),
+    index("task_responsible_id_idx").on(table.responsibleId),
     check(
       "task_visibility_check",
       sql`${table.visibility} IN ('draft', 'active', 'archived')`,
@@ -50,13 +55,47 @@ export const task = pgTable(
   ],
 );
 
-export const taskRelations = relations(task, ({ one }) => ({
+export const taskAssignee = pgTable(
+  "task_assignee",
+  {
+    taskId: text("task_id")
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.taskId, table.userId] }),
+    index("task_assignee_user_id_idx").on(table.userId),
+  ],
+);
+
+export const taskRelations = relations(task, ({ one, many }) => ({
   author: one(user, {
     fields: [task.authorId],
     references: [user.id],
+    relationName: "task_author",
+  }),
+  responsible: one(user, {
+    fields: [task.responsibleId],
+    references: [user.id],
+    relationName: "task_responsible",
   }),
   organization: one(organization, {
     fields: [task.organizationId],
     references: [organization.id],
+  }),
+  assignees: many(taskAssignee),
+}));
+
+export const taskAssigneeRelations = relations(taskAssignee, ({ one }) => ({
+  task: one(task, {
+    fields: [taskAssignee.taskId],
+    references: [task.id],
+  }),
+  user: one(user, {
+    fields: [taskAssignee.userId],
+    references: [user.id],
   }),
 }));

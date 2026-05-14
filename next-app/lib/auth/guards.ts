@@ -86,6 +86,50 @@ export async function requireAnyUser() {
   return requireSession();
 }
 
+export type OrgMemberRole = "owner" | "admin" | "member";
+
+export type OrgMemberContext = {
+  userId: string;
+  orgId: string;
+  role: OrgMemberRole;
+};
+
+export function isOrgAdmin(role: OrgMemberRole): boolean {
+  return role === "admin" || role === "owner";
+}
+
+export async function requireOrgMember(): Promise<OrgMemberContext> {
+  const session = await requireSession();
+  const activeOrgId =
+    (session.session as { activeOrganizationId?: string | null } | undefined)
+      ?.activeOrganizationId ?? null;
+  if (!activeOrgId) {
+    throw new Error("FORBIDDEN");
+  }
+  const [row] = await db
+    .select({ role: member.role, status: member.status })
+    .from(member)
+    .where(
+      and(
+        eq(member.userId, session.user.id),
+        eq(member.organizationId, activeOrgId),
+      ),
+    )
+    .limit(1);
+  if (!row || row.status !== "active") {
+    throw new Error("FORBIDDEN");
+  }
+  const role = row.role as OrgMemberRole;
+  if (role !== "owner" && role !== "admin" && role !== "member") {
+    throw new Error("FORBIDDEN");
+  }
+  return {
+    userId: session.user.id,
+    orgId: activeOrgId,
+    role,
+  };
+}
+
 export async function loadMembershipsFor(userId: string) {
   return db
     .select({

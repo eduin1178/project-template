@@ -38,6 +38,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 import { createTask } from "@/lib/tasks/actions";
+import type { OrgMemberOption } from "@/lib/tasks/queries";
+
+const NONE_VALUE = "__none__";
 
 const schema = z.object({
   title: z
@@ -52,11 +55,16 @@ const schema = z.object({
     .optional(),
   visibility: z.enum(["draft", "active"]),
   dueAt: z.string().optional(),
+  responsibleId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
 
-export function CreateTaskDialog() {
+function personLabel(name: string | null, email: string | null): string {
+  return name?.trim() || email?.trim() || "Sin nombre";
+}
+
+export function CreateTaskDialog({ members }: { members: OrgMemberOption[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +75,7 @@ export function CreateTaskDialog() {
       description: "",
       visibility: "draft",
       dueAt: "",
+      responsibleId: NONE_VALUE,
     },
   });
 
@@ -74,15 +83,24 @@ export function CreateTaskDialog() {
 
   async function onSubmit(values: FormValues) {
     setError(null);
-    if (values.visibility === "active" && !values.dueAt) {
-      setError("Define un plazo para crear la tarea como activa.");
-      return;
+    const hasResponsible =
+      !!values.responsibleId && values.responsibleId !== NONE_VALUE;
+    if (values.visibility === "active") {
+      if (!values.dueAt) {
+        setError("Define un plazo para crear la tarea como activa.");
+        return;
+      }
+      if (!hasResponsible) {
+        setError("Define un responsable para crear la tarea como activa.");
+        return;
+      }
     }
     const result = await createTask({
       title: values.title,
       description: values.description || undefined,
       visibility: values.visibility,
       dueAt: values.dueAt ? new Date(values.dueAt) : undefined,
+      responsibleId: hasResponsible ? values.responsibleId : undefined,
     });
     if (!result.ok) {
       setError(result.error);
@@ -193,6 +211,44 @@ export function CreateTaskDialog() {
                   <FormControl>
                     <Input type="datetime-local" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="responsibleId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Responsable
+                    {visibility === "active" ? (
+                      <span className="text-destructive ml-1">*</span>
+                    ) : (
+                      <span className="text-muted-foreground ml-1 text-xs font-normal">
+                        (opcional en borrador)
+                      </span>
+                    )}
+                  </FormLabel>
+                  <Select
+                    value={field.value ?? NONE_VALUE}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un responsable" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={NONE_VALUE}>Sin responsable</SelectItem>
+                      {members.map((m) => (
+                        <SelectItem key={m.userId} value={m.userId}>
+                          {personLabel(m.name, m.email)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

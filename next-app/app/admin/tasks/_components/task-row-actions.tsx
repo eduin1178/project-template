@@ -22,6 +22,7 @@ import {
 } from "@/lib/db/schema/task";
 import {
   claimAuthorship,
+  deleteTask,
   transitionStatus,
   transitionVisibility,
 } from "@/lib/tasks/actions";
@@ -60,6 +61,7 @@ export function TaskRowActions({
     status: TaskStatus;
     authorId: string;
     dueAt: Date | null;
+    responsibleId: string | null;
   };
   currentUserId: string;
 }) {
@@ -78,13 +80,26 @@ export function TaskRowActions({
   }
 
   function onTransitionVisibility(to: TaskVisibility) {
-    if (to === "active" && !task.dueAt) {
-      toast.error(
-        "Define un plazo antes de activar la tarea (edita la tarea primero).",
-      );
-      return;
+    if (to === "active") {
+      if (!task.dueAt) {
+        toast.error(
+          "Define un plazo antes de activar la tarea (edita la tarea primero).",
+        );
+        return;
+      }
+      if (!task.responsibleId) {
+        toast.error("Define un responsable antes de activar la tarea.");
+        return;
+      }
     }
     runAction(() => transitionVisibility({ taskId: task.id, to }));
+  }
+
+  function onDelete() {
+    if (!confirm("¿Eliminar esta tarea? Esta acción no se puede deshacer.")) {
+      return;
+    }
+    runAction(() => deleteTask({ taskId: task.id }));
   }
 
   function onTransitionStatus(to: TaskStatus) {
@@ -158,6 +173,19 @@ export function TaskRowActions({
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled={isPending} onSelect={onClaim}>
               Tomar posesión
+            </DropdownMenuItem>
+          </>
+        ) : null}
+
+        {task.visibility === "draft" ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={isPending}
+              onSelect={onDelete}
+              variant="destructive"
+            >
+              Eliminar tarea
             </DropdownMenuItem>
           </>
         ) : null}

@@ -11,6 +11,7 @@ import {
 import {
   getTaskCounts,
   getTaskWithAuthorById,
+  listOrgMembers,
   listTasks,
 } from "@/lib/tasks/queries";
 
@@ -56,12 +57,13 @@ export default async function AdminTasksPage({
       ? params.taskId
       : null;
 
-  const [tasks, counts, selectedExplicit] = await Promise.all([
+  const [tasks, counts, selectedExplicit, members] = await Promise.all([
     listTasks({ orgId: ctx.orgId, filters: { visibility, status } }),
     getTaskCounts({ orgId: ctx.orgId }),
     selectedId
       ? getTaskWithAuthorById({ orgId: ctx.orgId, id: selectedId })
       : Promise.resolve(null),
+    listOrgMembers({ orgId: ctx.orgId }),
   ]);
 
   const selected = selectedExplicit ?? (tasks.length > 0 ? tasks[0] : null);
@@ -80,7 +82,7 @@ export default async function AdminTasksPage({
         <header className="flex flex-col gap-3 border-b p-4">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-semibold">Tareas</h1>
-            <CreateTaskDialog />
+            <CreateTaskDialog members={members} />
           </div>
         </header>
         <TasksListPanel
@@ -91,7 +93,11 @@ export default async function AdminTasksPage({
 
       <section className="hidden flex-1 flex-col lg:flex">
         {selected ? (
-          <TaskDetailPane task={selected} currentUserId={ctx.userId} />
+          <TaskDetailPane
+            task={selected}
+            currentUserId={ctx.userId}
+            members={members}
+          />
         ) : (
           <div className="flex flex-1 items-center justify-center p-8">
             <EmptyState

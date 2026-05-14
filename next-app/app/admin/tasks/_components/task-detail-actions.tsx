@@ -9,6 +9,7 @@ import {
   CheckCircleIcon,
   PaperPlaneTiltIcon,
   PlayIcon,
+  TrashIcon,
   UserSwitchIcon,
 } from "@phosphor-icons/react";
 
@@ -19,6 +20,7 @@ import {
 } from "@/lib/db/schema/task";
 import {
   claimAuthorship,
+  deleteTask,
   transitionStatus,
   transitionVisibility,
 } from "@/lib/tasks/actions";
@@ -29,6 +31,7 @@ type Task = {
   status: TaskStatus;
   authorId: string;
   dueAt: Date | null;
+  responsibleId: string | null;
 };
 
 export function TaskDetailActions({
@@ -59,10 +62,22 @@ export function TaskDetailActions({
       );
       return;
     }
+    if (!task.responsibleId) {
+      toast.error("Define un responsable antes de activar la tarea.");
+      return;
+    }
     runAction(() => transitionVisibility({ taskId: task.id, to: "active" }));
   }
 
+  function onDelete() {
+    if (!confirm("¿Eliminar esta tarea? Esta acción no se puede deshacer.")) {
+      return;
+    }
+    runAction(() => deleteTask({ taskId: task.id }));
+  }
+
   const canClaim = task.authorId !== currentUserId;
+  const canDelete = task.visibility === "draft";
 
   return (
     <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3">
@@ -174,6 +189,20 @@ export function TaskDetailActions({
         >
           <UserSwitchIcon />
           Tomar posesión
+        </Button>
+      ) : null}
+
+      {canDelete ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="text-destructive hover:text-destructive ml-auto"
+          onClick={onDelete}
+          disabled={isPending}
+        >
+          <TrashIcon />
+          Eliminar
         </Button>
       ) : null}
     </div>

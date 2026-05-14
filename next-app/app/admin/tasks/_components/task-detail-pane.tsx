@@ -5,11 +5,12 @@ import {
   type TaskStatus,
   type TaskVisibility,
 } from "@/lib/db/schema/task";
-import type { TaskListItem } from "@/lib/tasks/queries";
+import type { OrgMemberOption, TaskListItem } from "@/lib/tasks/queries";
 
 import { TaskCommentsPlaceholder } from "./task-comments-placeholder";
 import { TaskDetailActions } from "./task-detail-actions";
 import { TaskRowActions } from "./task-row-actions";
+import { TaskTeamSummary } from "./task-team-summary";
 
 const VISIBILITY_LABEL: Record<TaskVisibility, string> = {
   draft: "Borrador",
@@ -48,7 +49,7 @@ function formatDateLong(date: Date): string {
   }).format(date);
 }
 
-function authorInitials(name: string | null, email: string | null): string {
+function personInitials(name: string | null, email: string | null): string {
   const source = name?.trim() || email?.trim() || "";
   if (!source) return "??";
   const parts = source.split(/\s+/).filter(Boolean);
@@ -58,24 +59,30 @@ function authorInitials(name: string | null, email: string | null): string {
   return source.slice(0, 2).toUpperCase();
 }
 
+function personLabel(name: string | null, email: string | null): string {
+  return name?.trim() || email?.trim() || "Sin nombre";
+}
+
 export function TaskDetailPane({
   task,
   currentUserId,
+  members,
 }: {
   task: TaskListItem;
   currentUserId: string;
+  members: OrgMemberOption[];
 }) {
   const visibility = task.visibility as TaskVisibility;
   const status = task.status as TaskStatus;
-  const authorLabel = task.authorName ?? task.authorEmail ?? "Sin autor";
+  const authorLabel = personLabel(task.authorName, task.authorEmail);
 
   return (
-    <div className="flex h-full flex-col">
-      <header className="flex items-start justify-between gap-3 border-b p-5">
+    <div className="flex h-full flex-col overflow-y-auto">
+      <header className="flex items-start justify-between gap-4 border-b p-5">
         <div className="flex items-start gap-3">
           <Avatar className="size-9">
             <AvatarFallback>
-              {authorInitials(task.authorName, task.authorEmail)}
+              {personInitials(task.authorName, task.authorEmail)}
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1">
@@ -89,7 +96,9 @@ export function TaskDetailPane({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
+          <TaskTeamSummary task={task} members={members} />
+          <Separator orientation="vertical" className="h-7" />
           <TaskRowActions
             task={{
               id: task.id,
@@ -97,6 +106,7 @@ export function TaskDetailPane({
               status,
               authorId: task.authorId,
               dueAt: task.dueAt,
+              responsibleId: task.responsibleId,
             }}
             currentUserId={currentUserId}
           />
@@ -125,11 +135,12 @@ export function TaskDetailPane({
           status,
           authorId: task.authorId,
           dueAt: task.dueAt,
+          responsibleId: task.responsibleId,
         }}
         currentUserId={currentUserId}
       />
 
-      <div className="flex-1 overflow-y-auto px-5 py-6">
+      <div className="flex-1 px-5 py-6">
         {task.description ? (
           <p className="whitespace-pre-wrap text-sm leading-relaxed">
             {task.description}
