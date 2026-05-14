@@ -1,22 +1,11 @@
-/opsx:explore  
+/opsx:explore 
 
-## Propuesta 2 — `add-tasks-assignments-and-visibility`
+1. El input de la descripción para crear la tarea debe ser un editor tipo markdwon con una toolbar basica. Investiga una libreria para esto.
 
-**Objetivo:** Introducir el responsable y el equipo de apoyo, y el filtrado por rol según `visibility`.
+2. La vista de la descripción de la tarea debe ser renderizada desde el mardown. 
 
-**Alcance:**
-- Campo `responsibleId` (un usuario de la misma organización).
-- Relación `taskAssignees` (N usuarios de la misma organización).
-- Acciones del autor:
-  - Asignar / cambiar responsable
-  - Agregar / quitar usuarios del equipo de apoyo
-- Reglas de visibilidad en listados/lectura:
-  - `draft` → solo autor
-  - `active` → autor, responsable, asignados
-  - `archived` → solo autor
-- El responsable y el equipo de apoyo pueden VER la tarea cuando aplica.
-- El autor puede modificar el titulo y la descripción de la tarea mientras esté en borrador.
+3. En el lahoyt app no se ve en el menú la navegacion a las tareas y en la ruta /tasks se ve algo pero no sigue el mismo diseño del componente tipo bandeja de entrada. 
 
-**Fuera de alcance:** comentarios, documentos, checklist, cambios de estado por responsable.
+4. Se requiere que la tarea sea editable siguiendo las reglas que se definieron en el cambio archivado add-tasks-assignments-and-visibility
 
-Esto es continuación del cambio archivado add-tasks-core
+Esto es continuacion de add-tasks-assignments-and-visibility
