@@ -11,8 +11,9 @@ import {
   requireOrgMember,
 } from "@/lib/auth/guards";
 import { db } from "@/lib/db/client";
-import { task, taskAssignee, taskDocument } from "@/lib/db/schema";
+import { task, taskAssignee, taskComment, taskDocument } from "@/lib/db/schema";
 import type { TaskStatus, TaskVisibility } from "@/lib/db/schema/task";
+import { canActOnExpired, isTaskExpired } from "./expiration";
 import {
   deletePrivateAsset,
   requireDocumentsBucket,
@@ -21,6 +22,7 @@ import {
 import { isUserMemberOfOrg } from "./queries";
 import {
   addAssigneeSchema,
+  changeTaskStatusSchema,
   claimAuthorshipSchema,
   clearResponsibleSchema,
   createTaskSchema,
@@ -31,6 +33,7 @@ import {
   transitionVisibilitySchema,
   updateTaskContentSchema,
   type AddAssigneeInput,
+  type ChangeTaskStatusInput,
   type ClaimAuthorshipInput,
   type ClearResponsibleInput,
   type CreateTaskInput,
@@ -341,17 +344,31 @@ export async function transitionVisibility(
   return { ok: true };
 }
 
+/**
+ * @deprecated Usa `changeTaskStatus` que exige un comentario justificativo.
+ * Esta acción ya no muta el estado; rechaza con un mensaje guía.
+ */
 export async function transitionStatus(
-  input: TransitionStatusInput,
+  _input: TransitionStatusInput,
 ): Promise<ActionResult> {
-  const parsed = transitionStatusSchema.safeParse(input);
+  return {
+    ok: false,
+    error:
+      "Usa el diálogo Cambiar estado: ahora cada cambio requiere un comentario justificativo.",
+  };
+}
+
+export async function changeTaskStatus(
+  input: ChangeTaskStatusInput,
+): Promise<ActionResult> {
+  const parsed = changeTaskStatusSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: firstError(parsed.error.issues[0]?.message) };
   }
 
   let ctx;
   try {
-    ctx = await requireOrgAdmin();
+    ctx = await requireOrgMember();
   } catch {
     return {
       ok: false,
@@ -360,7 +377,14 @@ export async function transitionStatus(
   }
 
   const [current] = await db
-    .select({ id: task.id, status: task.status })
+    .select({
+      id: task.id,
+      status: task.status,
+      visibility: task.visibility,
+      authorId: task.authorId,
+      responsibleId: task.responsibleId,
+      dueAt: task.dueAt,
+    })
     .from(task)
     .where(
       and(eq(task.id, parsed.data.taskId), eq(task.organizationId, ctx.orgId)),
@@ -371,21 +395,93 @@ export async function transitionStatus(
     return { ok: false, error: "La tarea no existe en tu organización." };
   }
 
-  const from = current.status as TaskStatus;
-  const to = parsed.data.to;
-  if (!isStatusTransitionAllowed(from, to)) {
+  if (current.visibility !== "active") {
     return {
       ok: false,
-      error: "Transición de estado no permitida.",
+      error: "Solo puedes cambiar el estado de una tarea activa.",
     };
   }
 
-  await db
-    .update(task)
-    .set({ status: to })
-    .where(
-      and(eq(task.id, parsed.data.taskId), eq(task.organizationId, ctx.orgId)),
+  const from = current.status as TaskStatus;
+  const to = parsed.data.newStatus;
+  if (!isStatusTransitionAllowed(from, to)) {
+    return { ok: false, error: "Transición de estado no permitida." };
+  }
+
+  const isAdmin = isOrgAdmin(ctx.role);
+  const isAuthor = current.authorId === ctx.userId;
+  const isResponsible = current.responsibleId === ctx.userId;
+
+  let isAssignee = false;
+  if (!isAdmin && !isAuthor && !isResponsible) {
+    const [row] = await db
+      .select({ userId: taskAssignee.userId })
+      .from(taskAssignee)
+      .where(
+        and(
+          eq(taskAssignee.taskId, parsed.data.taskId),
+          eq(taskAssignee.userId, ctx.userId),
+        ),
+      )
+      .limit(1);
+    isAssignee = Boolean(row);
+  }
+
+  const isParticipant = isAuthor || isResponsible || isAssignee;
+  if (!isAdmin && !isParticipant) {
+    return { ok: false, error: "No tienes permisos para cambiar el estado." };
+  }
+
+  const expired = isTaskExpired({ dueAt: current.dueAt });
+  if (expired) {
+    const bypasses = canActOnExpired(
+      { userId: ctx.userId, role: ctx.role },
+      { authorId: current.authorId },
     );
+    if (!bypasses) {
+      return {
+        ok: false,
+        error:
+          "El plazo de esta tarea venció. Pide a un administrador o al autor que extienda el plazo o cambie el estado.",
+      };
+    }
+  }
+
+  const trimmedBody = parsed.data.commentBody.trim();
+  const commentId = randomUUID();
+  const now = new Date();
+
+  try {
+    await db.transaction(async (tx) => {
+      await tx.insert(taskComment).values({
+        id: commentId,
+        taskId: parsed.data.taskId,
+        authorId: ctx.userId,
+        body: trimmedBody,
+      });
+
+      const updated = await tx
+        .update(task)
+        .set({ status: to, updatedAt: now })
+        .where(
+          and(
+            eq(task.id, parsed.data.taskId),
+            eq(task.organizationId, ctx.orgId),
+          ),
+        )
+        .returning({ id: task.id });
+
+      if (updated.length === 0) {
+        throw new Error("La tarea no pudo actualizarse.");
+      }
+    });
+  } catch (err) {
+    console.error("[tasks] changeTaskStatus falló", err);
+    return {
+      ok: false,
+      error: "No pudimos cambiar el estado. Intenta de nuevo.",
+    };
+  }
 
   revalidateTaskPaths();
   return { ok: true };

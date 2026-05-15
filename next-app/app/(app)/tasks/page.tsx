@@ -89,13 +89,18 @@ export default async function TasksPage({
         listCommentsForTask({
           taskId: selected.id,
           viewerUserId: ctx.userId,
+          viewerRole: ctx.role,
           isAdmin,
+          taskAuthorId: selected.authorId,
+          taskDueAt: selected.dueAt,
         }),
         listDocumentsForTask({
           taskId: selected.id,
           viewerUserId: ctx.userId,
+          viewerRole: ctx.role,
           isAdmin,
           taskAuthorId: selected.authorId,
+          taskDueAt: selected.dueAt,
         }),
         listChecklistItemsForTask({ taskId: selected.id }),
       ])

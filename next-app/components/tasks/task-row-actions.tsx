@@ -15,7 +15,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  TASK_STATUS_VALUES,
   TASK_VISIBILITY_VALUES,
   type TaskStatus,
   type TaskVisibility,
@@ -23,11 +22,12 @@ import {
 import {
   claimAuthorship,
   deleteTask,
-  transitionStatus,
   transitionVisibility,
 } from "@/lib/tasks/actions";
 
 import type { TaskCapabilities } from "./capabilities";
+import { ChangeStatusDialog } from "./change-status-dialog";
+import { useState } from "react";
 
 const VISIBILITY_LABEL: Record<TaskVisibility, string> = {
   draft: "Borrador",
@@ -35,22 +35,10 @@ const VISIBILITY_LABEL: Record<TaskVisibility, string> = {
   archived: "Archivada",
 };
 
-const STATUS_LABEL: Record<TaskStatus, string> = {
-  pending: "Pendiente",
-  in_progress: "En curso",
-  done: "Hecha",
-};
-
 const VISIBILITY_ALLOWED: Record<TaskVisibility, TaskVisibility[]> = {
   draft: ["active"],
   active: ["draft", "archived"],
   archived: ["active"],
-};
-
-const STATUS_ALLOWED: Record<TaskStatus, TaskStatus[]> = {
-  pending: ["in_progress"],
-  in_progress: ["pending", "done"],
-  done: ["pending", "in_progress"],
 };
 
 export function TaskRowActions({
@@ -68,6 +56,7 @@ export function TaskRowActions({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 
   function runAction(fn: () => Promise<{ ok: boolean; error?: string }>) {
     startTransition(async () => {
@@ -103,19 +92,14 @@ export function TaskRowActions({
     runAction(() => deleteTask({ taskId: task.id }));
   }
 
-  function onTransitionStatus(to: TaskStatus) {
-    runAction(() => transitionStatus({ taskId: task.id, to }));
-  }
-
   function onClaim() {
     runAction(() => claimAuthorship({ taskId: task.id }));
   }
 
   const visibilityTargets = VISIBILITY_ALLOWED[task.visibility];
-  const statusTargets = STATUS_ALLOWED[task.status];
 
   const showVisibility = capabilities.canTransitionVisibility;
-  const showStatus = capabilities.canTransitionStatus;
+  const showStatus = capabilities.canChangeStatus;
   const showClaim = capabilities.canClaim;
   const showDelete = capabilities.canDelete;
 
@@ -124,6 +108,13 @@ export function TaskRowActions({
   }
 
   return (
+    <>
+    <ChangeStatusDialog
+      taskId={task.id}
+      currentStatus={task.status}
+      open={statusDialogOpen}
+      onOpenChange={setStatusDialogOpen}
+    />
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -163,25 +154,15 @@ export function TaskRowActions({
         {showStatus ? (
           <>
             {showVisibility ? <DropdownMenuSeparator /> : null}
-            <DropdownMenuLabel>Cambiar estado</DropdownMenuLabel>
-            {TASK_STATUS_VALUES.map((s) => {
-              const allowed = statusTargets.includes(s);
-              if (s === task.status) return null;
-              return (
-                <DropdownMenuItem
-                  key={`st-${s}`}
-                  disabled={!allowed || isPending}
-                  onSelect={() => onTransitionStatus(s)}
-                >
-                  {STATUS_LABEL[s]}
-                  {!allowed ? (
-                    <span className="text-muted-foreground ml-auto text-xs">
-                      bloqueada
-                    </span>
-                  ) : null}
-                </DropdownMenuItem>
-              );
-            })}
+            <DropdownMenuItem
+              disabled={isPending}
+              onSelect={(e) => {
+                e.preventDefault();
+                setStatusDialogOpen(true);
+              }}
+            >
+              Cambia el estado
+            </DropdownMenuItem>
           </>
         ) : null}
 
@@ -208,5 +189,6 @@ export function TaskRowActions({
         ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   );
 }

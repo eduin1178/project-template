@@ -1,6 +1,8 @@
 import type { OrgMemberRole } from "@/lib/auth/guards";
 import type { TaskVisibility } from "@/lib/db/schema/task";
 
+import { canActOnExpired, isTaskExpired } from "./expiration";
+
 export type ChecklistAuthContext = {
   viewer: {
     userId: string;
@@ -11,9 +13,13 @@ export type ChecklistAuthContext = {
     visibility: TaskVisibility;
     authorId: string;
     responsibleId: string | null;
+    dueAt: Date | null;
     assignees: ReadonlyArray<{ userId: string }>;
   };
 };
+
+const EXPIRED_MUTATION_ERROR =
+  "El plazo de esta tarea venció. Pide a un administrador o al autor que actualice el checklist.";
 
 /**
  * assertCanManageChecklist
@@ -55,17 +61,21 @@ export function assertCanManageChecklist({
   }
 
   // visibility === "active"
-  if (isAdmin) return;
-
   const isAuthor = task.authorId === viewer.userId;
   const isResponsible = task.responsibleId === viewer.userId;
   const isAssignee = task.assignees.some((a) => a.userId === viewer.userId);
 
-  if (isAuthor || isResponsible || isAssignee) return;
+  if (!isAdmin && !isAuthor && !isResponsible && !isAssignee) {
+    throw new Error(
+      "No tienes permisos para modificar el checklist de esta tarea.",
+    );
+  }
 
-  throw new Error(
-    "No tienes permisos para modificar el checklist de esta tarea.",
-  );
+  if (isTaskExpired({ dueAt: task.dueAt })) {
+    if (!canActOnExpired(viewer, { authorId: task.authorId })) {
+      throw new Error(EXPIRED_MUTATION_ERROR);
+    }
+  }
 }
 
 /**
@@ -88,9 +98,14 @@ export function canManageChecklist({
   }
 
   // active
-  if (isAdmin) return true;
   const isAuthor = task.authorId === viewer.userId;
   const isResponsible = task.responsibleId === viewer.userId;
   const isAssignee = task.assignees.some((a) => a.userId === viewer.userId);
-  return isAuthor || isResponsible || isAssignee;
+  const isParticipant = isAdmin || isAuthor || isResponsible || isAssignee;
+  if (!isParticipant) return false;
+
+  if (isTaskExpired({ dueAt: task.dueAt })) {
+    return canActOnExpired(viewer, { authorId: task.authorId });
+  }
+  return true;
 }

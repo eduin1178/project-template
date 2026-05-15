@@ -21,6 +21,8 @@ import {
 } from "@/lib/db/schema/task";
 
 import { isWithinEditWindow } from "./comments";
+import { canActOnExpired, isTaskExpired } from "./expiration";
+import type { OrgMemberRole } from "@/lib/auth/guards";
 
 const authorUser = alias(user, "author_user");
 const responsibleUser = alias(user, "responsible_user");
@@ -341,11 +343,17 @@ export type TaskCommentView = {
 export async function listCommentsForTask({
   taskId,
   viewerUserId,
+  viewerRole,
   isAdmin,
+  taskAuthorId,
+  taskDueAt,
 }: {
   taskId: string;
   viewerUserId: string;
+  viewerRole?: OrgMemberRole;
   isAdmin: boolean;
+  taskAuthorId?: string;
+  taskDueAt?: Date | null;
 }): Promise<TaskCommentView[]> {
   const rows = await db
     .select({
@@ -367,12 +375,23 @@ export async function listCommentsForTask({
     .orderBy(taskComment.createdAt);
 
   const now = new Date();
+  const expired =
+    taskDueAt !== undefined ? isTaskExpired({ dueAt: taskDueAt }, now) : false;
+  const expirationBypass =
+    !expired ||
+    !viewerRole ||
+    taskAuthorId === undefined ||
+    canActOnExpired(
+      { userId: viewerUserId, role: viewerRole },
+      { authorId: taskAuthorId },
+    );
   return rows.map((row) => {
     const isDeleted = row.deletedAt !== null;
     const isAuthor = row.authorId === viewerUserId;
-    const canDelete =
+    const baseCanDelete =
       !isDeleted &&
       (isAdmin || (isAuthor && isWithinEditWindow(row.createdAt, now)));
+    const canDelete = baseCanDelete && (isAdmin || expirationBypass);
     return {
       id: row.id,
       taskId: row.taskId,
@@ -407,13 +426,17 @@ export type TaskDocumentView = {
 export async function listDocumentsForTask({
   taskId,
   viewerUserId,
+  viewerRole,
   isAdmin,
   taskAuthorId,
+  taskDueAt,
 }: {
   taskId: string;
   viewerUserId: string;
+  viewerRole?: OrgMemberRole;
   isAdmin: boolean;
   taskAuthorId: string;
+  taskDueAt?: Date | null;
 }): Promise<TaskDocumentView[]> {
   const rows = await db
     .select({
@@ -433,19 +456,34 @@ export async function listDocumentsForTask({
     .orderBy(desc(taskDocument.createdAt));
 
   const isTaskAuthor = taskAuthorId === viewerUserId;
-  return rows.map((row) => ({
-    id: row.id,
-    taskId: row.taskId,
-    uploaderId: row.uploaderId ?? null,
-    uploaderName: row.uploaderName ?? null,
-    uploaderEmail: row.uploaderEmail ?? null,
-    fileName: row.fileName,
-    mimeType: row.mimeType,
-    sizeBytes: row.sizeBytes,
-    createdAt: row.createdAt,
-    canDelete:
-      isAdmin || isTaskAuthor || (row.uploaderId !== null && row.uploaderId === viewerUserId),
-  }));
+  const expired =
+    taskDueAt !== undefined ? isTaskExpired({ dueAt: taskDueAt }) : false;
+  const expirationBypass =
+    !expired ||
+    !viewerRole ||
+    canActOnExpired(
+      { userId: viewerUserId, role: viewerRole },
+      { authorId: taskAuthorId },
+    );
+  return rows.map((row) => {
+    const baseCanDelete =
+      isAdmin ||
+      isTaskAuthor ||
+      (row.uploaderId !== null && row.uploaderId === viewerUserId);
+    const canDelete = baseCanDelete && (isAdmin || expirationBypass);
+    return {
+      id: row.id,
+      taskId: row.taskId,
+      uploaderId: row.uploaderId ?? null,
+      uploaderName: row.uploaderName ?? null,
+      uploaderEmail: row.uploaderEmail ?? null,
+      fileName: row.fileName,
+      mimeType: row.mimeType,
+      sizeBytes: row.sizeBytes,
+      createdAt: row.createdAt,
+      canDelete,
+    };
+  });
 }
 
 export async function isUserMemberOfOrg({

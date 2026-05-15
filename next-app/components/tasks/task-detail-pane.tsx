@@ -162,6 +162,9 @@ export function TaskDetailPane({
           {VISIBILITY_LABEL[visibility]}
         </Badge>
         <Badge variant={STATUS_VARIANT[status]}>{STATUS_LABEL[status]}</Badge>
+        {capabilities.isExpired && visibility === "active" ? (
+          <Badge variant="destructive">Plazo vencido</Badge>
+        ) : null}
         <Separator orientation="vertical" className="mx-2 h-4" />
         <div className="text-muted-foreground text-xs">
           {task.dueAt ? (
@@ -171,6 +174,13 @@ export function TaskDetailPane({
           )}
         </div>
       </div>
+
+      {capabilities.isExpired && visibility === "active" && !capabilities.canChangeStatus ? (
+        <div className="border-b bg-muted/40 px-5 py-2 text-xs text-muted-foreground">
+          Esta tarea venció. Solo puedes comentar; pide a un administrador o al
+          autor que extienda el plazo o cambie el estado.
+        </div>
+      ) : null}
 
       <TaskDetailActions
         task={{

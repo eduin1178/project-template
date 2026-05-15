@@ -10,6 +10,7 @@ import { db } from "@/lib/db/client";
 import { task, taskComment, user } from "@/lib/db/schema";
 
 import { isWithinEditWindow } from "./comments";
+import { canActOnExpired, isTaskExpired } from "./expiration";
 import { getTaskByIdForViewer } from "./queries";
 import {
   createCommentSchema,
@@ -110,6 +111,8 @@ export async function deleteComment(
       createdAt: taskComment.createdAt,
       deletedAt: taskComment.deletedAt,
       taskOrganizationId: task.organizationId,
+      taskAuthorId: task.authorId,
+      taskDueAt: task.dueAt,
     })
     .from(taskComment)
     .innerJoin(task, eq(taskComment.taskId, task.id))
@@ -143,6 +146,19 @@ export async function deleteComment(
       return {
         ok: false,
         error: "La ventana de eliminación de 60 minutos expiró.",
+      };
+    }
+    if (
+      isTaskExpired({ dueAt: row.taskDueAt ?? null }) &&
+      !canActOnExpired(
+        { userId: ctx.userId, role: ctx.role },
+        { authorId: row.taskAuthorId },
+      )
+    ) {
+      return {
+        ok: false,
+        error:
+          "El plazo de esta tarea venció. Solo puedes comentar, no eliminar comentarios previos.",
       };
     }
   }

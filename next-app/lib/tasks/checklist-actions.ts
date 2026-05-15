@@ -44,7 +44,6 @@ function revalidateTaskPaths() {
 async function loadTaskForChecklist({
   taskId,
   orgId,
-  viewerUserId,
   isAdmin,
 }: {
   taskId: string;
@@ -60,6 +59,7 @@ async function loadTaskForChecklist({
         visibility: string;
         authorId: string;
         responsibleId: string | null;
+        dueAt: Date | null;
         assignees: Array<{ userId: string }>;
       };
     }
@@ -72,6 +72,7 @@ async function loadTaskForChecklist({
       visibility: task.visibility,
       authorId: task.authorId,
       responsibleId: task.responsibleId,
+      dueAt: task.dueAt,
     })
     .from(task)
     .where(and(eq(task.id, taskId), eq(task.organizationId, orgId)))
@@ -81,7 +82,8 @@ async function loadTaskForChecklist({
     return { ok: false, error: "Tarea no encontrada." };
   }
 
-  // Cargamos assignees solo si no es admin (optimización)
+  // Cargamos assignees siempre (necesarios para el gate cuando autor o responsable cae en active).
+  // Mantener la optimización para admin sigue siendo correcto, ya que admin bypassea el gate.
   let assignees: Array<{ userId: string }> = [];
   if (!isAdmin) {
     assignees = await db
@@ -98,6 +100,7 @@ async function loadTaskForChecklist({
       visibility: row.visibility as string,
       authorId: row.authorId,
       responsibleId: row.responsibleId ?? null,
+      dueAt: row.dueAt ?? null,
       assignees,
     },
   };
@@ -145,6 +148,7 @@ export async function createChecklistItem(
         visibility: loadResult.taskRow.visibility as "draft" | "active" | "archived",
         authorId: loadResult.taskRow.authorId,
         responsibleId: loadResult.taskRow.responsibleId,
+        dueAt: loadResult.taskRow.dueAt,
         assignees: loadResult.taskRow.assignees,
       },
     });
@@ -218,6 +222,7 @@ export async function updateChecklistItemLabel(
       taskVisibility: task.visibility,
       taskAuthorId: task.authorId,
       taskResponsibleId: task.responsibleId,
+      taskDueAt: task.dueAt,
     })
     .from(taskChecklistItem)
     .innerJoin(task, eq(taskChecklistItem.taskId, task.id))
@@ -247,6 +252,7 @@ export async function updateChecklistItemLabel(
         visibility: row.taskVisibility as "draft" | "active" | "archived",
         authorId: row.taskAuthorId,
         responsibleId: row.taskResponsibleId ?? null,
+        dueAt: row.taskDueAt ?? null,
         assignees,
       },
     });
@@ -312,6 +318,7 @@ export async function toggleChecklistItem(
       taskVisibility: task.visibility,
       taskAuthorId: task.authorId,
       taskResponsibleId: task.responsibleId,
+      taskDueAt: task.dueAt,
     })
     .from(taskChecklistItem)
     .innerJoin(task, eq(taskChecklistItem.taskId, task.id))
@@ -341,6 +348,7 @@ export async function toggleChecklistItem(
         visibility: row.taskVisibility as "draft" | "active" | "archived",
         authorId: row.taskAuthorId,
         responsibleId: row.taskResponsibleId ?? null,
+        dueAt: row.taskDueAt ?? null,
         assignees,
       },
     });
@@ -405,6 +413,7 @@ export async function deleteChecklistItem(
       taskVisibility: task.visibility,
       taskAuthorId: task.authorId,
       taskResponsibleId: task.responsibleId,
+      taskDueAt: task.dueAt,
     })
     .from(taskChecklistItem)
     .innerJoin(task, eq(taskChecklistItem.taskId, task.id))
@@ -434,6 +443,7 @@ export async function deleteChecklistItem(
         visibility: row.taskVisibility as "draft" | "active" | "archived",
         authorId: row.taskAuthorId,
         responsibleId: row.taskResponsibleId ?? null,
+        dueAt: row.taskDueAt ?? null,
         assignees,
       },
     });

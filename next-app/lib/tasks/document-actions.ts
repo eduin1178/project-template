@@ -19,6 +19,7 @@ import {
   buildTaskDocumentKey,
   validateDocumentInput,
 } from "./documents";
+import { canActOnExpired, isTaskExpired } from "./expiration";
 import {
   deleteDocumentSchema,
   getDocumentDownloadUrlSchema,
@@ -58,6 +59,7 @@ async function canViewerOperateOnTask({
         authorId: string;
         responsibleId: string | null;
         visibility: string;
+        dueAt: Date | null;
       };
       isParticipant: boolean;
     }
@@ -69,6 +71,7 @@ async function canViewerOperateOnTask({
       authorId: task.authorId,
       responsibleId: task.responsibleId,
       visibility: task.visibility,
+      dueAt: task.dueAt,
     })
     .from(task)
     .where(and(eq(task.id, taskId), eq(task.organizationId, orgId)))
@@ -76,7 +79,11 @@ async function canViewerOperateOnTask({
   if (!row) return { ok: false };
 
   if (isAdmin) {
-    return { ok: true, task: row, isParticipant: true };
+    return {
+      ok: true,
+      task: { ...row, dueAt: row.dueAt ?? null },
+      isParticipant: true,
+    };
   }
   if (row.visibility !== "active") {
     return { ok: false };
@@ -99,7 +106,11 @@ async function canViewerOperateOnTask({
   }
   const isParticipant = isAuthor || isResponsible || isAssignee;
   if (!isParticipant) return { ok: false };
-  return { ok: true, task: row, isParticipant: true };
+  return {
+    ok: true,
+    task: { ...row, dueAt: row.dueAt ?? null },
+    isParticipant: true,
+  };
 }
 
 export async function uploadTaskDocument(
@@ -134,6 +145,20 @@ export async function uploadTaskDocument(
     return {
       ok: false,
       error: "No tienes permisos para adjuntar documentos en esta tarea.",
+    };
+  }
+
+  if (
+    isTaskExpired({ dueAt: authz.task.dueAt }) &&
+    !canActOnExpired(
+      { userId: ctx.userId, role: ctx.role },
+      { authorId: authz.task.authorId },
+    )
+  ) {
+    return {
+      ok: false,
+      error:
+        "El plazo de esta tarea venció. Pide a un administrador o al autor que adjunte documentos.",
     };
   }
 
@@ -320,6 +345,7 @@ export async function deleteTaskDocument(
       storageKey: taskDocument.storageKey,
       taskAuthorId: task.authorId,
       taskOrgId: task.organizationId,
+      taskDueAt: task.dueAt,
     })
     .from(taskDocument)
     .innerJoin(task, eq(taskDocument.taskId, task.id))
@@ -343,6 +369,20 @@ export async function deleteTaskDocument(
     return {
       ok: false,
       error: "No tienes permisos para eliminar este documento.",
+    };
+  }
+
+  if (
+    isTaskExpired({ dueAt: row.taskDueAt ?? null }) &&
+    !canActOnExpired(
+      { userId: ctx.userId, role: ctx.role },
+      { authorId: row.taskAuthorId },
+    )
+  ) {
+    return {
+      ok: false,
+      error:
+        "El plazo de esta tarea venció. Pide a un administrador o al autor que elimine este documento.",
     };
   }
 

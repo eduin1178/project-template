@@ -64,17 +64,35 @@ function personLabel(name: string | null, email: string | null): string {
   return name?.trim() || email?.trim() || "Sin nombre";
 }
 
-export function CreateTaskDialog({ members }: { members: OrgMemberOption[] }) {
+function toDatetimeLocal(iso: string): string {
+  // Convert ISO server-rendered string into the value format that
+  // <input type="datetime-local"> expects: "YYYY-MM-DDTHH:mm" in local TZ.
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours(),
+  )}:${pad(d.getMinutes())}`;
+}
+
+export function CreateTaskDialog({
+  members,
+  defaultDueAt,
+}: {
+  members: OrgMemberOption[];
+  defaultDueAt?: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const initialDueAt = defaultDueAt ? toDatetimeLocal(defaultDueAt) : "";
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: "",
       description: "",
       visibility: "draft",
-      dueAt: "",
+      dueAt: initialDueAt,
       responsibleId: NONE_VALUE,
     },
   });
@@ -107,7 +125,13 @@ export function CreateTaskDialog({ members }: { members: OrgMemberOption[] }) {
       return;
     }
     toast.success("Tarea creada.");
-    form.reset();
+    form.reset({
+      title: "",
+      description: "",
+      visibility: "draft",
+      dueAt: initialDueAt,
+      responsibleId: NONE_VALUE,
+    });
     setOpen(false);
     router.refresh();
   }

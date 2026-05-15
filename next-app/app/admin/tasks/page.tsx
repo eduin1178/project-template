@@ -77,17 +77,26 @@ export default async function AdminTasksPage({
         listCommentsForTask({
           taskId: selected.id,
           viewerUserId: ctx.userId,
+          viewerRole: ctx.role,
           isAdmin: true,
+          taskAuthorId: selected.authorId,
+          taskDueAt: selected.dueAt,
         }),
         listDocumentsForTask({
           taskId: selected.id,
           viewerUserId: ctx.userId,
+          viewerRole: ctx.role,
           isAdmin: true,
           taskAuthorId: selected.authorId,
+          taskDueAt: selected.dueAt,
         }),
         listChecklistItemsForTask({ taskId: selected.id }),
       ])
     : [[], [], []];
+
+  const defaultDueAt = new Date();
+  defaultDueAt.setDate(defaultDueAt.getDate() + 7);
+  defaultDueAt.setHours(18, 0, 0, 0);
 
   return (
     <div className="bg-background -mx-6 -my-8 flex h-[calc(100vh-4rem)] overflow-hidden">
@@ -103,7 +112,10 @@ export default async function AdminTasksPage({
         <header className="flex flex-col gap-3 border-b p-4">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-semibold">Tareas</h1>
-            <CreateTaskDialog members={members} />
+            <CreateTaskDialog
+              members={members}
+              defaultDueAt={defaultDueAt.toISOString()}
+            />
           </div>
         </header>
         <TasksListPanel

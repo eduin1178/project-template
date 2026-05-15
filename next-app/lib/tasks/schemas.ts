@@ -56,6 +56,25 @@ export const transitionStatusSchema = z.object({
   to: taskStatusSchema,
 });
 
+export const STATUS_CHANGE_COMMENT_MIN = 30;
+export const STATUS_CHANGE_COMMENT_MAX = 2000;
+
+export const changeTaskStatusSchema = z.object({
+  taskId: taskIdSchema,
+  newStatus: taskStatusSchema,
+  commentBody: z
+    .string()
+    .trim()
+    .min(
+      STATUS_CHANGE_COMMENT_MIN,
+      `Justifica el cambio con al menos ${STATUS_CHANGE_COMMENT_MIN} caracteres.`,
+    )
+    .max(
+      STATUS_CHANGE_COMMENT_MAX,
+      `El comentario no puede superar los ${STATUS_CHANGE_COMMENT_MAX} caracteres.`,
+    ),
+});
+
 export const claimAuthorshipSchema = z.object({
   taskId: taskIdSchema,
 });
@@ -139,6 +158,7 @@ export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskContentInput = z.infer<typeof updateTaskContentSchema>;
 export type TransitionVisibilityInput = z.infer<typeof transitionVisibilitySchema>;
 export type TransitionStatusInput = z.infer<typeof transitionStatusSchema>;
+export type ChangeTaskStatusInput = z.infer<typeof changeTaskStatusSchema>;
 export type ClaimAuthorshipInput = z.infer<typeof claimAuthorshipSchema>;
 export type SetResponsibleInput = z.infer<typeof setResponsibleSchema>;
 export type ClearResponsibleInput = z.infer<typeof clearResponsibleSchema>;

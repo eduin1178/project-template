@@ -1,5 +1,9 @@
 import type { TaskVisibility } from "@/lib/db/schema/task";
 import type { OrgMemberRole } from "@/lib/auth/guards";
+import {
+  canActOnExpired as canActOnExpiredHelper,
+  isTaskExpired,
+} from "@/lib/tasks/expiration";
 
 export type TaskCapabilities = {
   canEditContent: boolean;
@@ -7,21 +11,13 @@ export type TaskCapabilities = {
   canManageTeam: boolean;
   canTransitionVisibility: boolean;
   canTransitionStatus: boolean;
+  canChangeStatus: boolean;
   canDelete: boolean;
   canClaim: boolean;
   canComment: boolean;
   canUploadDocument: boolean;
-  /**
-   * canManageChecklist — puede crear, editar label, toggle y eliminar
-   * items del checklist de esta tarea.
-   *
-   * Matriz: draft → autor+admin/owner; active → admin/autor/responsable/assignee;
-   *         archived → false para todos.
-   *
-   * Diverge de canComment en draft: responsable y assignees NO pueden mutar
-   * el checklist cuando la tarea está en draft.
-   */
   canManageChecklist: boolean;
+  isExpired: boolean;
 };
 
 export type TaskCapabilitiesInput = {
@@ -30,16 +26,19 @@ export type TaskCapabilitiesInput = {
     visibility: TaskVisibility;
     responsibleId: string | null;
     assignees: ReadonlyArray<{ userId: string }>;
+    dueAt: Date | null;
   };
   viewer: {
     userId: string;
     role: OrgMemberRole;
   };
+  now?: Date;
 };
 
 export function computeTaskCapabilities({
   task,
   viewer,
+  now = new Date(),
 }: TaskCapabilitiesInput): TaskCapabilities {
   const isAdmin = viewer.role === "admin" || viewer.role === "owner";
   const isAuthor = task.authorId === viewer.userId;
@@ -48,28 +47,34 @@ export function computeTaskCapabilities({
   const isParticipant = isAuthor || isResponsible || isAssignee;
 
   const visibility = task.visibility;
+  const expired = isTaskExpired({ dueAt: task.dueAt }, now);
+  const bypassesExpiration = canActOnExpiredHelper(viewer, {
+    authorId: task.authorId,
+  });
+  const expirationOk = !expired || bypassesExpiration;
 
-  const canEditContent =
-    isAdmin || (isAuthor && visibility === "draft");
+  const canEditContent = isAdmin || (isAuthor && visibility === "draft");
   const canEditDueAt = isAdmin && visibility !== "archived";
   const canManageTeam = isAdmin || isAuthor;
   const canTransitionVisibility = isAdmin || isAuthor;
-  const canTransitionStatus = isAdmin || isParticipant;
   const canDelete = (isAdmin || isAuthor) && visibility === "draft";
   const canClaim = isAdmin && !isAuthor;
   const canComment = isAdmin || (visibility === "active" && isParticipant);
-  const canUploadDocument =
-    isAdmin || (visibility === "active" && isParticipant);
 
-  // canManageChecklist: draft → solo autor+admin; active → todos los participantes; archived → nadie
+  const canTransitionStatus = isAdmin || (isParticipant && expirationOk);
+  const canChangeStatus =
+    visibility === "active" && (isAdmin || isParticipant) && expirationOk;
+
+  const canUploadDocument =
+    (isAdmin || (visibility === "active" && isParticipant)) && expirationOk;
+
   let canManageChecklist = false;
   if (visibility === "archived") {
     canManageChecklist = false;
   } else if (visibility === "draft") {
     canManageChecklist = isAdmin || isAuthor;
   } else {
-    // active
-    canManageChecklist = isAdmin || isParticipant;
+    canManageChecklist = (isAdmin || isParticipant) && expirationOk;
   }
 
   return {
@@ -78,10 +83,12 @@ export function computeTaskCapabilities({
     canManageTeam,
     canTransitionVisibility,
     canTransitionStatus,
+    canChangeStatus,
     canDelete,
     canClaim,
     canComment,
     canUploadDocument,
     canManageChecklist,
+    isExpired: expired,
   };
 }

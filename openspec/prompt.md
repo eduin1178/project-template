@@ -1,15 +1,5 @@
 /opsx:explore 
 
-
-## Propuesta 5 — `add-tasks-checklist`
-
-**Objetivo:** Checklist simple por tarea.
-
-**Alcance:**
-- Modelo `TaskChecklistItem` con `taskId`, `label`, `checked: boolean`, `order`, timestamps.
-- Pueden crear/editar/marcar/eliminar items:
-  - El autor de la tarea.
-  - Cualquier usuario asignado.
-- (Definir en spec: si el responsable también puede — el requerimiento original dice "autor o asignados"; confirmar si responsable cuenta como asignado.)
-
-Esto es continuacion del cambio archivado 2026-05-15-add-tasks-documents
+- **Diseño responsivo** La aplicación debe ser totalmente responsiva y adaptable a distintos tipos de pantallas, especialmente en la vista de las tareas. Se me ocurre que podríamos hacer que en vistas móviles los filtros se vean colasados o desplegles en la partes uperior, la lista de tareas central y los detalles de la tarea que se vean como una página adicional (similar a el patron push de aplicaciones móviles), pero estoy abierto a sugerencias
+- **Mover botones** Los botones de Cambio de visibilidad (archivar, ...) y de cambio de estado (Iniciar, ...) se ven actualmente en una fila debajo del estado y el plazo. Creo que podemos poner los botones en la misma fila donde estpan las etiquetas de visibilidad, estado y plazo, pero los botones empujados al final. 
+- **Fotos de usuarios** Actualmente en los detalles de la tarea, en la parte superior se ven los iconos de los usuarios participantes de la tarea pero no se muestra la foto. Debería verse la foto de los usuarios. Así mismo en la lista de participantes que se ve en el modal debería mostrar el email debajo del nombre, tengo casos de usuarios con el mismo nombre y necesito diferenciarlos.

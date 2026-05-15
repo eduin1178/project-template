@@ -21,11 +21,11 @@ import {
 import {
   claimAuthorship,
   deleteTask,
-  transitionStatus,
   transitionVisibility,
 } from "@/lib/tasks/actions";
 
 import type { TaskCapabilities } from "./capabilities";
+import { ChangeStatusDialog } from "./change-status-dialog";
 
 type Task = {
   id: string;
@@ -78,7 +78,7 @@ export function TaskDetailActions({
   }
 
   const showVisibilityButton = capabilities.canTransitionVisibility;
-  const showStatusButton = capabilities.canTransitionStatus;
+  const showStatusButton = capabilities.canChangeStatus;
   const showClaim = capabilities.canClaim;
   const showDelete = capabilities.canDelete;
 
@@ -89,6 +89,20 @@ export function TaskDetailActions({
     !showDelete
   ) {
     return null;
+  }
+
+  function presetForStatus(current: TaskStatus): TaskStatus {
+    if (current === "pending") return "in_progress";
+    if (current === "in_progress") return "done";
+    return "in_progress";
+  }
+
+  function statusButtonLabel(current: TaskStatus) {
+    if (current === "pending")
+      return { label: "Iniciar", Icon: PlayIcon };
+    if (current === "in_progress")
+      return { label: "Marcar como hecha", Icon: CheckCircleIcon };
+    return { label: "Reabrir", Icon: ArrowCounterClockwiseIcon };
   }
 
   return (
@@ -140,55 +154,26 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {showStatusButton && task.status === "pending" ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() =>
-            runAction(() =>
-              transitionStatus({ taskId: task.id, to: "in_progress" }),
-            )
+      {showStatusButton ? (
+        <ChangeStatusDialog
+          taskId={task.id}
+          currentStatus={task.status}
+          presetStatus={presetForStatus(task.status)}
+          trigger={
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+            >
+              {(() => {
+                const { Icon } = statusButtonLabel(task.status);
+                return <Icon />;
+              })()}
+              {statusButtonLabel(task.status).label}
+            </Button>
           }
-          disabled={isPending}
-        >
-          <PlayIcon />
-          Iniciar
-        </Button>
-      ) : null}
-
-      {showStatusButton && task.status === "in_progress" ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() =>
-            runAction(() =>
-              transitionStatus({ taskId: task.id, to: "done" }),
-            )
-          }
-          disabled={isPending}
-        >
-          <CheckCircleIcon />
-          Marcar como hecha
-        </Button>
-      ) : null}
-
-      {showStatusButton && task.status === "done" ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() =>
-            runAction(() =>
-              transitionStatus({ taskId: task.id, to: "in_progress" }),
-            )
-          }
-          disabled={isPending}
-        >
-          <ArrowCounterClockwiseIcon />
-          Reabrir
-        </Button>
+        />
       ) : null}
 
       {showClaim ? (
