@@ -13,6 +13,7 @@ import {
 import {
   getTaskByIdForViewer,
   getTaskCounts,
+  listChecklistItemsForTask,
   listCommentsForTask,
   listDocumentsForTask,
   listOrgMembers,
@@ -83,7 +84,7 @@ export default async function TasksPage({
 
   const selected = selectedExplicit ?? (tasks.length > 0 ? tasks[0] : null);
 
-  const [comments, documents] = selected
+  const [comments, documents, checklistItems] = selected
     ? await Promise.all([
         listCommentsForTask({
           taskId: selected.id,
@@ -96,8 +97,9 @@ export default async function TasksPage({
           isAdmin,
           taskAuthorId: selected.authorId,
         }),
+        listChecklistItemsForTask({ taskId: selected.id }),
       ])
-    : [[], []];
+    : [[], [], []];
 
   return (
     <div className="bg-background -mx-6 -my-8 flex h-[calc(100vh-4rem)] overflow-hidden">
@@ -135,6 +137,7 @@ export default async function TasksPage({
             })}
             comments={comments}
             documents={documents}
+            checklistItems={checklistItems}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center p-8">

@@ -11,6 +11,17 @@ export type TaskCapabilities = {
   canClaim: boolean;
   canComment: boolean;
   canUploadDocument: boolean;
+  /**
+   * canManageChecklist — puede crear, editar label, toggle y eliminar
+   * items del checklist de esta tarea.
+   *
+   * Matriz: draft → autor+admin/owner; active → admin/autor/responsable/assignee;
+   *         archived → false para todos.
+   *
+   * Diverge de canComment en draft: responsable y assignees NO pueden mutar
+   * el checklist cuando la tarea está en draft.
+   */
+  canManageChecklist: boolean;
 };
 
 export type TaskCapabilitiesInput = {
@@ -50,6 +61,17 @@ export function computeTaskCapabilities({
   const canUploadDocument =
     isAdmin || (visibility === "active" && isParticipant);
 
+  // canManageChecklist: draft → solo autor+admin; active → todos los participantes; archived → nadie
+  let canManageChecklist = false;
+  if (visibility === "archived") {
+    canManageChecklist = false;
+  } else if (visibility === "draft") {
+    canManageChecklist = isAdmin || isAuthor;
+  } else {
+    // active
+    canManageChecklist = isAdmin || isParticipant;
+  }
+
   return {
     canEditContent,
     canEditDueAt,
@@ -60,5 +82,6 @@ export function computeTaskCapabilities({
     canClaim,
     canComment,
     canUploadDocument,
+    canManageChecklist,
   };
 }

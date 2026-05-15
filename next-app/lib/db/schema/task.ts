@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   index,
   integer,
@@ -176,4 +177,66 @@ export const taskDocumentRelations = relations(taskDocument, ({ one }) => ({
     fields: [taskDocument.uploaderId],
     references: [user.id],
   }),
+}));
+
+/**
+ * taskChecklistItem — items del checklist de una tarea.
+ *
+ * Autorización de mutación (crear, editar label, toggle, eliminar):
+ *   - draft    → solo authorId + admin/owner (NO responsable ni assignees)
+ *   - active   → admin/owner, autor, responsable, assignees
+ *   - archived → nadie (ni admin)
+ *
+ * checkedById / checkedAt se persisten para auditoría pero no se exponen
+ * al cliente en v1. Usar proyección explícita en queries.ts.
+ */
+export const taskChecklistItem = pgTable(
+  "task_checklist_item",
+  {
+    id: text("id").primaryKey(),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    checked: boolean("checked").default(false).notNull(),
+    checkedById: text("checked_by_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    checkedAt: timestamp("checked_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("task_checklist_item_task_id_created_at_idx").on(
+      table.taskId,
+      table.createdAt,
+    ),
+  ],
+);
+
+export const taskChecklistItemRelations = relations(
+  taskChecklistItem,
+  ({ one }) => ({
+    task: one(task, {
+      fields: [taskChecklistItem.taskId],
+      references: [task.id],
+    }),
+    checkedBy: one(user, {
+      fields: [taskChecklistItem.checkedById],
+      references: [user.id],
+      relationName: "checklist_item_checked_by",
+    }),
+  }),
+);
+
+// Extend taskRelations to include checklistItems.
+// Note: Drizzle requires re-declaring relations using the same table variable.
+// We augment taskRelations above by re-exporting a new declaration.
+export const taskChecklistRelations = relations(task, ({ many }) => ({
+  checklistItems: many(taskChecklistItem),
 }));

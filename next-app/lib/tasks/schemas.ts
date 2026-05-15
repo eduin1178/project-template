@@ -104,6 +104,37 @@ export const deleteDocumentSchema = z.object({
   documentId: z.string().min(1, "Documento inválido."),
 });
 
+// Checklist schemas
+export const checklistItemLabelSchema = z
+  .string()
+  .trim()
+  .min(1, "El label no puede estar vacío.")
+  .max(200, "El label no puede superar los 200 caracteres.");
+
+export const createChecklistItemSchema = z.object({
+  taskId: taskIdSchema,
+  label: checklistItemLabelSchema,
+});
+
+export const updateChecklistItemLabelSchema = z.object({
+  itemId: z.string().min(1, "Item inválido."),
+  label: checklistItemLabelSchema,
+});
+
+export const toggleChecklistItemSchema = z.object({
+  itemId: z.string().min(1, "Item inválido."),
+  checked: z.boolean(),
+});
+
+export const deleteChecklistItemSchema = z.object({
+  itemId: z.string().min(1, "Item inválido."),
+});
+
+export type CreateChecklistItemInput = z.infer<typeof createChecklistItemSchema>;
+export type UpdateChecklistItemLabelInput = z.infer<typeof updateChecklistItemLabelSchema>;
+export type ToggleChecklistItemInput = z.infer<typeof toggleChecklistItemSchema>;
+export type DeleteChecklistItemInput = z.infer<typeof deleteChecklistItemSchema>;
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskContentInput = z.infer<typeof updateTaskContentSchema>;
 export type TransitionVisibilityInput = z.infer<typeof transitionVisibilitySchema>;

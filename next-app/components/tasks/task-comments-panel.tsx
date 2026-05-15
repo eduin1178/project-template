@@ -81,6 +81,7 @@ export function TaskCommentsPanel({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const listRef = useRef<HTMLUListElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60_000);
@@ -119,22 +120,27 @@ export function TaskCommentsPanel({
   }, [scrollToBottom]);
 
   const submit = useCallback(() => {
+    if (isPending) return;
     const trimmed = body.trim();
     if (!trimmed) {
       setError("El comentario no puede estar vacío.");
       return;
     }
     setError(null);
+    // Mantener el foco para encadenar varios mensajes
+    textareaRef.current?.focus();
     startTransition(async () => {
       const result = await createComment({ taskId, body: trimmed });
       if (!result.ok) {
         setError(result.error);
+        textareaRef.current?.focus();
         return;
       }
       setBody("");
       router.refresh();
+      textareaRef.current?.focus();
     });
-  }, [body, router, taskId]);
+  }, [body, isPending, router, taskId]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -262,13 +268,13 @@ export function TaskCommentsPanel({
       {canComment ? (
         <div className="space-y-2 border-t p-4">
           <Textarea
+            ref={textareaRef}
             value={body}
             onChange={(event) => setBody(event.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Escribe un comentario… (Enter envía, Shift+Enter agrega salto de línea)"
             rows={2}
             className="bg-background max-h-30 min-h-15 resize-y"
-            disabled={isPending}
             maxLength={2000}
           />
           {error ? (

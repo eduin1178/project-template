@@ -14,6 +14,7 @@ import {
 } from "@/lib/db/schema/task";
 import type {
   OrgMemberOption,
+  TaskChecklistItemView,
   TaskCommentView,
   TaskDocumentView,
   TaskListItem,
@@ -21,6 +22,7 @@ import type {
 
 import type { TaskCapabilities } from "./capabilities";
 import { EditTaskDialog } from "./edit-task-dialog";
+import { TaskChecklistPanel } from "./task-checklist-panel";
 import { TaskCommentsPanel } from "./task-comments-panel";
 import { TaskDetailActions } from "./task-detail-actions";
 import { TaskDocumentsPanel } from "./task-documents-panel";
@@ -84,12 +86,14 @@ export function TaskDetailPane({
   capabilities,
   comments,
   documents,
+  checklistItems,
 }: {
   task: TaskListItem;
   members: OrgMemberOption[];
   capabilities: TaskCapabilities;
   comments: TaskCommentView[];
   documents: TaskDocumentView[];
+  checklistItems: TaskChecklistItemView[];
 }) {
   const visibility = task.visibility as TaskVisibility;
   const status = task.status as TaskStatus;
@@ -209,6 +213,11 @@ export function TaskDetailPane({
               Esta tarea no tiene descripción.
             </p>
           )}
+          <TaskChecklistPanel
+            taskId={task.id}
+            items={checklistItems}
+            canManageChecklist={capabilities.canManageChecklist}
+          />
         </TabsContent>
         <TabsContent
           value="comments"

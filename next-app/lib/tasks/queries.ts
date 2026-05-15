@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, exists, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, inArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/lib/db/client";
@@ -8,6 +8,7 @@ import {
   member,
   task,
   taskAssignee,
+  taskChecklistItem,
   taskComment,
   taskDocument,
   user,
@@ -466,4 +467,43 @@ export async function isUserMemberOfOrg({
     )
     .limit(1);
   return Boolean(row);
+}
+
+/**
+ * TaskChecklistItemView — proyección pública del item del checklist.
+ *
+ * Los campos checkedById y checkedAt se persisten en DB para auditoría
+ * pero NO viajan al cliente en v1. Solo se exponen: id, label, checked, createdAt.
+ */
+export type TaskChecklistItemView = {
+  id: string;
+  label: string;
+  checked: boolean;
+  createdAt: Date;
+};
+
+/**
+ * listChecklistItemsForTask
+ *
+ * Retorna todos los items del checklist de una tarea ordenados por createdAt ASC.
+ * Sin paginación en v1. checkedById / checkedAt se filtran en la proyección.
+ */
+export async function listChecklistItemsForTask({
+  taskId,
+}: {
+  taskId: string;
+}): Promise<TaskChecklistItemView[]> {
+  const rows = await db
+    .select({
+      id: taskChecklistItem.id,
+      label: taskChecklistItem.label,
+      checked: taskChecklistItem.checked,
+      createdAt: taskChecklistItem.createdAt,
+      // checkedById y checkedAt se persisten en DB pero NO se seleccionan aquí
+    })
+    .from(taskChecklistItem)
+    .where(eq(taskChecklistItem.taskId, taskId))
+    .orderBy(asc(taskChecklistItem.createdAt));
+
+  return rows;
 }
