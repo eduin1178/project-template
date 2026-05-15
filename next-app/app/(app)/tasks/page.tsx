@@ -14,6 +14,7 @@ import {
   getTaskByIdForViewer,
   getTaskCounts,
   listCommentsForTask,
+  listDocumentsForTask,
   listOrgMembers,
   listTasks,
   listTasksForMember,
@@ -82,13 +83,21 @@ export default async function TasksPage({
 
   const selected = selectedExplicit ?? (tasks.length > 0 ? tasks[0] : null);
 
-  const comments = selected
-    ? await listCommentsForTask({
-        taskId: selected.id,
-        viewerUserId: ctx.userId,
-        isAdmin,
-      })
-    : [];
+  const [comments, documents] = selected
+    ? await Promise.all([
+        listCommentsForTask({
+          taskId: selected.id,
+          viewerUserId: ctx.userId,
+          isAdmin,
+        }),
+        listDocumentsForTask({
+          taskId: selected.id,
+          viewerUserId: ctx.userId,
+          isAdmin,
+          taskAuthorId: selected.authorId,
+        }),
+      ])
+    : [[], []];
 
   return (
     <div className="bg-background -mx-6 -my-8 flex h-[calc(100vh-4rem)] overflow-hidden">
@@ -125,6 +134,7 @@ export default async function TasksPage({
               viewer: { userId: ctx.userId, role: ctx.role },
             })}
             comments={comments}
+            documents={documents}
           />
         ) : (
           <div className="flex flex-1 items-center justify-center p-8">

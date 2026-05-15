@@ -15,6 +15,7 @@ import {
 import type {
   OrgMemberOption,
   TaskCommentView,
+  TaskDocumentView,
   TaskListItem,
 } from "@/lib/tasks/queries";
 
@@ -22,6 +23,7 @@ import type { TaskCapabilities } from "./capabilities";
 import { EditTaskDialog } from "./edit-task-dialog";
 import { TaskCommentsPanel } from "./task-comments-panel";
 import { TaskDetailActions } from "./task-detail-actions";
+import { TaskDocumentsPanel } from "./task-documents-panel";
 import { TaskRowActions } from "./task-row-actions";
 import { TaskTeamSummary } from "./task-team-summary";
 
@@ -81,11 +83,13 @@ export function TaskDetailPane({
   members,
   capabilities,
   comments,
+  documents,
 }: {
   task: TaskListItem;
   members: OrgMemberOption[];
   capabilities: TaskCapabilities;
   comments: TaskCommentView[];
+  documents: TaskDocumentView[];
 }) {
   const visibility = task.visibility as TaskVisibility;
   const status = task.status as TaskStatus;
@@ -187,6 +191,10 @@ export function TaskDetailPane({
               ? ` (${comments.filter((c) => c.deletedAt === null).length})`
               : ""}
           </TabsTrigger>
+          <TabsTrigger value="documents">
+            Documentos
+            {documents.length > 0 ? ` (${documents.length})` : ""}
+          </TabsTrigger>
         </TabsList>
         <TabsContent
           value="detail"
@@ -210,6 +218,16 @@ export function TaskDetailPane({
             taskId={task.id}
             comments={comments}
             canComment={capabilities.canComment}
+          />
+        </TabsContent>
+        <TabsContent
+          value="documents"
+          className="mt-0 flex min-h-0 flex-1 flex-col"
+        >
+          <TaskDocumentsPanel
+            taskId={task.id}
+            documents={documents}
+            canUploadDocument={capabilities.canUploadDocument}
           />
         </TabsContent>
       </Tabs>

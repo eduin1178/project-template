@@ -9,6 +9,7 @@ import {
   task,
   taskAssignee,
   taskComment,
+  taskDocument,
   user,
 } from "@/lib/db/schema";
 import {
@@ -387,6 +388,63 @@ export async function listCommentsForTask({
       isOwn: isAuthor,
     };
   });
+}
+
+export type TaskDocumentView = {
+  id: string;
+  taskId: string;
+  uploaderId: string | null;
+  uploaderName: string | null;
+  uploaderEmail: string | null;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: Date;
+  canDelete: boolean;
+};
+
+export async function listDocumentsForTask({
+  taskId,
+  viewerUserId,
+  isAdmin,
+  taskAuthorId,
+}: {
+  taskId: string;
+  viewerUserId: string;
+  isAdmin: boolean;
+  taskAuthorId: string;
+}): Promise<TaskDocumentView[]> {
+  const rows = await db
+    .select({
+      id: taskDocument.id,
+      taskId: taskDocument.taskId,
+      uploaderId: taskDocument.uploaderId,
+      uploaderName: user.name,
+      uploaderEmail: user.email,
+      fileName: taskDocument.fileName,
+      mimeType: taskDocument.mimeType,
+      sizeBytes: taskDocument.sizeBytes,
+      createdAt: taskDocument.createdAt,
+    })
+    .from(taskDocument)
+    .leftJoin(user, eq(taskDocument.uploaderId, user.id))
+    .where(eq(taskDocument.taskId, taskId))
+    .orderBy(desc(taskDocument.createdAt));
+
+  const isTaskAuthor = taskAuthorId === viewerUserId;
+  return rows.map((row) => ({
+    id: row.id,
+    taskId: row.taskId,
+    uploaderId: row.uploaderId ?? null,
+    uploaderName: row.uploaderName ?? null,
+    uploaderEmail: row.uploaderEmail ?? null,
+    fileName: row.fileName,
+    mimeType: row.mimeType,
+    sizeBytes: row.sizeBytes,
+    createdAt: row.createdAt,
+    canDelete:
+      isAdmin || isTaskAuthor || (row.uploaderId !== null && row.uploaderId === viewerUserId),
+  }));
 }
 
 export async function isUserMemberOfOrg({

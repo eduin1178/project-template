@@ -2,10 +2,12 @@ import { relations, sql } from "drizzle-orm";
 import {
   check,
   index,
+  integer,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 import { organization, user } from "./auth";
@@ -134,6 +136,44 @@ export const taskCommentRelations = relations(taskComment, ({ one }) => ({
   }),
   author: one(user, {
     fields: [taskComment.authorId],
+    references: [user.id],
+  }),
+}));
+
+export const taskDocument = pgTable(
+  "task_document",
+  {
+    id: text("id").primaryKey(),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade" }),
+    uploaderId: text("uploader_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    fileName: text("file_name").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    storageKey: text("storage_key").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("task_document_task_id_created_at_idx").on(
+      table.taskId,
+      table.createdAt,
+    ),
+    uniqueIndex("task_document_storage_key_unique").on(table.storageKey),
+  ],
+);
+
+export const taskDocumentRelations = relations(taskDocument, ({ one }) => ({
+  task: one(task, {
+    fields: [taskDocument.taskId],
+    references: [task.id],
+  }),
+  uploader: one(user, {
+    fields: [taskDocument.uploaderId],
     references: [user.id],
   }),
 }));

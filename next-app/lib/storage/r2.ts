@@ -2,54 +2,67 @@ import "server-only";
 
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-type R2Config = {
+type R2Credentials = {
   accountId: string;
   accessKeyId: string;
   secretAccessKey: string;
+};
+
+type R2PublicConfig = R2Credentials & {
   bucket: string;
   publicBaseUrl: string;
 };
 
-function requireR2Config(): R2Config {
-  const env = {
-    accountId: process.env.R2_ACCOUNT_ID,
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-    bucket: process.env.R2_BUCKET,
-    publicBaseUrl: process.env.R2_PUBLIC_BASE_URL,
-  };
-  for (const [key, value] of Object.entries(env)) {
-    if (!value) {
-      throw new Error(
-        `Cloudflare R2 no está configurado: falta R2_${key
-          .replace(/([A-Z])/g, "_$1")
-          .toUpperCase()}`,
-      );
-    }
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Cloudflare R2 no está configurado: falta ${name}`);
   }
-  return env as R2Config;
+  return value;
+}
+
+function requireR2Credentials(): R2Credentials {
+  return {
+    accountId: requireEnv("R2_ACCOUNT_ID"),
+    accessKeyId: requireEnv("R2_ACCESS_KEY_ID"),
+    secretAccessKey: requireEnv("R2_SECRET_ACCESS_KEY"),
+  };
+}
+
+function requireR2Config(): R2PublicConfig {
+  return {
+    ...requireR2Credentials(),
+    bucket: requireEnv("R2_BUCKET"),
+    publicBaseUrl: requireEnv("R2_PUBLIC_BASE_URL"),
+  };
+}
+
+export function requireDocumentsBucket(): string {
+  return requireEnv("R2_DOCUMENTS_BUCKET");
 }
 
 let cachedClient: S3Client | null = null;
 let cachedFor: string | null = null;
 
-function r2Client(config: R2Config): S3Client {
-  if (cachedClient && cachedFor === config.accountId) {
+function r2Client(credentials: R2Credentials): S3Client {
+  if (cachedClient && cachedFor === credentials.accountId) {
     return cachedClient;
   }
   cachedClient = new S3Client({
     region: "auto",
-    endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
+    endpoint: `https://${credentials.accountId}.r2.cloudflarestorage.com`,
     credentials: {
-      accessKeyId: config.accessKeyId,
-      secretAccessKey: config.secretAccessKey,
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
     },
   });
-  cachedFor = config.accountId;
+  cachedFor = credentials.accountId;
   return cachedClient;
 }
 
@@ -86,6 +99,75 @@ export async function deletePublicAsset({
   await client.send(
     new DeleteObjectCommand({ Bucket: config.bucket, Key: key }),
   );
+}
+
+export type PrivateUploadInput = UploadInput & { bucket: string };
+
+export async function uploadPrivateAsset(input: PrivateUploadInput): Promise<void> {
+  if (!input.bucket) {
+    throw new Error("uploadPrivateAsset: bucket es requerido.");
+  }
+  const credentials = requireR2Credentials();
+  const client = r2Client(credentials);
+  await client.send(
+    new PutObjectCommand({
+      Bucket: input.bucket,
+      Key: input.key,
+      Body: input.body,
+      ContentType: input.contentType,
+    }),
+  );
+}
+
+export async function deletePrivateAsset({
+  key,
+  bucket,
+}: {
+  key: string;
+  bucket: string;
+}): Promise<void> {
+  if (!bucket) {
+    throw new Error("deletePrivateAsset: bucket es requerido.");
+  }
+  const credentials = requireR2Credentials();
+  const client = r2Client(credentials);
+  await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+}
+
+function sanitizeFilenameForHeader(name: string): string {
+  return name.replace(/\\/g, "_").replace(/"/g, "_");
+}
+
+function buildContentDisposition(downloadFilename: string): string {
+  const ascii = sanitizeFilenameForHeader(
+    downloadFilename.replace(/[^\x20-\x7E]/g, "_"),
+  );
+  const encoded = encodeURIComponent(downloadFilename);
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`;
+}
+
+export async function getPresignedDownloadUrl({
+  key,
+  bucket,
+  expiresIn,
+  downloadFilename,
+}: {
+  key: string;
+  bucket: string;
+  expiresIn: number;
+  downloadFilename: string;
+}): Promise<string> {
+  if (!bucket) {
+    throw new Error("getPresignedDownloadUrl: bucket es requerido.");
+  }
+  const credentials = requireR2Credentials();
+  const client = r2Client(credentials);
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ResponseContentDisposition: buildContentDisposition(downloadFilename),
+  });
+  return getSignedUrl(client, command, { expiresIn });
 }
 
 export function buildLogoKey(

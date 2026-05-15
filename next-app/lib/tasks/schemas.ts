@@ -96,6 +96,14 @@ export const deleteCommentSchema = z.object({
   commentId: z.string().min(1, "Comentario inválido."),
 });
 
+export const getDocumentDownloadUrlSchema = z.object({
+  documentId: z.string().min(1, "Documento inválido."),
+});
+
+export const deleteDocumentSchema = z.object({
+  documentId: z.string().min(1, "Documento inválido."),
+});
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskContentInput = z.infer<typeof updateTaskContentSchema>;
 export type TransitionVisibilityInput = z.infer<typeof transitionVisibilitySchema>;
@@ -108,3 +116,7 @@ export type RemoveAssigneeInput = z.infer<typeof removeAssigneeSchema>;
 export type DeleteTaskInput = z.infer<typeof deleteTaskSchema>;
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type DeleteCommentInput = z.infer<typeof deleteCommentSchema>;
+export type GetDocumentDownloadUrlInput = z.infer<
+  typeof getDocumentDownloadUrlSchema
+>;
+export type DeleteDocumentInput = z.infer<typeof deleteDocumentSchema>;

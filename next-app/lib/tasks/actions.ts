@@ -11,8 +11,12 @@ import {
   requireOrgMember,
 } from "@/lib/auth/guards";
 import { db } from "@/lib/db/client";
-import { task, taskAssignee } from "@/lib/db/schema";
+import { task, taskAssignee, taskDocument } from "@/lib/db/schema";
 import type { TaskStatus, TaskVisibility } from "@/lib/db/schema/task";
+import {
+  deletePrivateAsset,
+  requireDocumentsBucket,
+} from "@/lib/storage/r2";
 
 import { isUserMemberOfOrg } from "./queries";
 import {
@@ -638,6 +642,39 @@ export async function deleteTask(
       ok: false,
       error: "Solo puedes eliminar tareas en borrador.",
     };
+  }
+
+  const docRows = await db
+    .select({ storageKey: taskDocument.storageKey })
+    .from(taskDocument)
+    .where(eq(taskDocument.taskId, parsed.data.taskId));
+
+  if (docRows.length > 0) {
+    let bucket: string | null = null;
+    try {
+      bucket = requireDocumentsBucket();
+    } catch (err) {
+      console.warn(
+        "[tasks] deleteTask: bucket de documentos no configurado, blobs huérfanos posibles",
+        err,
+      );
+    }
+    if (bucket) {
+      const results = await Promise.allSettled(
+        docRows.map((row) =>
+          deletePrivateAsset({ bucket: bucket as string, key: row.storageKey }),
+        ),
+      );
+      results.forEach((result, idx) => {
+        if (result.status === "rejected") {
+          console.warn(
+            "[tasks] deleteTask: blob no eliminado, queda huérfano",
+            result.reason,
+            { storageKey: docRows[idx].storageKey },
+          );
+        }
+      });
+    }
   }
 
   await db

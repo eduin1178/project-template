@@ -1,17 +1,20 @@
 /opsx:explore 
 
 
-## Propuesta 3 — `add-tasks-comments`
 
-**Objetivo:** Agregar comentarios a la tarea, visibles para todo el equipo de la tarea, con soft-delete.
+## Propuesta 4 — `add-tasks-documents`
+
+**Objetivo:** Adjuntar/descargar/eliminar documentos en una tarea.
 
 **Alcance:**
-- Modelo `TaskComment` con `taskId`, `authorId`, `body`, `createdAt`, `deletedAt?`, `deletedByAuthor: boolean`.
-- Quién puede comentar: admin, autor, responsable, asignados.
-- Eliminación:
-  - Solo el autor del comentario puede eliminarlo.
-  - Solo si han pasado menos de 60 minutos desde `createdAt`.
-  - Soft-delete: no se borra el registro; en UI se renderiza `"Comentario eliminado por el autor."`.
-- Visibilidad de comentarios: todos los participantes de la tarea.
+- Modelo `TaskDocument` con `taskId`, `uploaderId`, `fileName`, `mimeType`, `size`, `storageKey`, `createdAt`.
+- Tipos permitidos: pdf, doc/docx, xls/xlsx, ppt/pptx, zip (lista cerrada — definir en spec).
+- Storage: reusar la integración R2 ya existente en el proyecto.
+- Permisos:
+  - Subir: autor, responsable, asignados.
+  - Descargar: autor, responsable, asignados.
+  - Eliminar:
+    - Autor de la tarea → cualquier documento.
+    - Cualquier otro participante → solo los documentos que él mismo subió.
 
-Esto es continuacion de add-tasks-inbox-and-admin-edit
+Esto es continuacion del cambio archivado 2026-05-14-add-task-comments y 2026-05-14-add-tasks-inbox-and-admin-edit
