@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth/server";
 import {
   loadActiveMembershipsFor,
   loadActiveOrganizationsFor,
+  redirectToDashboard,
   resolveActiveOrganization,
 } from "@/lib/auth/guards";
 import { deriveMenuRole } from "@/lib/auth/role-menu";
@@ -35,17 +36,7 @@ export default async function AdminLayout({
   if (!session?.user) {
     redirect("/login");
   }
-  if (session.user.role === "super_admin") {
-    redirect("/super");
-  }
   const memberships = await loadActiveMembershipsFor(session.user.id);
-  const isAdmin = memberships.some(
-    (m) => m.role === "admin" || m.role === "owner",
-  );
-  if (!isAdmin) {
-    redirect("/app");
-  }
-
   const activeOrgs = await loadActiveOrganizationsFor(session.user.id);
   if (activeOrgs.length === 0) {
     redirect("/account/organizations");
@@ -63,6 +54,10 @@ export default async function AdminLayout({
     lastActiveOrgId,
     activeOrgs,
   });
+
+  if (resolved.activeOrgRole !== "owner" && resolved.activeOrgRole !== "admin") {
+    await redirectToDashboard();
+  }
 
   if (resolved.needsPersist && resolved.activeOrgId) {
     try {

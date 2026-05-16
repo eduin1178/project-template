@@ -1,6 +1,5 @@
 # Roadmap
 
-Más...
 - Actualizar landing page con base en especificaciones y enviar notificación al webhook para automatización
 - Documentacion con fumadocs y playwrigth
 

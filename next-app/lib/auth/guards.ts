@@ -180,25 +180,43 @@ export type ResolveActiveOrgArgs = {
 
 export type ResolveActiveOrgResult = {
   activeOrgId: string | null;
+  activeOrgRole: OrgMemberRole | null;
   needsPersist: boolean;
 };
+
+function normalizeOrgRole(role: string | null | undefined): OrgMemberRole | null {
+  if (role === "owner" || role === "admin" || role === "member") return role;
+  return null;
+}
 
 export function resolveActiveOrganization({
   sessionActiveOrgId,
   lastActiveOrgId,
   activeOrgs,
 }: ResolveActiveOrgArgs): ResolveActiveOrgResult {
-  const ids = new Set(activeOrgs.map((o) => o.id));
-  if (sessionActiveOrgId && ids.has(sessionActiveOrgId)) {
-    return { activeOrgId: sessionActiveOrgId, needsPersist: false };
+  const byId = new Map(activeOrgs.map((o) => [o.id, o]));
+  if (sessionActiveOrgId && byId.has(sessionActiveOrgId)) {
+    return {
+      activeOrgId: sessionActiveOrgId,
+      activeOrgRole: normalizeOrgRole(byId.get(sessionActiveOrgId)!.role),
+      needsPersist: false,
+    };
   }
-  if (lastActiveOrgId && ids.has(lastActiveOrgId)) {
-    return { activeOrgId: lastActiveOrgId, needsPersist: true };
+  if (lastActiveOrgId && byId.has(lastActiveOrgId)) {
+    return {
+      activeOrgId: lastActiveOrgId,
+      activeOrgRole: normalizeOrgRole(byId.get(lastActiveOrgId)!.role),
+      needsPersist: true,
+    };
   }
   if (activeOrgs.length > 0) {
-    return { activeOrgId: activeOrgs[0].id, needsPersist: true };
+    return {
+      activeOrgId: activeOrgs[0].id,
+      activeOrgRole: normalizeOrgRole(activeOrgs[0].role),
+      needsPersist: true,
+    };
   }
-  return { activeOrgId: null, needsPersist: false };
+  return { activeOrgId: null, activeOrgRole: null, needsPersist: false };
 }
 
 export async function redirectToDashboard() {
@@ -206,10 +224,28 @@ export async function redirectToDashboard() {
   if (!session?.user) {
     redirect("/login");
   }
-  if (session.user.role === "super_admin") redirect("/super");
-  const memberships = await loadActiveMembershipsFor(session.user.id);
-  const isTenantAdmin = memberships.some(
-    (m) => m.role === "admin" || m.role === "owner",
-  );
-  redirect(isTenantAdmin ? "/admin" : "/app");
+
+  const sessionActiveOrgId =
+    (session.session as { activeOrganizationId?: string | null } | undefined)
+      ?.activeOrganizationId ?? null;
+  const lastActiveOrgId =
+    (session.user as { lastActiveOrganizationId?: string | null })
+      .lastActiveOrganizationId ?? null;
+  const activeOrgs = await loadActiveOrganizationsFor(session.user.id);
+  const { activeOrgRole } = resolveActiveOrganization({
+    sessionActiveOrgId,
+    lastActiveOrgId,
+    activeOrgs,
+  });
+
+  if (session.user.role === "super_admin" && activeOrgRole === null) {
+    redirect("/super");
+  }
+  if (activeOrgRole === null) {
+    redirect("/account/organizations");
+  }
+  if (activeOrgRole === "owner" || activeOrgRole === "admin") {
+    redirect("/admin");
+  }
+  redirect("/app");
 }

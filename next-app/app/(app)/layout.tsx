@@ -35,17 +35,7 @@ export default async function AppLayout({
   if (!session?.user) {
     redirect("/login");
   }
-  if (session.user.role === "super_admin") {
-    redirect("/super");
-  }
   const memberships = await loadActiveMembershipsFor(session.user.id);
-  const isTenantAdmin = memberships.some(
-    (m) => m.role === "admin" || m.role === "owner",
-  );
-  if (isTenantAdmin) {
-    redirect("/admin");
-  }
-
   const activeOrgs = await loadActiveOrganizationsFor(session.user.id);
   if (activeOrgs.length === 0) {
     redirect("/account/organizations");
@@ -63,6 +53,10 @@ export default async function AppLayout({
     lastActiveOrgId,
     activeOrgs,
   });
+
+  if (resolved.activeOrgRole === "owner" || resolved.activeOrgRole === "admin") {
+    redirect("/admin");
+  }
 
   if (resolved.needsPersist && resolved.activeOrgId) {
     try {
