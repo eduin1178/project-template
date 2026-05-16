@@ -1,13 +1,7 @@
 # Roadmap
 
-1. **Revision de control por layout.** Actualmente super no puede usar admin ni member. Se requiere que pueda participar de tareas.
-
-- Corregir errro de redireccion infinita cuando el usuario tiene una institucion como admin y otra como miembro. El problema puede resolverse, creo de dos formas. 
-- Unificando el layout incluso el de super y mas bien condicionando visibilidad de componentes o 
-- Mendiante aplicación del filtro de la organizacion activa, pues creo que no está tomando en cuenta el rol según la organización.
-
 Más...
-- Actualizar landing page con base en especificaciones
+- Actualizar landing page con base en especificaciones y enviar notificación al webhook para automatización
 - Documentacion con fumadocs y playwrigth
 
 
