@@ -74,7 +74,7 @@ export function TasksRouteShell({
                 {filtersPanel}
               </FiltersTrigger>
               <h1 className="text-lg font-semibold">
-                {basePath === "/admin/tasks" ? "Tareas" : "Mis tareas"}
+                {basePath.endsWith("/admin/tasks") ? "Tareas" : "Mis tareas"}
               </h1>
             </div>
             {listHeader}

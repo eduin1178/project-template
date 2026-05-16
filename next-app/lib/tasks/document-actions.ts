@@ -31,14 +31,10 @@ type ActionResult<T = undefined> =
   | (T extends undefined ? { ok: true } : { ok: true; data: T })
   | { ok: false; error: string };
 
-const ADMIN_TASKS_PATH = "/admin/tasks";
-const TASKS_PATH = "/tasks";
-
 const PRESIGNED_TTL_SECONDS = 300;
 
 function revalidateTaskPaths() {
-  revalidatePath(ADMIN_TASKS_PATH);
-  revalidatePath(TASKS_PATH);
+  revalidatePath("/", "layout");
 }
 
 async function canViewerOperateOnTask({

@@ -8,15 +8,31 @@ Protección de rutas con defense-in-depth: `proxy.ts` (Next 16) para UX rápido 
 
 ### Requirement: Archivo `proxy.ts` (no `middleware.ts`)
 
-El sistema SHALL crear `next-app/proxy.ts` siguiendo la convención de Next.js 16. El archivo SHALL exportar la función `proxy` (no `middleware`) y un `config` con `matcher` explícito que cubra rutas protegidas (`/super/:path*`, `/admin/:path*`, `/app/:path*`, `/login`) y excluya assets estáticos y API auth (`/api/auth/:path*`). El matcher SHALL incluir `/super/:path*` aunque incluya rutas públicas como `/super/accept-invitation`; el proxy NO redirige rutas públicas porque no requieren cookie de sesión.
+El sistema SHALL mantener `next-app/proxy.ts` siguiendo la convención de Next.js 16. El archivo SHALL exportar la función `proxy` (no `middleware`) y un `config` con `matcher` explícito.
 
-#### Scenario: Convención Next 16 respetada
-- **WHEN** se inspecciona la raíz de `next-app`
-- **THEN** existe `proxy.ts` (no `middleware.ts`) que exporta `proxy` como función nombrada o default y exporta `config` con `matcher`
+El `matcher` SHALL cubrir, además de las rutas existentes (`/super/:path*`, `/login`):
 
-#### Scenario: Matcher excluye assets
-- **WHEN** Next.js sirve `/_next/static/*` o `/_next/image/*`
-- **THEN** `proxy` NO se ejecuta para esas rutas
+- Rutas dinámicas de workspace `/:slug` y `/:slug/:path*`, excluyendo por allowlist los segmentos reservados (`super`, `account`, `api`, `login`, `signup`, `forgot-password`, `reset-password`, `verify-email`, `check-email`, `accept-invitation`, `post-login`, `_next` y assets).
+- Rutas legacy `/app/:path*` y `/admin/:path*` para emitir redirect a `/post-login`.
+
+El `matcher` SHALL excluir explícitamente:
+
+- `/_next/*` (assets del bundler).
+- `/api/*` (rutas de API).
+- Carpetas estáticas en `/public` como `/images/*`, `/fonts/*`, `/assets/*`.
+- Cualquier path cuyo último segmento tenga extensión de archivo (`.*\.[a-zA-Z0-9]+$`).
+
+#### Scenario: Matcher cubre slug dinámico
+- **WHEN** un usuario sin cookie navega a `/<slug>/tasks`
+- **THEN** el proxy intercepta y redirige a `/login?next=/<slug>/tasks`
+
+#### Scenario: Matcher excluye rutas reservadas
+- **WHEN** un usuario navega a `/account/profile`
+- **THEN** el proxy NO trata `/account` como slug; no aplica redirect de workspace
+
+#### Scenario: Matcher excluye assets estáticos
+- **WHEN** Next.js sirve `/images/logo.png`, `/_next/static/*` o `/_next/image/*`
+- **THEN** `proxy` NO se ejecuta para esas rutas (el optimizador de imágenes funciona sin redirects intermedios)
 
 #### Scenario: Ruta pública dentro de /super no redirige
 - **WHEN** un visitante sin cookie navega a `/super/accept-invitation?token=...`
@@ -26,8 +42,9 @@ El sistema SHALL crear `next-app/proxy.ts` siguiendo la convención de Next.js 1
 
 `proxy.ts` SHALL únicamente realizar redirects rápidos basados en la presencia o ausencia de la cookie de sesión:
 
-- Sin cookie de sesión accediendo a `/super/*`, `/admin/*` o `/app/*` → redirect a `/login?next={path}`
-- Con cookie de sesión accediendo a `/login` → redirect a `/` (la verdadera resolución del rol se hace en el server)
+- Sin cookie de sesión accediendo a `/<slug>/*`, `/super/*` → redirect a `/login?next={path}`
+- Con cookie de sesión accediendo a `/login` → redirect a `/post-login` (la verdadera resolución del rol y slug se hace en el server)
+- URLs legacy `/app`, `/app/*`, `/admin`, `/admin/*` → redirect a `/post-login`
 
 `proxy.ts` SHALL NOT consultar la BD ni verificar autorización por rol. Es solo UX.
 
@@ -35,41 +52,56 @@ El sistema SHALL crear `next-app/proxy.ts` siguiendo la convención de Next.js 1
 - **WHEN** una request sin cookie de sesión llega a `/super`
 - **THEN** la respuesta es 302 hacia `/login?next=/super`
 
-#### Scenario: Con cookie en /login redirige a raíz
+#### Scenario: Con cookie en /login redirige a /post-login
 - **WHEN** una request con cookie de sesión llega a `/login`
-- **THEN** la respuesta es 302 hacia `/` (donde el server component resuelve el destino real)
+- **THEN** la respuesta es 302 hacia `/post-login` (donde el server component resuelve el destino real con slug)
 
-### Requirement: Layout RSC es la verdad para render
+### Requirement: Redirects de URLs legacy
 
-Cada layout de ruta protegida SHALL invocar `auth.api.getSession({ headers: await headers() })` y verificar el rol requerido. Si la sesión no existe o el rol no coincide, el layout SHALL invocar `notFound()` para `/super` y `redirect("/login")` para `/admin` y `/app`. Dentro de `/super`, esta verificación SHALL vivir en `app/super/(protected)/layout.tsx`, no en `app/super/layout.tsx`, para permitir rutas públicas hermanas bajo `app/super/(public)/`.
+`proxy.ts` SHALL emitir `redirect` desde URLs legacy al endpoint resolver:
 
-Los layouts `/(app)/layout.tsx` y `/admin/layout.tsx` SHALL NOT forzar redirect a `/super` por `user.role === "super_admin"`. Un usuario `super_admin` con membresía activa SHALL poder navegar `/app` y `/admin` igual que cualquier otro usuario; el acceso a `/super` queda gated únicamente por la capacidad `super_admin` en `/super/(protected)/layout.tsx`.
+- `/app` y `/app/*` → `/post-login`
+- `/admin` y `/admin/*` → `/post-login`
 
-El criterio "es admin de tenant" usado por los layouts `/(app)/layout.tsx` y `/admin/layout.tsx` para decidir redirects entre sí SHALL evaluarse sobre el rol del usuario **en la organización activa resuelta**, no sobre el conjunto global de membresías del usuario.
+El endpoint `/post-login` resuelve el slug correcto vía `redirectToDashboard()` y completa la navegación. Si preservar deep-link al taskId era deseable, queda como follow-up; este change acepta perder `/app/tasks/123` deep-link en favor de simplicidad.
 
-#### Scenario: /super sin sesión devuelve 404
-- **WHEN** se hace request directa a una ruta `/super/(protected)/*` con cookie inválida o ausente y proxy no la intercepta
-- **THEN** el sublayout `(protected)` invoca `notFound()` y responde 404
+#### Scenario: /app redirige a /post-login
+- **WHEN** un usuario con cookie de sesión navega a `/app`
+- **THEN** el proxy redirige a `/post-login`
+
+#### Scenario: /admin/tasks/<id> redirige a /post-login
+- **WHEN** un usuario con cookie navega a `/admin/tasks/abc123`
+- **THEN** el proxy redirige a `/post-login` (el taskId no se preserva por ahora)
+
+### Requirement: Layout RSC del workspace es la verdad para render
+
+Cada layout de ruta protegida SHALL invocar `auth.api.getSession({ headers: await headers() })` y aplicar el guard correspondiente:
+
+- `app/[slug]/layout.tsx`: si no hay sesión → `redirect("/login?next=/${slug}")`. Si la org del slug no existe o el usuario no es miembro activo → `notFound()` (NO redirect; no se expone existencia).
+- `app/[slug]/admin/layout.tsx`: si rol-en-org-del-slug NO es admin/owner → `redirect("/${slug}")`.
+- `app/super/(protected)/layout.tsx`: si `user.role !== "super_admin"` → `notFound()`.
+
+El layout NO consulta `session.activeOrganizationId` como fuente de autoridad; el slug de la URL es autoridad. Si difieren, el layout sincroniza la sesión al slug.
+
+#### Scenario: /[slug] sin sesión redirige a /login con next
+- **WHEN** un request sin cookie llega a `/<slug>`
+- **THEN** redirect a `/login?next=/<slug>`
+
+#### Scenario: /[slug] de org inexistente devuelve 404
+- **WHEN** un usuario autenticado navega a `/slug-que-no-existe`
+- **THEN** `notFound()` se invoca (404)
+
+#### Scenario: /[slug] de org existente sin membresía devuelve 404
+- **WHEN** un usuario autenticado sin membresía activa en la org navega a `/<slug>`
+- **THEN** `notFound()` se invoca (404). NO se hace `redirect`; no se expone existencia de la org
+
+#### Scenario: /[slug]/admin de un member redirige a /[slug]
+- **WHEN** un member intenta `/<slug>/admin`
+- **THEN** redirect a `/<slug>` (donde sí puede entrar)
 
 #### Scenario: /super con sesión pero rol incorrecto devuelve 404
 - **WHEN** un usuario autenticado con `user.role !== "super_admin"` navega a `/super/organizations`
 - **THEN** el sublayout `(protected)` invoca `notFound()` y responde 404
-
-#### Scenario: super con membresía activa accede a /admin de esa org
-- **WHEN** un usuario con `user.role === "super_admin"` y `member.role === "admin"` activo en la org activa navega a `/admin`
-- **THEN** el layout `/admin/layout.tsx` renderiza el shell admin sin redirigir a `/super`
-
-#### Scenario: super con membresía member accede a /app de esa org
-- **WHEN** un usuario con `user.role === "super_admin"` y `member.role === "member"` activo en la org activa navega a `/app`
-- **THEN** el layout `/(app)/layout.tsx` renderiza el shell member sin redirigir a `/super`
-
-#### Scenario: usuario admin en org A y member en org B con org activa B no entra en loop
-- **WHEN** un usuario con memberships `[{orgA, admin}, {orgB, member}]` autentica con `activeOrganizationId === orgB`
-- **THEN** termina en `/app` sin redirects intermedios cíclicos (el layout NO mira "soy admin en alguna org"; mira "soy admin en la org activa")
-
-#### Scenario: /admin con rol incorrecto en org activa redirige al dashboard correcto
-- **WHEN** un usuario llega a `/admin` con `activeOrgRole === "member"` (o sin membresía activa)
-- **THEN** el layout invoca `redirectToDashboard()` (no `redirect("/app")` directo) para que el destino lo calcule la única función fuente-de-verdad
 
 ### Requirement: Route group `(public)` dentro de `/super` exento del guard de rol
 
@@ -95,6 +127,7 @@ Cada server action que mute estado o exponga datos sensibles SHALL llamar a un h
 - `requireSuperAdmin()` — retorna sesión + assert rol `super_admin` o lanza
 - `requireTenantAdmin()` — retorna sesión + asserts membership admin o lanza
 - `requireAnyUser()` — retorna sesión o lanza
+- `requireWorkspaceMemberBySlug(slug)` — valida que el usuario es miembro activo de la org identificada por slug; retorna `{ userId, orgId, slug, role }`
 
 Estos helpers SHALL residir en `lib/auth/guards.ts`.
 
@@ -103,5 +136,15 @@ Estos helpers SHALL residir en `lib/auth/guards.ts`.
 - **THEN** su primera línea invoca `requireSuperAdmin()`; si falla, la action lanza sin continuar
 
 #### Scenario: Refactor que mueve action a otra ruta no rompe seguridad
-- **WHEN** una server action se mueve de `app/super/page.tsx` a `app/admin/page.tsx`
+- **WHEN** una server action se mueve de `app/super/page.tsx` a otra ruta protegida
 - **THEN** sigue protegida porque la verificación vive dentro de la action, no en el matcher del proxy
+
+### Requirement: Server actions reciben contexto explícito
+
+Toda nueva server action del workspace SHALL recibir `organizationId` o `organizationSlug` como argumento explícito y NO leer `session.activeOrganizationId` para sus operaciones. La razón es multi-tab: el slug de la URL es autoridad; la sesión es cache que puede flipear entre tabs.
+
+Esta regla SHALL documentarse en `next-app/AGENTS.md`. La migración de las server actions existentes a este patrón es follow-up y NO bloquea el archive de este change.
+
+#### Scenario: Convención documentada
+- **WHEN** se inspecciona `next-app/AGENTS.md`
+- **THEN** existe una sección que indica que server actions del workspace reciben `organizationSlug` o `organizationId` como argumento explícito

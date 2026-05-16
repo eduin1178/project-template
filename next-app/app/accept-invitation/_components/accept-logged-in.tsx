@@ -27,7 +27,7 @@ export function AcceptLoggedIn({
         setError(result.error);
         return;
       }
-      router.push("/admin");
+      router.push(result.redirectTo);
     });
   }
 

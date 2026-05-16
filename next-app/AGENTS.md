@@ -99,7 +99,43 @@ si detecta un `super_admin` sin membresía activa, intenta auto-reparar via
 `/super` es **panel de plataforma**, no un dashboard de workspace. El header
 del shell dice "Plataforma Docentix". El sidebar del workspace muestra el ítem
 "Panel de plataforma" solo para `super_admin`; el sidebar de `/super` muestra
-"Volver a mi institución" (que va a `/post-login`).
+"Volver a mi institución" (que apunta a `/<slug>` cuando hay org activa
+resoluble, o a `/post-login` en su defecto).
+
+## Routing por slug
+
+El workspace de cada institución vive bajo `/[slug]/...`. El slug es la
+**fuente de verdad** del contexto activo, no `session.activeOrganizationId`.
+
+- `app/[slug]/layout.tsx`: valida que el slug exista y que el usuario sea
+  miembro `active`; sincroniza `setActiveOrganization` por slug y persiste
+  `user.lastActiveOrganizationId`.
+- `app/[slug]/(member)/`: rutas member (dashboard + tareas). Layout propio con
+  `AppShell` + `buildAppSidebarConfig(slug)`.
+- `app/[slug]/admin/`: sección admin. Layout propio con gate por rol
+  (`isOrgAdmin`) + `AppShell` con `buildAdminSidebarConfig(slug)`.
+- `proxy.ts`: cualquier primer segmento NO reservado se trata como candidato a
+  slug; sin sesión redirige a `/login?next=...`.
+
+**Slug inmutable** por decisión de producto. La UI de edición de org NO permite
+modificar slug. Si una institución necesita renombrarse, se renombra `name`.
+
+**Slugs reservados**: `lib/auth/reserved-slugs.ts` exporta `RESERVED_SLUGS`,
+`isReservedSlug` y `validateSlug` (kebab-case, 3-40 chars, no reservado). Toda
+creación de org debe pasar por `validateSlug`.
+
+### Convención: server actions reciben slug u orgId explícito
+
+Toda nueva server action que opere sobre datos de una org SHALL recibir
+`organizationSlug` o `organizationId` como argumento explícito y NO leer
+`session.activeOrganizationId` directamente. Razón: las URLs slug-scoped
+permiten múltiples tabs en orgs distintas, y la sesión flipea entre tabs. La
+URL (`params.slug`) es la fuente confiable; pasarle el contexto a la action es
+trivial desde el componente que ya tiene `params`.
+
+Actions existentes pueden mantenerse usando `session.activeOrganizationId`
+mientras no se demuestre un bug multi-tab. Cualquier action nueva debe
+respetar la convención.
 
 ## Base de datos y seed
 

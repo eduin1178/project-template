@@ -7,24 +7,29 @@ import {
 
 import type { SidebarConfig } from "../types";
 
-export const superSidebarConfig: SidebarConfig = {
-  brand: {
-    label: "Docentix",
-    description: "Plataforma",
-    href: "/super",
-    icon: createElement(ShieldStarIcon, { weight: "fill" }),
-  },
-  items: [
-    {
-      label: "Instituciones",
-      href: "/super/organizations",
-      icon: createElement(BuildingsIcon),
-      matchPrefix: "/super/organizations",
+export function buildSuperSidebarConfig(
+  activeOrgSlug?: string | null,
+): SidebarConfig {
+  return {
+    brand: {
+      label: "Docentix",
+      description: "Plataforma",
+      href: "/super",
+      icon: createElement(ShieldStarIcon, { weight: "fill" }),
     },
-    {
-      label: "Volver a mi institución",
-      href: "/post-login",
-      icon: createElement(ArrowUUpLeftIcon),
-    },
-  ],
-};
+    items: [
+      {
+        label: "Instituciones",
+        href: "/super/organizations",
+        icon: createElement(BuildingsIcon),
+        matchPrefix: "/super/organizations",
+      },
+      {
+        label: "Volver a mi institución",
+        href: activeOrgSlug ? `/${activeOrgSlug}` : "/post-login",
+        icon: createElement(ArrowUUpLeftIcon),
+      },
+    ],
+  };
+}
+

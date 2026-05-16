@@ -5,7 +5,11 @@ import type { ReactNode } from "react";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { auth } from "@/lib/auth/server";
-import { loadMembershipsFor } from "@/lib/auth/guards";
+import {
+  loadActiveOrganizationsFor,
+  loadMembershipsFor,
+  resolveActiveOrganization,
+} from "@/lib/auth/guards";
 import { deriveDashboardHref } from "@/lib/auth/derive-dashboard-href";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,10 +25,29 @@ export default async function AccountLayout({
     redirect("/login");
   }
 
-  const memberships = await loadMembershipsFor(session.user.id);
+  const [memberships, activeOrgs] = await Promise.all([
+    loadMembershipsFor(session.user.id),
+    loadActiveOrganizationsFor(session.user.id),
+  ]);
+
+  const sessionActiveOrgId =
+    (session.session as { activeOrganizationId?: string | null } | undefined)
+      ?.activeOrganizationId ?? null;
+  const lastActiveOrgId =
+    (session.user as { lastActiveOrganizationId?: string | null })
+      .lastActiveOrganizationId ?? null;
+  const resolved = resolveActiveOrganization({
+    sessionActiveOrgId,
+    lastActiveOrgId,
+    activeOrgs,
+  });
+  const activeOrg = activeOrgs.find((o) => o.id === resolved.activeOrgId) ?? null;
+
   const backHref = deriveDashboardHref({
     user: { role: session.user.role ?? null },
     memberships,
+    activeOrgRole: resolved.activeOrgRole,
+    activeOrgSlug: activeOrg?.slug ?? null,
   });
 
   return (

@@ -1,5 +1,5 @@
 # Roadmap
-
+- Modificar layout de mis organizaciones y mis invitaciones para que quede dentro del appshell
 - Actualizar landing page con base en especificaciones y enviar notificación al webhook para automatización
 - Documentacion con fumadocs y playwrigth
 

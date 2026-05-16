@@ -29,12 +29,8 @@ export type ChecklistItemClientView = {
   createdAt: Date;
 };
 
-const ADMIN_TASKS_PATH = "/admin/tasks";
-const TASKS_PATH = "/tasks";
-
 function revalidateTaskPaths() {
-  revalidatePath(ADMIN_TASKS_PATH);
-  revalidatePath(TASKS_PATH);
+  revalidatePath("/", "layout");
 }
 
 /**

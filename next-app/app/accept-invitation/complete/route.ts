@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 
 import { auth } from "@/lib/auth/server";
 import { db } from "@/lib/db/client";
-import { invitation, member } from "@/lib/db/schema";
+import { invitation, member, organization, user as userTable } from "@/lib/db/schema";
 import { createOnboardingTask } from "@/lib/tasks/onboarding";
 
 const PENDING_COOKIE = "pending-invitation-id";
@@ -87,7 +87,34 @@ export async function GET(request: Request) {
     return errorRedirect(url, "No pudimos completar la aceptación.");
   }
 
-  return NextResponse.redirect(new URL("/admin", url.origin));
+  const [org] = await db
+    .select({ id: organization.id, slug: organization.slug })
+    .from(organization)
+    .where(eq(organization.id, row.organizationId))
+    .limit(1);
+
+  if (org) {
+    try {
+      await auth.api.setActiveOrganization({
+        body: { organizationSlug: org.slug },
+        headers: await headers(),
+      });
+      await db
+        .update(userTable)
+        .set({ lastActiveOrganizationId: org.id })
+        .where(eq(userTable.id, session.user.id));
+    } catch (e) {
+      console.error("[accept-org/complete] setActiveOrganization falló", e);
+    }
+    const role = row.role ?? "admin";
+    const target =
+      role === "owner" || role === "admin"
+        ? `/${org.slug}/admin`
+        : `/${org.slug}`;
+    return NextResponse.redirect(new URL(target, url.origin));
+  }
+
+  return NextResponse.redirect(new URL("/post-login", url.origin));
 }
 
 function errorRedirect(currentUrl: URL, message: string) {

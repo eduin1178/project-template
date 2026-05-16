@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth/server";
 import { db } from "@/lib/db/client";
-import { invitation, member, user } from "@/lib/db/schema";
+import { invitation, member, organization, user } from "@/lib/db/schema";
 import { createOnboardingTask } from "@/lib/tasks/onboarding";
 
 const PENDING_COOKIE = "pending-invitation-id";
@@ -20,7 +20,9 @@ const signupSchema = z.object({
   password: z.string().min(8, "Mínimo 8 caracteres."),
 });
 
-export type AcceptResult = { ok: true } | { ok: false; error: string };
+export type AcceptResult =
+  | { ok: true; redirectTo: string }
+  | { ok: false; error: string };
 
 async function loadActiveInvitation(invitationId: string) {
   const [row] = await db
@@ -41,6 +43,7 @@ async function acceptForUser(
   invitationId: string,
   userId: string,
 ): Promise<AcceptResult> {
+  let acceptedRow: typeof invitation.$inferSelect | null = null;
   try {
     await db.transaction(async (tx) => {
       const [row] = await tx
@@ -55,6 +58,7 @@ async function acceptForUser(
         )
         .limit(1);
       if (!row) throw new Error("INVALID");
+      acceptedRow = row;
 
       const updated = await tx
         .update(invitation)
@@ -92,7 +96,40 @@ async function acceptForUser(
     console.error("[accept-org] error", err);
     return { ok: false, error: "No pudimos completar la aceptación." };
   }
-  return { ok: true };
+
+  const accepted = acceptedRow as typeof invitation.$inferSelect | null;
+  if (!accepted) {
+    return { ok: true, redirectTo: "/post-login" };
+  }
+
+  const [org] = await db
+    .select({ id: organization.id, slug: organization.slug })
+    .from(organization)
+    .where(eq(organization.id, accepted.organizationId))
+    .limit(1);
+  if (!org) {
+    return { ok: true, redirectTo: "/post-login" };
+  }
+
+  try {
+    await auth.api.setActiveOrganization({
+      body: { organizationSlug: org.slug },
+      headers: await headers(),
+    });
+    await db
+      .update(user)
+      .set({ lastActiveOrganizationId: org.id })
+      .where(eq(user.id, userId));
+  } catch (e) {
+    console.error("[accept-org] setActiveOrganization falló", e);
+  }
+
+  const role = accepted.role ?? "admin";
+  const redirectTo =
+    role === "owner" || role === "admin"
+      ? `/${org.slug}/admin`
+      : `/${org.slug}`;
+  return { ok: true, redirectTo };
 }
 
 export async function acceptOrgInvitationLoggedIn(
@@ -164,7 +201,7 @@ export async function acceptOrgInvitationEmailAction(
   }
 
   void sql;
-  return { ok: true };
+  return accept;
 }
 
 export async function setPendingInvitationCookieAction(invitationId: string) {

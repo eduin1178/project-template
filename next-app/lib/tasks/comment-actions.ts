@@ -23,9 +23,6 @@ type ActionResult<T = undefined> =
   | (T extends undefined ? { ok: true } : { ok: true; data: T })
   | { ok: false; error: string };
 
-const ADMIN_TASKS_PATH = "/admin/tasks";
-const TASKS_PATH = "/tasks";
-
 function firstError(message: unknown): string {
   return typeof message === "string" && message.length > 0
     ? message
@@ -33,8 +30,7 @@ function firstError(message: unknown): string {
 }
 
 function revalidateTaskPaths() {
-  revalidatePath(ADMIN_TASKS_PATH);
-  revalidatePath(TASKS_PATH);
+  revalidatePath("/", "layout");
 }
 
 export async function createComment(

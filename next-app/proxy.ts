@@ -3,7 +3,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { RESERVED_SLUGS } from "@/lib/auth/reserved-slugs";
 
 const SESSION_COOKIE = "better-auth.session_token";
-const LEGACY_PROTECTED_PREFIXES = ["/super", "/admin", "/app"];
 
 function hasSessionCookie(request: NextRequest): boolean {
   return (
@@ -30,6 +29,8 @@ function legacyRedirectTarget(pathname: string): string | null {
   if (LEGACY_REDIRECTS[pathname]) return LEGACY_REDIRECTS[pathname];
   if (pathname.startsWith("/app/tasks/")) return "/post-login";
   if (pathname.startsWith("/admin/tasks/")) return "/post-login";
+  if (pathname === "/app" || pathname.startsWith("/app/")) return "/post-login";
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return "/post-login";
   return null;
 }
 
@@ -55,14 +56,13 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/post-login", request.url));
   }
 
-  // Rutas protegidas legacy (todavía existentes durante la transición).
-  const isLegacyProtected = LEGACY_PROTECTED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-  if (isLegacyProtected && !hasSessionCookie(request)) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+  // /super requiere sesión (defensa en profundidad).
+  if (pathname === "/super" || pathname.startsWith("/super/")) {
+    if (!hasSessionCookie(request)) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
   // Rutas slug-scoped: cualquier primer segmento no reservado se trata como
@@ -82,8 +82,12 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Rutas autenticadas + URLs legacy + dinámicas. Excluye assets, api y
-    // archivos estáticos vía negative-lookahead en el primer segmento.
-    "/((?!api/|_next/|favicon.ico|robots.txt|sitemap.xml).*)",
+    // Excluye:
+    // - api/  → rutas de API
+    // - _next/ → assets del bundler
+    // - images/, fonts/, assets/ → estáticos en /public
+    // - cualquier path cuyo último segmento tenga extensión (heurística:
+    //   contiene un punto seguido de letras/dígitos al final → archivo)
+    "/((?!api/|_next/|images/|fonts/|assets/|favicon\\.ico|robots\\.txt|sitemap\\.xml|.*\\.[a-zA-Z0-9]+$).*)",
   ],
 };

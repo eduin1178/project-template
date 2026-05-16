@@ -24,18 +24,13 @@ export function deriveDashboardHref(data: SessionRoleData): string {
       }
       if (activeOrgRole === "member") return `/${activeOrgSlug}`;
     }
-    // Fallback legacy si el caller aún no pasa slug.
-    if (activeOrgRole === "owner" || activeOrgRole === "admin") return "/admin";
-    if (activeOrgRole === "member") return "/app";
+    // Sin slug resoluble: delega al server vía /post-login.
+    return "/post-login";
   }
 
   if (role === "super_admin") return "/super";
 
-  const memberships = data?.memberships ?? [];
-  const isTenantAdmin = memberships.some(
-    (m) => m?.role === "admin" || m?.role === "owner",
-  );
-  if (isTenantAdmin) return "/admin";
-
-  return "/app";
+  // Sin contexto de org activa, no podemos construir slug. Que el server
+  // decida vía /post-login.
+  return "/post-login";
 }

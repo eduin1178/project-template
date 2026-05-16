@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { deriveDashboardHref } from "../derive-dashboard-href";
 
-describe("deriveDashboardHref — with activeOrgRole", () => {
+describe("deriveDashboardHref — con activeOrgSlug", () => {
   it("super sin org activa → /super", () => {
     expect(
       deriveDashboardHref({
@@ -12,63 +12,6 @@ describe("deriveDashboardHref — with activeOrgRole", () => {
     ).toBe("/super");
   });
 
-  it("super con activeOrgRole member → /app", () => {
-    expect(
-      deriveDashboardHref({
-        user: { role: "super_admin" },
-        activeOrgRole: "member",
-      }),
-    ).toBe("/app");
-  });
-
-  it("super con activeOrgRole admin → /admin", () => {
-    expect(
-      deriveDashboardHref({
-        user: { role: "super_admin" },
-        activeOrgRole: "admin",
-      }),
-    ).toBe("/admin");
-  });
-
-  it("usuario con activeOrgRole admin → /admin", () => {
-    expect(
-      deriveDashboardHref({
-        user: { role: "user" },
-        activeOrgRole: "admin",
-      }),
-    ).toBe("/admin");
-  });
-
-  it("usuario con activeOrgRole owner → /admin", () => {
-    expect(
-      deriveDashboardHref({
-        user: { role: "user" },
-        activeOrgRole: "owner",
-      }),
-    ).toBe("/admin");
-  });
-
-  it("usuario con activeOrgRole member → /app aunque sea admin en otra org", () => {
-    expect(
-      deriveDashboardHref({
-        user: { role: "user" },
-        memberships: [{ role: "admin" }],
-        activeOrgRole: "member",
-      }),
-    ).toBe("/app");
-  });
-
-  it("usuario regular sin org activa → /account/organizations", () => {
-    expect(
-      deriveDashboardHref({
-        user: { role: "user" },
-        activeOrgRole: null,
-      }),
-    ).toBe("/account/organizations");
-  });
-});
-
-describe("deriveDashboardHref — con activeOrgSlug", () => {
   it("usuario con activeOrgRole admin y slug → /<slug>/admin", () => {
     expect(
       deriveDashboardHref({
@@ -109,17 +52,26 @@ describe("deriveDashboardHref — con activeOrgSlug", () => {
     ).toBe("/docentix");
   });
 
-  it("sin slug, cae al fallback legacy /admin", () => {
+  it("usuario sin org activa → /account/organizations", () => {
+    expect(
+      deriveDashboardHref({
+        user: { role: "user" },
+        activeOrgRole: null,
+      }),
+    ).toBe("/account/organizations");
+  });
+
+  it("sin slug, delega a /post-login", () => {
     expect(
       deriveDashboardHref({
         user: { role: "user" },
         activeOrgRole: "admin",
       }),
-    ).toBe("/admin");
+    ).toBe("/post-login");
   });
 });
 
-describe("deriveDashboardHref — legacy (sin activeOrgRole)", () => {
+describe("deriveDashboardHref — fallback sin activeOrgRole", () => {
   it("super_admin → /super", () => {
     expect(
       deriveDashboardHref({
@@ -129,39 +81,12 @@ describe("deriveDashboardHref — legacy (sin activeOrgRole)", () => {
     ).toBe("/super");
   });
 
-  it("usuario con membership admin → /admin", () => {
+  it("usuario normal sin contexto → /post-login (delega al server)", () => {
     expect(
       deriveDashboardHref({
         user: { role: "user" },
         memberships: [{ role: "admin" }],
       }),
-    ).toBe("/admin");
-  });
-
-  it("usuario con membership owner → /admin", () => {
-    expect(
-      deriveDashboardHref({
-        user: { role: "user" },
-        memberships: [{ role: "owner" }],
-      }),
-    ).toBe("/admin");
-  });
-
-  it("usuario con membership member → /app", () => {
-    expect(
-      deriveDashboardHref({
-        user: { role: "user" },
-        memberships: [{ role: "member" }],
-      }),
-    ).toBe("/app");
-  });
-
-  it("usuario sin memberships → /app", () => {
-    expect(
-      deriveDashboardHref({
-        user: { role: "user" },
-        memberships: [],
-      }),
-    ).toBe("/app");
+    ).toBe("/post-login");
   });
 });

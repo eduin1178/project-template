@@ -29,8 +29,10 @@ export type PlatformMembershipResult = {
 };
 
 // Accepts the global db or a transaction handle. Both share the same drizzle
-// query surface used here (select/insert/where/...).
-export type DbOrTx = typeof defaultDb;
+// query surface used here (select/insert/where/...). The tx handle lacks
+// `$client` so the type is widened to cover both.
+type Tx = Parameters<Parameters<typeof defaultDb.transaction>[0]>[0];
+export type DbOrTx = typeof defaultDb | Tx;
 
 export async function getOrCreatePlatformOrg(
   executor: DbOrTx = defaultDb,
