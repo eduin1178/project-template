@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeScript } from "@/components/theme-script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -48,15 +49,11 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("h-full antialiased", inter.variable, "font-sans")}
     >
+      <head>
+        <ThemeScript />
+      </head>
       <body className="min-h-full bg-background text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

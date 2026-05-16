@@ -7,3 +7,5 @@
 - Actualizar landing page con pase en especificaciones
 
 - Documentacion con fumadocs y playworige
+
+- Mejorar el diseño del login
