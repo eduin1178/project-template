@@ -1,39 +1,19 @@
-import { redirect } from "next/navigation";
-
-import { computeTaskCapabilities } from "@/components/tasks/capabilities";
-import { EmptyState } from "@/components/ui/empty-state";
-import { requireOrgAdmin } from "@/lib/auth/guards";
-import {
-  TASK_STATUS_VALUES,
-  TASK_VISIBILITY_VALUES,
-  type TaskStatus,
-  type TaskVisibility,
-} from "@/lib/db/schema/task";
-import {
-  getTaskCounts,
-  getTaskWithAuthorById,
-  listChecklistItemsForTask,
-  listCommentsForTask,
-  listDocumentsForTask,
-  listOrgMembers,
-  listTasks,
-} from "@/lib/tasks/queries";
+import { permanentRedirect, redirect } from "next/navigation";
 
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
-import { TaskDetailPane } from "@/components/tasks/task-detail-pane";
-import { TasksFiltersPanel } from "@/components/tasks/tasks-filters-panel";
-import { TasksListPanel } from "@/components/tasks/tasks-list-panel";
+import { TasksRouteShell } from "@/components/tasks/tasks-route-shell";
+import { EmptyState } from "@/components/ui/empty-state";
+import { requireOrgAdmin } from "@/lib/auth/guards";
+import { type TaskStatus } from "@/lib/db/schema/task";
+import {
+  countActiveFilters,
+  loadTasksRouteData,
+  preservedQuery,
+} from "@/lib/tasks/route-data";
 
 export const metadata = { title: "Tareas — Docentix" };
 
-function parseMulti<T extends string>(
-  raw: string | string[] | undefined,
-  allowed: ReadonlyArray<T>,
-): T[] {
-  if (!raw) return [];
-  const values = Array.isArray(raw) ? raw : raw.split(",");
-  return values.filter((v): v is T => allowed.includes(v as T));
-}
+const ADMIN_DEFAULT_STATUS = ["pending"] as TaskStatus[];
 
 export default async function AdminTasksPage({
   searchParams,
@@ -47,105 +27,52 @@ export default async function AdminTasksPage({
     redirect("/admin");
   }
 
-  const params = await searchParams;
-  const visibility = parseMulti<TaskVisibility>(
-    params.visibility,
-    TASK_VISIBILITY_VALUES,
-  );
-  const status =
-    "status" in params
-      ? parseMulti<TaskStatus>(params.status, TASK_STATUS_VALUES)
-      : (["pending"] as TaskStatus[]);
-  const selectedId =
-    typeof params.taskId === "string" && params.taskId.length > 0
-      ? params.taskId
-      : null;
+  // Redirect 308 desde la URL legacy `?taskId=` a la ruta canónica `/admin/tasks/[taskId]`.
+  const rawParams = await searchParams;
+  if (typeof rawParams.taskId === "string" && rawParams.taskId.length > 0) {
+    const taskId = rawParams.taskId;
+    const rest: Record<string, string | string[] | undefined> = { ...rawParams };
+    delete rest.taskId;
+    permanentRedirect(`/admin/tasks/${taskId}${preservedQuery(rest)}`);
+  }
 
-  const [tasks, counts, selectedExplicit, members] = await Promise.all([
-    listTasks({ orgId: ctx.orgId, filters: { visibility, status } }),
-    getTaskCounts({ orgId: ctx.orgId }),
-    selectedId
-      ? getTaskWithAuthorById({ orgId: ctx.orgId, id: selectedId })
-      : Promise.resolve(null),
-    listOrgMembers({ orgId: ctx.orgId }),
-  ]);
-
-  const selected = selectedExplicit ?? (tasks.length > 0 ? tasks[0] : null);
-
-  const [comments, documents, checklistItems] = selected
-    ? await Promise.all([
-        listCommentsForTask({
-          taskId: selected.id,
-          viewerUserId: ctx.userId,
-          viewerRole: ctx.role,
-          isAdmin: true,
-          taskAuthorId: selected.authorId,
-          taskDueAt: selected.dueAt,
-        }),
-        listDocumentsForTask({
-          taskId: selected.id,
-          viewerUserId: ctx.userId,
-          viewerRole: ctx.role,
-          isAdmin: true,
-          taskAuthorId: selected.authorId,
-          taskDueAt: selected.dueAt,
-        }),
-        listChecklistItemsForTask({ taskId: selected.id }),
-      ])
-    : [[], [], []];
+  const { params, status, visibility, tasks, counts, members } =
+    await loadTasksRouteData({
+      orgId: ctx.orgId,
+      userId: ctx.userId,
+      isAdmin: true,
+      searchParams: Promise.resolve(rawParams),
+      defaultStatus: ADMIN_DEFAULT_STATUS,
+    });
 
   const defaultDueAt = new Date();
   defaultDueAt.setDate(defaultDueAt.getDate() + 7);
   defaultDueAt.setHours(18, 0, 0, 0);
 
   return (
-    <div className="bg-background -mx-6 -my-8 flex h-[calc(100vh-4rem)] overflow-hidden">
-      <aside className="bg-muted/30 hidden w-64 shrink-0 overflow-y-auto border-r p-4 md:block">
-        <TasksFiltersPanel
-          initialVisibility={visibility}
-          initialStatus={status}
-          counts={counts}
+    <TasksRouteShell
+      initialVisibility={visibility}
+      initialStatus={status}
+      counts={counts}
+      tasks={tasks}
+      basePath="/admin/tasks"
+      selectedId={null}
+      showVisibility={true}
+      activeFiltersCount={countActiveFilters(params)}
+      listHeader={
+        <CreateTaskDialog
+          members={members}
+          defaultDueAt={defaultDueAt.toISOString()}
         />
-      </aside>
-
-      <section className="flex w-full max-w-110 shrink-0 flex-col border-r">
-        <header className="flex flex-col gap-3 border-b p-4">
-          <div className="flex items-center justify-between gap-2">
-            <h1 className="text-lg font-semibold">Tareas</h1>
-            <CreateTaskDialog
-              members={members}
-              defaultDueAt={defaultDueAt.toISOString()}
-            />
-          </div>
-        </header>
-        <TasksListPanel
-          tasks={tasks}
-          selectedId={selected?.id ?? null}
-        />
-      </section>
-
-      <section className="hidden flex-1 flex-col lg:flex">
-        {selected ? (
-          <TaskDetailPane
-            task={selected}
-            members={members}
-            capabilities={computeTaskCapabilities({
-              task: selected,
-              viewer: { userId: ctx.userId, role: ctx.role },
-            })}
-            comments={comments}
-            documents={documents}
-            checklistItems={checklistItems}
+      }
+      detail={
+        <div className="flex flex-1 items-center justify-center p-8">
+          <EmptyState
+            title="Selecciona una tarea"
+            description="Elige una tarea de la lista para ver su detalle y administrar su estado."
           />
-        ) : (
-          <div className="flex flex-1 items-center justify-center p-8">
-            <EmptyState
-              title="Selecciona una tarea"
-              description="Elige una tarea de la lista para ver su detalle y administrar su estado."
-            />
-          </div>
-        )}
-      </section>
-    </div>
+        </div>
+      }
+    />
   );
 }

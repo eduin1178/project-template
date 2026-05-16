@@ -14,7 +14,6 @@ import {
 import { PaperPlaneRightIcon, TrashIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -24,16 +23,10 @@ import {
 } from "@/lib/tasks/comment-actions";
 import type { TaskCommentView } from "@/lib/tasks/queries";
 
+import { UserAvatar } from "./user-avatar";
+
 function personLabel(name: string | null, email: string | null): string {
   return name?.trim() || email?.trim() || "Sin nombre";
-}
-
-function personInitials(name: string | null, email: string | null): string {
-  const source = name?.trim() || email?.trim() || "";
-  if (!source) return "??";
-  const parts = source.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return source.slice(0, 2).toUpperCase();
 }
 
 const RELATIVE = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
@@ -187,14 +180,12 @@ export function TaskCommentsPanel({
                   isOwn ? "flex-row-reverse" : "flex-row",
                 )}
               >
-                <Avatar className="size-8 shrink-0">
-                  {comment.authorImage ? (
-                    <AvatarImage src={comment.authorImage} alt={label} />
-                  ) : null}
-                  <AvatarFallback>
-                    {personInitials(comment.authorName, comment.authorEmail)}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  name={comment.authorName}
+                  email={comment.authorEmail}
+                  image={comment.authorImage}
+                  className="size-8 shrink-0"
+                />
                 <div
                   className={cn(
                     "flex max-w-[75%] min-w-0 flex-col gap-1",

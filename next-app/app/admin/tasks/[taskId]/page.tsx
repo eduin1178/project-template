@@ -1,13 +1,14 @@
 import { notFound, redirect } from "next/navigation";
 
 import { computeTaskCapabilities } from "@/components/tasks/capabilities";
+import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 import { MobileBackToList } from "@/components/tasks/mobile-back-to-list";
 import { TaskDetailPane } from "@/components/tasks/task-detail-pane";
 import { TasksRouteShell } from "@/components/tasks/tasks-route-shell";
-import { isOrgAdmin, requireOrgMember } from "@/lib/auth/guards";
+import { requireOrgAdmin } from "@/lib/auth/guards";
 import { type TaskStatus } from "@/lib/db/schema/task";
 import {
-  getTaskByIdForViewer,
+  getTaskWithAuthorById,
   listChecklistItemsForTask,
   listCommentsForTask,
   listDocumentsForTask,
@@ -20,9 +21,9 @@ import {
 
 export const metadata = { title: "Tarea — Docentix" };
 
-const MEMBER_DEFAULT_STATUS = ["pending", "in_progress"] as TaskStatus[];
+const ADMIN_DEFAULT_STATUS = ["pending"] as TaskStatus[];
 
-export default async function TaskDetailPage({
+export default async function AdminTaskDetailPage({
   params,
   searchParams,
 }: {
@@ -31,28 +32,22 @@ export default async function TaskDetailPage({
 }) {
   let ctx;
   try {
-    ctx = await requireOrgMember();
+    ctx = await requireOrgAdmin();
   } catch {
-    redirect("/login");
+    redirect("/admin");
   }
 
   const { taskId } = await params;
-  const isAdmin = isOrgAdmin(ctx.role);
 
   const [route, selected] = await Promise.all([
     loadTasksRouteData({
       orgId: ctx.orgId,
       userId: ctx.userId,
-      isAdmin,
+      isAdmin: true,
       searchParams,
-      defaultStatus: MEMBER_DEFAULT_STATUS,
+      defaultStatus: ADMIN_DEFAULT_STATUS,
     }),
-    getTaskByIdForViewer({
-      orgId: ctx.orgId,
-      taskId,
-      viewerUserId: ctx.userId,
-      isAdmin,
-    }),
+    getTaskWithAuthorById({ orgId: ctx.orgId, id: taskId }),
   ]);
 
   if (!selected) notFound();
@@ -62,7 +57,7 @@ export default async function TaskDetailPage({
       taskId: selected.id,
       viewerUserId: ctx.userId,
       viewerRole: ctx.role,
-      isAdmin,
+      isAdmin: true,
       taskAuthorId: selected.authorId,
       taskDueAt: selected.dueAt,
     }),
@@ -70,14 +65,18 @@ export default async function TaskDetailPage({
       taskId: selected.id,
       viewerUserId: ctx.userId,
       viewerRole: ctx.role,
-      isAdmin,
+      isAdmin: true,
       taskAuthorId: selected.authorId,
       taskDueAt: selected.dueAt,
     }),
     listChecklistItemsForTask({ taskId: selected.id }),
   ]);
 
-  const backHref = `/tasks${preservedQuery(route.params)}`;
+  const defaultDueAt = new Date();
+  defaultDueAt.setDate(defaultDueAt.getDate() + 7);
+  defaultDueAt.setHours(18, 0, 0, 0);
+
+  const backHref = `/admin/tasks${preservedQuery(route.params)}`;
 
   return (
     <TasksRouteShell
@@ -85,10 +84,16 @@ export default async function TaskDetailPage({
       initialStatus={route.status}
       counts={route.counts}
       tasks={route.tasks}
-      basePath="/tasks"
+      basePath="/admin/tasks"
       selectedId={selected.id}
-      showVisibility={false}
+      showVisibility={true}
       activeFiltersCount={countActiveFilters(route.params)}
+      listHeader={
+        <CreateTaskDialog
+          members={route.members}
+          defaultDueAt={defaultDueAt.toISOString()}
+        />
+      }
       detail={
         <>
           <MobileBackToList href={backHref} />

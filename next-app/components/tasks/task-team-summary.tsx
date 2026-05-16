@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import type { OrgMemberOption, TaskListItem } from "@/lib/tasks/queries";
 
 import { TaskAssigneesPanel } from "./task-assignees-panel";
+import { UserAvatar } from "./user-avatar";
 
 const MAX_VISIBLE = 4;
 
@@ -29,20 +30,11 @@ function personLabel(name: string | null, email: string | null): string {
   return name?.trim() || email?.trim() || "Sin nombre";
 }
 
-function personInitials(name: string | null, email: string | null): string {
-  const source = name?.trim() || email?.trim() || "";
-  if (!source) return "??";
-  const parts = source.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return source.slice(0, 2).toUpperCase();
-}
-
 type TeamMember = {
   userId: string;
   name: string | null;
   email: string | null;
+  image: string | null;
   role: "responsible" | "assignee";
 };
 
@@ -53,6 +45,7 @@ function buildTeamList(task: TaskListItem): TeamMember[] {
       userId: task.responsibleId,
       name: task.responsibleName,
       email: task.responsibleEmail,
+      image: task.responsibleImage,
       role: "responsible",
     });
   }
@@ -61,6 +54,7 @@ function buildTeamList(task: TaskListItem): TeamMember[] {
       userId: a.userId,
       name: a.name,
       email: a.email,
+      image: a.image,
       role: "assignee",
     });
   }
@@ -89,16 +83,16 @@ export function TaskTeamSummary({
         {visible.map((m) => (
           <Tooltip key={m.userId}>
             <TooltipTrigger asChild>
-              <Avatar
+              <UserAvatar
+                name={m.name}
+                email={m.email}
+                image={m.image}
                 className={cn(
                   "ring-background size-7 ring-2",
                   m.role === "responsible" && "ring-primary",
                 )}
-              >
-                <AvatarFallback className="text-[10px]">
-                  {personInitials(m.name, m.email)}
-                </AvatarFallback>
-              </Avatar>
+                fallbackClassName="text-[10px]"
+              />
             </TooltipTrigger>
             <TooltipContent>
               <p className="text-xs font-medium">

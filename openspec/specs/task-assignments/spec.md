@@ -152,7 +152,7 @@ Tareas con `visibility = 'draft'` SHALL ser invisibles a cualquier `member` regu
 
 El sistema SHALL exponer una ruta `/tasks` accesible a cualquier usuario con `activeOrganizationId` (incluye `admin`, `owner` y `member`). La ruta SHALL renderizar el listado de tareas según las reglas de visibilidad por rol del requirement "Visibilidad de tareas según rol": admins ven todas las tareas activas, members ven solo aquellas en `active` donde son author/responsible/assignee.
 
-La presentación SHALL usar el MISMO shell tipo bandeja de entrada que `/admin/tasks` (tres paneles: filtros | lista | detalle), reutilizando los mismos componentes presentacionales. Las acciones visibles en el detalle SHALL renderizarse condicionalmente según las capabilities del viewer:
+La presentación SHALL usar el MISMO shell tipo bandeja de entrada que `/admin/tasks` (filtros + lista + detalle), reutilizando los mismos componentes presentacionales y honrando el comportamiento responsivo definido en `tasks-core` (lista y detalle lado a lado en desktop; una sola sección a la vez en mobile; filtros en `Sheet` mobile, columna lateral en desktop). Las acciones visibles en el detalle SHALL renderizarse condicionalmente según las capabilities del viewer:
 
 - Acciones de transición de `status` (Iniciar, Marcar como hecha, Reabrir) SHALL ser visibles para `admin`/`owner`, para el `authorId`, para el `responsibleId` y para cualquier usuario presente en `task_assignee` de la tarea.
 - Acciones de transición de `visibility` (Activar, Archivar, Reactivar), de gestión de equipo (responsable y assignees), de edición de contenido y de borrado SHALL ser visibles SÓLO para `admin`/`owner` y, según las reglas ya definidas en `tasks-core`, para el `authorId` cuando corresponda (edición en draft, borrado en draft).
@@ -160,13 +160,13 @@ La presentación SHALL usar el MISMO shell tipo bandeja de entrada que `/admin/t
 
 El panel de filtros del shell en `/tasks` SHALL exponer SÓLO el filtro por `status`; NO SHALL exponer filtro por `visibility` (porque para member el listado está fijado a `active` y para admin esta ruta es una vista de participación). El `CreateTaskDialog` NO SHALL renderizarse en `/tasks`; la creación de tareas vive en `/admin/tasks`.
 
-La selección de tarea SHALL usar el parámetro `?taskId=<id>` en lugar de una subruta. La ruta `/tasks/[taskId]` SHALL redirigir con HTTP 308 a `/tasks?taskId=<id>` para preservar deep-links existentes.
+La selección de una tarea SHALL representarse mediante el segmento de URL `/tasks/[taskId]` (definido en `tasks-core`). El query param `?taskId=<id>` deja de soportarse como mecanismo de navegación; las URLs legacy con `?taskId=` SHALL redirigir 308 a la ruta canónica equivalente según las reglas del requirement "Ruta dedicada para detalle de tarea" en `tasks-core`.
 
 Todo el copy SHALL estar en español neutral en segunda persona singular `tú`, sin voseo.
 
 #### Scenario: Admin accede a /tasks con shell de bandeja
 - **WHEN** un admin u owner navega a `/tasks`
-- **THEN** se renderiza el shell de tres paneles (filtros por status | lista | detalle) y la lista contiene las tareas active de su organización
+- **THEN** se renderiza el shell (filtros por status + lista + detalle) y la lista contiene las tareas active de su organización
 
 #### Scenario: Member accede a /tasks con shell de bandeja
 - **WHEN** un `member` regular navega a `/tasks`
@@ -200,13 +200,13 @@ Todo el copy SHALL estar en español neutral en segunda persona singular `tú`, 
 - **WHEN** un admin abre `/tasks`
 - **THEN** la cabecera de la columna de lista NO muestra el botón "Nueva tarea"
 
-#### Scenario: Selección por searchParam
-- **WHEN** un usuario navega a `/tasks?taskId=<id>`
+#### Scenario: Selección por segmento de URL
+- **WHEN** un usuario navega a `/tasks/<id>`
 - **THEN** el detail pane se abre con la tarea cuyo id coincide, siempre que el viewer tenga permiso de visibilidad sobre ella
 
-#### Scenario: Redirect de subruta legacy
-- **WHEN** un usuario navega a `/tasks/<id>`
-- **THEN** el servidor responde 308 redirigiendo a `/tasks?taskId=<id>`
+#### Scenario: Redirect de query param legacy
+- **WHEN** un usuario navega a `/tasks?taskId=<id>`
+- **THEN** el servidor responde 308 redirigiendo a `/tasks/<id>`, preservando los demás searchParams
 
 #### Scenario: Usuario sin organización activa
 - **WHEN** un usuario autenticado sin `activeOrganizationId` navega a `/tasks`
@@ -418,3 +418,74 @@ La UI SHALL leer estos flags para decidir habilitar/ocultar controles. La UI NO 
 #### Scenario: canComment intacto al vencer
 - **WHEN** se proyectan capabilities para cualquier viewer con visibilidad sobre una tarea active vencida
 - **THEN** `canComment = true` (el vencimiento no afecta el flag de comentar)
+
+### Requirement: Foto de usuario en presentación de equipo
+
+El sistema SHALL renderizar la foto real del usuario (campo `user.image` del schema de auth) en cada lugar de la UI que muestre el avatar de un participante de tareas: avatar del autor en el header del detalle, avatares de responsable y equipo de apoyo en el header del detalle, avatares en la lista del modal de gestión de equipo, y avatares en el panel de comentarios donde se muestren autores.
+
+Cuando `user.image` esté presente y sea no-vacío, el `<Avatar>` SHALL renderizar `<AvatarImage src={user.image} />` además del `<AvatarFallback>` con iniciales. Cuando `user.image` sea `NULL` o vacío, el avatar SHALL renderizarse solo con iniciales (comportamiento actual). El `<AvatarFallback>` SHALL preservarse en todos los casos para cubrir el periodo de carga de la imagen y los errores de red.
+
+Las queries que alimentan estas vistas SHALL exponer el campo `image` para todos los usuarios involucrados:
+
+- `TaskListItem` SHALL incluir `authorImage: string | null` y `responsibleImage: string | null`.
+- `TaskAssigneeItem` SHALL incluir `image: string | null`.
+- `OrgMemberOption` (retorno de `listOrgMembers`) SHALL incluir `image: string | null`.
+- El `SELECT` de tareas (`TASK_SELECT_SHAPE`) y la query de assignees en `attachAssignees` SHALL traer `user.image` con `LEFT JOIN` sobre la tabla `user`.
+
+#### Scenario: Avatar del autor con foto en el detalle
+- **WHEN** un usuario abre el detalle de una tarea cuyo `authorId` apunta a un usuario con `image` definido
+- **THEN** el avatar del autor en el header se renderiza con la foto, con iniciales como fallback
+
+#### Scenario: Avatar del responsable con foto en el header
+- **WHEN** un usuario abre el detalle de una tarea cuyo responsable tiene `image` definido
+- **THEN** el avatar del responsable en el cluster del header se renderiza con la foto
+
+#### Scenario: Avatares de assignees con foto en el header
+- **WHEN** un usuario abre el detalle de una tarea con assignees que tienen `image` definido
+- **THEN** los avatares de cada assignee visible se renderizan con su foto
+
+#### Scenario: Avatar sin imagen muestra iniciales
+- **WHEN** un usuario tiene `image = NULL` o vacío
+- **THEN** el avatar correspondiente se renderiza solo con iniciales (sin elemento `<img>` roto)
+
+#### Scenario: Avatares con foto en el modal de equipo
+- **WHEN** un admin abre el modal "Equipo de la tarea" sobre una tarea con assignees con `image`
+- **THEN** la lista de assignees muestra cada avatar con su foto, con iniciales como fallback
+
+#### Scenario: Avatares con foto en comentarios
+- **WHEN** un usuario abre el panel de comentarios y los autores de comentarios tienen `image`
+- **THEN** cada avatar de comentarista se renderiza con su foto
+
+### Requirement: Email visible para diferenciar usuarios homónimos
+
+El sistema SHALL mostrar el email de cada usuario en los lugares donde el usuario debe distinguirse para tomar una decisión: la lista de assignees del modal de gestión de equipo, el `Select` de "Responsable" del modal, y el `Select` de "Agregar al equipo de apoyo" del modal.
+
+- En la **lista de assignees** del modal, cada fila SHALL mostrar el nombre del usuario y, debajo del nombre, su email en una segunda línea con tipografía secundaria (más pequeña y de menor contraste). Si el usuario no tiene `name`, la primera línea SHALL mostrar el email y la segunda no SHALL renderizarse.
+- En los **`<Select>` de responsable y de agregar assignee**, cada `<SelectItem>` SHALL renderizarse como un item de dos líneas: nombre arriba (línea principal) y email debajo (línea secundaria con tipografía y color de menor jerarquía). Si el usuario no tiene `name`, el item SHALL mostrar solo el email en la línea principal.
+- El `<SelectValue>` (placeholder cuando hay selección) SHALL seguir mostrando solo el nombre del usuario para no romper el layout del trigger; la diferenciación por email se da al ABRIR el dropdown.
+
+Esta ampliación NO SHALL afectar tooltips ni etiquetas en el header del detalle, donde el espacio es limitado y la diferenciación primaria es visual (foto + tooltip con nombre y rol).
+
+#### Scenario: Lista del modal muestra email debajo del nombre
+- **WHEN** un admin abre el modal "Equipo de la tarea" con dos assignees que comparten nombre pero tienen emails distintos
+- **THEN** cada assignee se renderiza como nombre arriba y email debajo, permitiendo distinguirlos
+
+#### Scenario: Assignee sin nombre muestra solo email
+- **WHEN** un assignee tiene `name = NULL` o vacío
+- **THEN** la primera línea del item muestra el email y no se renderiza una segunda línea redundante
+
+#### Scenario: Select de responsable muestra items de dos líneas
+- **WHEN** un admin abre el `<Select>` de responsable
+- **THEN** cada opción se renderiza con nombre en la línea principal y email en una línea secundaria de menor jerarquía visual
+
+#### Scenario: Select de agregar assignee muestra items de dos líneas
+- **WHEN** un admin abre el `<Select>` de "Agregar al equipo de apoyo"
+- **THEN** cada opción se renderiza con nombre y email en dos líneas
+
+#### Scenario: SelectValue del trigger muestra solo nombre
+- **WHEN** un admin selecciona un responsable y luego inspecciona el trigger del `<Select>` cerrado
+- **THEN** el trigger muestra únicamente el nombre del usuario seleccionado (sin email para preservar el alto del control)
+
+#### Scenario: Copy en español neutral
+- **WHEN** se inspecciona cualquier copy nuevo introducido por esta presentación
+- **THEN** todas las cadenas usan formas neutras (`tú`, "Selecciona", "Agrega") y NO contienen voseo

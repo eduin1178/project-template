@@ -123,6 +123,9 @@ export function TasksFiltersPanel({
     params.set("status", status.join(","));
     params.delete("taskId");
     const qs = params.toString();
+    // Aplicar filtros siempre vuelve a la ruta base de la lista
+    // (sin segmento [taskId]). Esto cierra el detalle si estaba abierto
+    // y refresca la lista filtrada.
     startTransition(() => {
       router.replace(qs ? `${basePath}?${qs}` : basePath);
     });

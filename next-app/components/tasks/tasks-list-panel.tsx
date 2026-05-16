@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 
@@ -70,6 +70,7 @@ export function TasksListPanel({
   basePath?: string;
 }) {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -85,9 +86,21 @@ export function TasksListPanel({
 
   function buildHref(taskId: string): string {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("taskId", taskId);
-    return `${basePath}?${params.toString()}`;
+    params.delete("taskId");
+    const qs = params.toString();
+    return `${basePath}/${taskId}${qs ? `?${qs}` : ""}`;
   }
+
+  // Si el server no proveyó selectedId pero la URL contiene un segmento
+  // `/<basePath>/<id>` (Next 16: pathname incluye el segmento dinámico),
+  // derivamos la selección actual del pathname para destacar la fila.
+  const derivedSelectedId = useMemo(() => {
+    if (selectedId) return selectedId;
+    if (!pathname?.startsWith(`${basePath}/`)) return null;
+    const tail = pathname.slice(basePath.length + 1);
+    if (!tail || tail.includes("/")) return null;
+    return tail;
+  }, [pathname, basePath, selectedId]);
 
   return (
     <>
@@ -123,7 +136,7 @@ export function TasksListPanel({
             {filtered.map((t) => {
               const visibility = t.visibility as TaskVisibility;
               const status = t.status as TaskStatus;
-              const isSelected = t.id === selectedId;
+              const isSelected = t.id === derivedSelectedId;
               return (
                 <li key={t.id}>
                   <Link

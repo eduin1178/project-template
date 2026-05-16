@@ -36,6 +36,7 @@ export type TaskAssigneeItem = {
   userId: string;
   name: string | null;
   email: string | null;
+  image: string | null;
 };
 
 export type TaskListItem = {
@@ -48,9 +49,11 @@ export type TaskListItem = {
   authorId: string;
   authorName: string | null;
   authorEmail: string | null;
+  authorImage: string | null;
   responsibleId: string | null;
   responsibleName: string | null;
   responsibleEmail: string | null;
+  responsibleImage: string | null;
   assignees: TaskAssigneeItem[];
   createdAt: Date;
   updatedAt: Date;
@@ -68,9 +71,11 @@ const TASK_SELECT_SHAPE = {
   authorId: task.authorId,
   authorName: authorUser.name,
   authorEmail: authorUser.email,
+  authorImage: authorUser.image,
   responsibleId: task.responsibleId,
   responsibleName: responsibleUser.name,
   responsibleEmail: responsibleUser.email,
+  responsibleImage: responsibleUser.image,
   createdAt: task.createdAt,
   updatedAt: task.updatedAt,
 } as const;
@@ -84,6 +89,7 @@ async function attachAssignees(rows: TaskRow[]): Promise<TaskListItem[]> {
       userId: taskAssignee.userId,
       name: user.name,
       email: user.email,
+      image: user.image,
     })
     .from(taskAssignee)
     .leftJoin(user, eq(taskAssignee.userId, user.id))
@@ -92,7 +98,12 @@ async function attachAssignees(rows: TaskRow[]): Promise<TaskListItem[]> {
   const grouped = new Map<string, TaskAssigneeItem[]>();
   for (const row of assigneeRows) {
     const list = grouped.get(row.taskId) ?? [];
-    list.push({ userId: row.userId, name: row.name, email: row.email });
+    list.push({
+      userId: row.userId,
+      name: row.name,
+      email: row.email,
+      image: row.image,
+    });
     grouped.set(row.taskId, list);
   }
   return rows.map((r) => ({ ...r, assignees: grouped.get(r.id) ?? [] }));
@@ -109,9 +120,11 @@ function normalizeRow(row: typeof TASK_SELECT_SHAPE extends infer _ ? Record<str
     authorId: row.authorId as string,
     authorName: (row.authorName as string | null) ?? null,
     authorEmail: (row.authorEmail as string | null) ?? null,
+    authorImage: (row.authorImage as string | null) ?? null,
     responsibleId: (row.responsibleId as string | null) ?? null,
     responsibleName: (row.responsibleName as string | null) ?? null,
     responsibleEmail: (row.responsibleEmail as string | null) ?? null,
+    responsibleImage: (row.responsibleImage as string | null) ?? null,
     createdAt: row.createdAt as Date,
     updatedAt: row.updatedAt as Date,
   };
@@ -298,6 +311,7 @@ export type OrgMemberOption = {
   userId: string;
   name: string | null;
   email: string | null;
+  image: string | null;
   role: string;
 };
 
@@ -312,6 +326,7 @@ export async function listOrgMembers({
       role: member.role,
       name: user.name,
       email: user.email,
+      image: user.image,
     })
     .from(member)
     .leftJoin(user, eq(member.userId, user.id))
@@ -320,6 +335,7 @@ export async function listOrgMembers({
     userId: r.userId,
     name: r.name,
     email: r.email,
+    image: r.image,
     role: r.role,
   }));
 }

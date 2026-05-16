@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { PencilSimpleIcon } from "@phosphor-icons/react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -28,6 +27,7 @@ import { TaskDetailActions } from "./task-detail-actions";
 import { TaskDocumentsPanel } from "./task-documents-panel";
 import { TaskRowActions } from "./task-row-actions";
 import { TaskTeamSummary } from "./task-team-summary";
+import { UserAvatar } from "./user-avatar";
 
 const VISIBILITY_LABEL: Record<TaskVisibility, string> = {
   draft: "Borrador",
@@ -66,16 +66,6 @@ function formatDateLong(date: Date): string {
   }).format(date);
 }
 
-function personInitials(name: string | null, email: string | null): string {
-  const source = name?.trim() || email?.trim() || "";
-  if (!source) return "??";
-  const parts = source.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return source.slice(0, 2).toUpperCase();
-}
-
 function personLabel(name: string | null, email: string | null): string {
   return name?.trim() || email?.trim() || "Sin nombre";
 }
@@ -105,15 +95,16 @@ export function TaskDetailPane({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex items-start justify-between gap-4 border-b p-5">
-        <div className="flex items-start gap-3">
-          <Avatar className="size-9">
-            <AvatarFallback>
-              {personInitials(task.authorName, task.authorEmail)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold leading-tight">
+      <header className="flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-start lg:justify-between lg:gap-4 lg:p-5">
+        <div className="flex min-w-0 items-start gap-3">
+          <UserAvatar
+            name={task.authorName}
+            email={task.authorEmail}
+            image={task.authorImage}
+            className="size-9 shrink-0"
+          />
+          <div className="min-w-0 space-y-1">
+            <h2 className="text-base font-semibold leading-tight lg:text-xl">
               {task.title}
             </h2>
             <div className="text-muted-foreground text-sm">{authorLabel}</div>
@@ -123,7 +114,7 @@ export function TaskDetailPane({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 lg:shrink-0 lg:flex-nowrap">
           <TaskTeamSummary
             task={task}
             members={members}
@@ -157,7 +148,7 @@ export function TaskDetailPane({
         </div>
       </header>
 
-      <div className="flex items-center gap-2 border-b px-5 py-3">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b px-4 py-3 lg:px-5">
         <Badge variant={VISIBILITY_VARIANT[visibility]}>
           {VISIBILITY_LABEL[visibility]}
         </Badge>
@@ -165,8 +156,8 @@ export function TaskDetailPane({
         {capabilities.isExpired && visibility === "active" ? (
           <Badge variant="destructive">Plazo vencido</Badge>
         ) : null}
-        <Separator orientation="vertical" className="mx-2 h-4" />
-        <div className="text-muted-foreground text-xs">
+        <Separator orientation="vertical" className="mx-2 hidden h-4 lg:block" />
+        <div className="text-muted-foreground basis-full text-xs lg:basis-auto">
           {task.dueAt ? (
             <>Plazo: {formatDateLong(task.dueAt)}</>
           ) : (

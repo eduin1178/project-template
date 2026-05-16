@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PlusIcon, XIcon } from "@phosphor-icons/react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,18 +23,11 @@ import {
 } from "@/lib/tasks/actions";
 import type { OrgMemberOption, TaskListItem } from "@/lib/tasks/queries";
 
+import { PersonOptionItem } from "./person-option-item";
+import { UserAvatar } from "./user-avatar";
+
 function personLabel(name: string | null, email: string | null): string {
   return name?.trim() || email?.trim() || "Sin nombre";
-}
-
-function personInitials(name: string | null, email: string | null): string {
-  const source = name?.trim() || email?.trim() || "";
-  if (!source) return "??";
-  const parts = source.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return source.slice(0, 2).toUpperCase();
 }
 
 const NONE_VALUE = "__none__";
@@ -124,8 +116,12 @@ export function TaskAssigneesPanel({
               Sin responsable
             </SelectItem>
             {responsibleOptions.map((m) => (
-              <SelectItem key={m.userId} value={m.userId}>
-                {personLabel(m.name, m.email)}
+              <SelectItem
+                key={m.userId}
+                value={m.userId}
+                textValue={personLabel(m.name, m.email)}
+              >
+                <PersonOptionItem name={m.name} email={m.email} />
               </SelectItem>
             ))}
           </SelectContent>
@@ -151,13 +147,15 @@ export function TaskAssigneesPanel({
                 key={a.userId}
                 className="flex items-center justify-between gap-2 rounded-md border px-2 py-1.5 text-sm"
               >
-                <span className="inline-flex items-center gap-2">
-                  <Avatar className="size-6">
-                    <AvatarFallback className="text-xs">
-                      {personInitials(a.name, a.email)}
-                    </AvatarFallback>
-                  </Avatar>
-                  {personLabel(a.name, a.email)}
+                <span className="inline-flex min-w-0 items-center gap-2">
+                  <UserAvatar
+                    name={a.name}
+                    email={a.email}
+                    image={a.image}
+                    className="size-6 shrink-0"
+                    fallbackClassName="text-xs"
+                  />
+                  <PersonOptionItem name={a.name} email={a.email} />
                 </span>
                 <Button
                   type="button"
@@ -185,8 +183,12 @@ export function TaskAssigneesPanel({
             </SelectTrigger>
             <SelectContent>
               {assigneeOptions.map((m) => (
-                <SelectItem key={m.userId} value={m.userId}>
-                  {personLabel(m.name, m.email)}
+                <SelectItem
+                  key={m.userId}
+                  value={m.userId}
+                  textValue={personLabel(m.name, m.email)}
+                >
+                  <PersonOptionItem name={m.name} email={m.email} />
                 </SelectItem>
               ))}
             </SelectContent>
