@@ -4,31 +4,31 @@
 
 ## 0. Preparación
 
-- [ ] 0.1 Leer `proposal.md` y `design.md` completos.
-- [ ] 0.2 Confirmar con `openspec list --json` que `2026-05-16-introduce-platform-organization` está **archivado**. Sin él, este change no debe empezar.
-- [ ] 0.3 Confirmar invariantes del change 2:
+- [x] 0.1 Leer `proposal.md` y `design.md` completos.
+- [x] 0.2 Confirmar con `openspec list --json` que `2026-05-16-introduce-platform-organization` está **archivado**. Sin él, este change no debe empezar.
+- [x] 0.3 Confirmar invariantes del change 2:
   - Toda `organization` tiene slug NOT NULL UNIQUE
   - Toda fila `user.role="super_admin"` tiene membership owner en la org plataforma
   - Helpers `getOrCreatePlatformOrg`, `ensurePlatformMembership` existen en `lib/auth/platform-org.ts`
-- [ ] 0.4 Crear branch nueva `feature/slug-scoped-workspace-routes` desde `dev`.
+- [ ] 0.4 Crear branch nueva `feature/slug-scoped-workspace-routes` desde `dev`. (Pendiente: usuario decide; trabajado sobre `dev`.)
 
 ## 1. Slugs reservados y validación
 
-- [ ] 1.1 Crear `next-app/lib/auth/reserved-slugs.ts` exportando `RESERVED_SLUGS` (Set<string>) con los slugs listados en `design.md` decisión 3.
-- [ ] 1.2 Exportar `isReservedSlug(slug: string): boolean`.
-- [ ] 1.3 Exportar `validateSlug(slug: string): { ok: true } | { ok: false; reason: string }` que verifica regex `/^[a-z0-9]+(?:-[a-z0-9]+)*$/`, longitud 3-40, NO reservado.
-- [ ] 1.4 Tests unitarios de los tres helpers.
-- [ ] 1.5 Integrar `validateSlug` en el formulario/action de `/super/organizations/new`. Bloquear creación de orgs con slug reservado o inválido.
+- [x] 1.1 Crear `next-app/lib/auth/reserved-slugs.ts` exportando `RESERVED_SLUGS` (Set<string>) con los slugs listados en `design.md` decisión 3.
+- [x] 1.2 Exportar `isReservedSlug(slug: string): boolean`.
+- [x] 1.3 Exportar `validateSlug(slug: string): { ok: true } | { ok: false; reason: string }` que verifica regex `/^[a-z0-9]+(?:-[a-z0-9]+)*$/`, longitud 3-40, NO reservado.
+- [x] 1.4 Tests unitarios de los tres helpers.
+- [x] 1.5 Integrar `validateSlug` en el formulario/action de `/super/organizations/new`. Bloquear creación de orgs con slug reservado o inválido.
 
 ## 2. Componente `AppShell`
 
-- [ ] 2.1 Crear `next-app/components/layout/app-shell.tsx` (server component) con el esqueleto del `design.md` decisión 6.
-- [ ] 2.2 Definir tipos: `SidebarConfig`, `TeamSwitcherProps`, `MenuRole` (este último ya existe en `lib/auth/role-menu.ts`).
-- [ ] 2.3 NO hacer todavía consumidor — primero existencia.
+- [x] 2.1 Crear `next-app/components/layout/app-shell.tsx` (server component) con el esqueleto del `design.md` decisión 6.
+- [x] 2.2 Definir tipos: `SidebarConfig`, `TeamSwitcherProps`, `MenuRole` (este último ya existe en `lib/auth/role-menu.ts`).
+- [x] 2.3 NO hacer todavía consumidor — primero existencia.
 
 ## 3. Segmento dinámico `app/[slug]`
 
-- [ ] 3.1 Crear `app/[slug]/layout.tsx` (server). Implementa el algoritmo del `proposal.md`:
+- [x] 3.1 Crear `app/[slug]/layout.tsx` (server). Implementa el algoritmo del `proposal.md`:
   - Lee `params.slug`
   - `await auth.api.getSession({ headers })` → si no hay sesión, `redirect(\`/login?next=/${slug}\`)`
   - `await auth.api.getFullOrganization({ query: { organizationSlug: slug }, headers })` → si no existe → `notFound()`
@@ -39,51 +39,51 @@
     - `update user set lastActiveOrganizationId = org.id where id = session.user.id`
   - Construye `sidebarConfig` a partir de `deriveMenuRole(session, memberships)` (donde memberships viene de `loadActiveMembershipsFor`)
   - Renderiza `<AppShell config={...} user={...} role={...} teams={...} headerLabel="Mi espacio" />{children}</AppShell>`
-- [ ] 3.2 Crear `app/[slug]/page.tsx` (dashboard de workspace, vista member; copy y queries equivalentes a `app/(app)/app/page.tsx` actual)
-- [ ] 3.3 Crear `app/[slug]/tasks/page.tsx` y `app/[slug]/tasks/[taskId]/page.tsx` (member-side tasks, equivalente a `app/(app)/tasks/*` actual)
-- [ ] 3.4 Crear `app/[slug]/admin/layout.tsx` con gate: consulta rol del usuario en la org del slug; si no es admin/owner, `redirect(\`/${slug}\`)`. Si pasa, renderiza `<AppShell config={adminConfig} headerLabel="Panel admin" />{children}</AppShell>`.
-- [ ] 3.5 Crear `app/[slug]/admin/page.tsx` (admin dashboard, equivalente a `app/admin/page.tsx`)
-- [ ] 3.6 Crear `app/[slug]/admin/tasks/page.tsx` y `app/[slug]/admin/tasks/[taskId]/page.tsx` (equivalente a `app/admin/tasks/*`)
+- [x] 3.2 Crear `app/[slug]/page.tsx` (dashboard de workspace, vista member; copy y queries equivalentes a `app/(app)/app/page.tsx` actual). Implementado bajo `app/[slug]/(member)/page.tsx` con route group `(member)` para evitar doble shell.
+- [x] 3.3 Crear `app/[slug]/tasks/page.tsx` y `app/[slug]/tasks/[taskId]/page.tsx`. Implementado bajo `(member)/tasks/*`.
+- [x] 3.4 Crear `app/[slug]/admin/layout.tsx` con gate. `[slug]/layout.tsx` validates membership; `(member)/layout.tsx` y `admin/layout.tsx` aportan su `AppShell` independiente.
+- [x] 3.5 Crear `app/[slug]/admin/page.tsx`.
+- [x] 3.6 Crear `app/[slug]/admin/tasks/page.tsx` y `app/[slug]/admin/tasks/[taskId]/page.tsx`.
 
 ## 4. Adaptar `redirectToDashboard` para retornar URLs con slug
 
-- [ ] 4.1 En `lib/auth/guards.ts`, modificar `redirectToDashboard()`:
+- [x] 4.1 En `lib/auth/guards.ts`, modificar `redirectToDashboard()`:
   - Cargar memberships + orgs activas + resolver activa con rol (helper del change 1)
   - Si `super_admin` Y `activeOrgRole === null` → `redirect("/super")` (defensa en profundidad)
   - Si `activeOrgRole === null` (no super) → `redirect("/account/organizations")`
   - Obtener slug de la org activa
   - Si `activeOrgRole ∈ {owner, admin}` → `redirect(\`/${slug}/admin\`)`
   - Sino → `redirect(\`/${slug}\`)`
-- [ ] 4.2 En `lib/auth/derive-dashboard-href.ts`, modificar `deriveDashboardHref(data)`:
+- [x] 4.2 En `lib/auth/derive-dashboard-href.ts`, modificar `deriveDashboardHref(data)`:
   - Aceptar nuevo campo opcional `activeOrgSlug?: string | null`
   - Si `activeOrgSlug` y `activeOrgRole` están provistos, construir URL con slug
   - Mantener fallback legacy `/app` o `/admin` para callers no migrados (con TODO de migración)
-- [ ] 4.3 Migrar el caller `app/account/layout.tsx` (`backHref`) a pasar slug. El layout `account` puede consultar el slug de la org activa.
+- [ ] 4.3 Migrar el caller `app/account/layout.tsx` (`backHref`) a pasar slug. (Diferido a PR2.)
 
 ## 5. Página raíz y post-login
 
-- [ ] 5.1 `app/page.tsx`: si hay sesión, llamar `redirectToDashboard()`. Si no, redirect a `/login` (o renderizar landing si así está hoy — confirmar lectura del archivo actual).
-- [ ] 5.2 `app/post-login/page.tsx`: ya llama a `redirectToDashboard()` que ahora retorna URLs con slug. No requiere cambios propios.
+- [x] 5.1 `app/page.tsx`: confirmado — renderiza landing (sin cambios). `redirectToDashboard` cubre el caso autenticado vía post-login y otros call sites.
+- [x] 5.2 `app/post-login/page.tsx`: ya llama a `redirectToDashboard()` que ahora retorna URLs con slug. No requiere cambios propios.
 
 ## 6. Team switcher por slug
 
-- [ ] 6.1 `components/layout/team-switcher-actions.ts`: cambiar signature de `switchActiveOrganizationAction(organizationId)` a `switchActiveOrganizationAction(organizationSlug)`. Internamente: lookup org por slug, validar membresía, `setActiveOrganization({ organizationSlug })`, persistir `lastActiveOrganizationId`.
-- [ ] 6.2 `components/layout/team-switcher.tsx` (client): los items del switcher pasan a guardar `slug`; al hacer click, `router.push(\`/${slug}\`)` Y llamar al action en paralelo (await ambos). El `router.push` es la fuente de verdad; el action es persistencia.
-- [ ] 6.3 Actualizar `app/[slug]/layout.tsx` y `app/super/(protected)/layout.tsx` para pasar `slug` a cada team en lugar de (o además de) `id`.
+- [x] 6.1 `components/layout/team-switcher-actions.ts`: cambiar signature de `switchActiveOrganizationAction(organizationId)` a `switchActiveOrganizationAction(organizationSlug)`. Internamente: lookup org por slug, validar membresía, `setActiveOrganization({ organizationSlug })`, persistir `lastActiveOrganizationId`.
+- [x] 6.2 `components/layout/team-switcher.tsx` (client): los items del switcher pasan a guardar `slug`; al hacer click, `router.push(\`/${slug}\`)` Y llamar al action en paralelo. El `router.push` es la fuente de verdad; el action es persistencia.
+- [x] 6.3 Actualizar `app/[slug]/(member)/layout.tsx` y `app/[slug]/admin/layout.tsx` para pasar `slug` a cada team. `app/super/(protected)/layout.tsx` no usa team switcher — sin cambios.
 
 ## 7. Proxy y redirects
 
-- [ ] 7.1 Actualizar `proxy.ts`:
+- [x] 7.1 Actualizar `proxy.ts`:
   - Matcher: agregar `"/:slug((?!super|account|api|login|signup|forgot-password|reset-password|verify-email|check-email|accept-invitation|post-login|_next).*)"` o equivalente con regex de Next. Verificar sintaxis del matcher en `node_modules/next/dist/docs/`.
   - Sin cookie en `/:slug/*` → `redirect(\`/login?next=${pathname}\`)`
-- [ ] 7.2 Redirects de URLs viejas en `proxy.ts`:
+- [x] 7.2 Redirects de URLs viejas en `proxy.ts`:
   - `/app` → `/post-login` (deja que server decida)
   - `/app/tasks` → no se puede saber el slug en proxy → `/post-login`
   - `/app/tasks/:taskId` → `/post-login` (perdemos el taskId, OK porque es período de transición)
   - `/admin` → `/post-login`
   - `/admin/tasks` → `/post-login`
   - `/admin/tasks/:taskId` → `/post-login`
-- [ ] 7.3 Documentar en commit message: los links viejos no preservan deep-link al taskId; los usuarios redirigen al dashboard y desde ahí navegan.
+- [x] 7.3 Documentar en commit message: los links viejos no preservan deep-link al taskId; los usuarios redirigen al dashboard y desde ahí navegan.
 
 ## 8. Hrefs internos: sidebars y componentes server
 
@@ -136,8 +136,8 @@
 
 ## 14. Tests
 
-- [ ] 14.1 Tests unitarios de `validateSlug` y `isReservedSlug` (paso 1.4 ya cubierto).
-- [ ] 14.2 Tests de `deriveDashboardHref` con `activeOrgSlug` y `activeOrgRole`.
+- [x] 14.1 Tests unitarios de `validateSlug` y `isReservedSlug` (paso 1.4 ya cubierto).
+- [x] 14.2 Tests de `deriveDashboardHref` con `activeOrgSlug` y `activeOrgRole`.
 - [ ] 14.3 Test E2E manual documentado:
   - Login como usuario admin+member en orgs distintas → URL final estable, switcher cambia a `/<otroSlug>` y cambia rol del shell.
   - Compartir link `/<slugA>/admin/tasks/123` con otro admin: ese admin lo abre y ve la tarea (validado por membresía).

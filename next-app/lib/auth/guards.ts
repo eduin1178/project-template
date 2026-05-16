@@ -87,6 +87,42 @@ export async function requireAnyUser() {
   return requireSession();
 }
 
+export type WorkspaceMemberContext = {
+  userId: string;
+  orgId: string;
+  slug: string;
+  role: OrgMemberRole;
+};
+
+export async function requireWorkspaceMemberBySlug(
+  slug: string,
+): Promise<WorkspaceMemberContext> {
+  const session = await requireSession();
+  const [org] = await db
+    .select({ id: organization.id, slug: organization.slug })
+    .from(organization)
+    .where(eq(organization.slug, slug))
+    .limit(1);
+  if (!org) {
+    throw new Error("NOT_FOUND");
+  }
+  const [row] = await db
+    .select({ role: member.role, status: member.status })
+    .from(member)
+    .where(
+      and(eq(member.userId, session.user.id), eq(member.organizationId, org.id)),
+    )
+    .limit(1);
+  if (!row || row.status !== "active") {
+    throw new Error("NOT_FOUND");
+  }
+  const role = row.role as OrgMemberRole;
+  if (role !== "owner" && role !== "admin" && role !== "member") {
+    throw new Error("FORBIDDEN");
+  }
+  return { userId: session.user.id, orgId: org.id, slug: org.slug, role };
+}
+
 export type OrgMemberRole = "owner" | "admin" | "member";
 
 export type OrgMemberContext = {
@@ -151,6 +187,7 @@ export async function loadActiveMembershipsFor(userId: string) {
 
 export type ActiveOrgSummary = {
   id: string;
+  slug: string;
   name: string;
   logo: string | null;
   role: string;
@@ -162,6 +199,7 @@ export async function loadActiveOrganizationsFor(
   const rows = await db
     .select({
       id: organization.id,
+      slug: organization.slug,
       name: organization.name,
       logo: organization.logo,
       role: member.role,
@@ -233,7 +271,7 @@ export async function redirectToDashboard() {
     (session.user as { lastActiveOrganizationId?: string | null })
       .lastActiveOrganizationId ?? null;
   let activeOrgs = await loadActiveOrganizationsFor(session.user.id);
-  let { activeOrgRole } = resolveActiveOrganization({
+  let resolved = resolveActiveOrganization({
     sessionActiveOrgId,
     lastActiveOrgId,
     activeOrgs,
@@ -243,7 +281,7 @@ export async function redirectToDashboard() {
   // membership activa en la org plataforma. Si por algún motivo no la tiene
   // (bug, borrado manual de fila en `member`), intentamos auto-repararla
   // una vez antes de caer a `/super`.
-  if (session.user.role === "super_admin" && activeOrgRole === null) {
+  if (session.user.role === "super_admin" && resolved.activeOrgRole === null) {
     console.error(
       "[guards] super_admin sin membresía activa detectado; intentando auto-reparar via ensurePlatformMembership.",
       { userId: session.user.id },
@@ -251,24 +289,33 @@ export async function redirectToDashboard() {
     try {
       await ensurePlatformMembership(session.user.id);
       activeOrgs = await loadActiveOrganizationsFor(session.user.id);
-      ({ activeOrgRole } = resolveActiveOrganization({
+      resolved = resolveActiveOrganization({
         sessionActiveOrgId,
         lastActiveOrgId,
         activeOrgs,
-      }));
+      });
     } catch (err) {
       console.error("[guards] auto-reparación de membership falló", err);
     }
-    if (activeOrgRole === null) {
+    if (resolved.activeOrgRole === null) {
       redirect("/super");
     }
   }
 
-  if (activeOrgRole === null) {
+  if (resolved.activeOrgRole === null) {
     redirect("/account/organizations");
   }
-  if (activeOrgRole === "owner" || activeOrgRole === "admin") {
-    redirect("/admin");
+
+  const activeOrg = activeOrgs.find((o) => o.id === resolved.activeOrgId);
+  const activeSlug = activeOrg?.slug;
+  if (!activeSlug) {
+    // Fallback defensivo: no debería ocurrir post-change-2 (slug NOT NULL).
+    console.error("[guards] org activa sin slug; fallback a /account/organizations");
+    redirect("/account/organizations");
   }
-  redirect("/app");
+
+  if (resolved.activeOrgRole === "owner" || resolved.activeOrgRole === "admin") {
+    redirect(`/${activeSlug}/admin`);
+  }
+  redirect(`/${activeSlug}`);
 }

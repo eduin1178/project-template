@@ -87,6 +87,7 @@ export default async function AppLayout({
           teams={{
             orgs: activeOrgs.map((o) => ({
               id: o.id,
+              slug: o.slug,
               name: o.name,
               logo: o.logo,
             })),

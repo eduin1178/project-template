@@ -7,14 +7,14 @@ import { and, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { requireSession } from "@/lib/auth/guards";
 import { db } from "@/lib/db/client";
-import { member, user } from "@/lib/db/schema";
+import { member, organization, user } from "@/lib/db/schema";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
 
 export async function switchActiveOrganizationAction(
-  organizationId: string,
+  organizationSlug: string,
 ): Promise<ActionResult> {
-  if (!organizationId || typeof organizationId !== "string") {
+  if (!organizationSlug || typeof organizationSlug !== "string") {
     return { ok: false, error: "Solicitud inválida." };
   }
 
@@ -25,12 +25,22 @@ export async function switchActiveOrganizationAction(
     return { ok: false, error: "Sesión no válida." };
   }
 
+  const [org] = await db
+    .select({ id: organization.id })
+    .from(organization)
+    .where(eq(organization.slug, organizationSlug))
+    .limit(1);
+
+  if (!org) {
+    return { ok: false, error: "Esa institución no existe." };
+  }
+
   const [row] = await db
     .select({ status: member.status })
     .from(member)
     .where(
       and(
-        eq(member.organizationId, organizationId),
+        eq(member.organizationId, org.id),
         eq(member.userId, session.user.id),
       ),
     )
@@ -45,7 +55,7 @@ export async function switchActiveOrganizationAction(
 
   try {
     await auth.api.setActiveOrganization({
-      body: { organizationId },
+      body: { organizationSlug },
       headers: await headers(),
     });
   } catch (err) {
@@ -56,7 +66,7 @@ export async function switchActiveOrganizationAction(
   try {
     await db
       .update(user)
-      .set({ lastActiveOrganizationId: organizationId })
+      .set({ lastActiveOrganizationId: org.id })
       .where(eq(user.id, session.user.id));
   } catch (err) {
     console.error("[team-switcher] update lastActiveOrganizationId falló", err);

@@ -31,13 +31,13 @@ export function TeamSwitcher({ teams }: { teams: TeamsConfig }) {
   const activeOrg =
     teams.orgs.find((o) => o.id === teams.activeOrgId) ?? teams.orgs[0] ?? null;
 
-  function handleSwitch(orgId: string) {
+  function handleSwitch(orgId: string, orgSlug: string) {
     if (orgId === teams.activeOrgId || pending) return;
     startTransition(async () => {
-      const result = await teams.onSwitch(orgId);
+      router.push(`/${orgSlug}`);
+      const result = await teams.onSwitch(orgSlug);
       if (result.ok) {
         toast.success("Cambiaste de institución.");
-        router.refresh();
       } else {
         toast.error(result.error);
       }
@@ -87,7 +87,7 @@ export function TeamSwitcher({ teams }: { teams: TeamsConfig }) {
                   key={org.id}
                   onSelect={(event) => {
                     event.preventDefault();
-                    handleSwitch(org.id);
+                    handleSwitch(org.id, org.slug);
                   }}
                   className="gap-2"
                 >

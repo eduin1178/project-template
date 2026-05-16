@@ -88,6 +88,7 @@ export default async function AdminLayout({
           teams={{
             orgs: activeOrgs.map((o) => ({
               id: o.id,
+              slug: o.slug,
               name: o.name,
               logo: o.logo,
             })),

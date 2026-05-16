@@ -10,6 +10,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth/server";
 import { sendOrgAdminInvitationEmail } from "@/lib/auth/emails";
 import { requireSuperAdmin } from "@/lib/auth/guards";
+import { validateSlug } from "@/lib/auth/reserved-slugs";
 import { db } from "@/lib/db/client";
 import { invitation, member, organization, user } from "@/lib/db/schema";
 
@@ -54,6 +55,11 @@ export async function createOrganizationWithAdminAction(
   }
 
   const { name, slug, adminName, adminEmail } = parsed.data;
+
+  const slugCheck = validateSlug(slug);
+  if (!slugCheck.ok) {
+    return { ok: false, error: slugCheck.reason, field: "slug" };
+  }
 
   const [existing] = await db
     .select({ id: organization.id })

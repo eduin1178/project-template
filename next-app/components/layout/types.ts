@@ -35,6 +35,7 @@ export type SidebarConfig = {
 
 export type TeamSwitcherOrg = {
   id: string;
+  slug: string;
   name: string;
   logo: string | null;
 };
@@ -43,6 +44,6 @@ export type TeamsConfig = {
   orgs: TeamSwitcherOrg[];
   activeOrgId: string | null;
   onSwitch: (
-    orgId: string,
+    organizationSlug: string,
   ) => Promise<{ ok: true } | { ok: false; error: string }>;
 };
