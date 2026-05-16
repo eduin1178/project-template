@@ -83,7 +83,7 @@ export function InvitationsTable({
       <EmptyState
         icon={<PaperPlaneTiltIcon className="size-6" />}
         title="Sin invitaciones"
-        description="No hay invitaciones para esta organización."
+        description="No hay invitaciones para esta institución."
       />
     );
   }

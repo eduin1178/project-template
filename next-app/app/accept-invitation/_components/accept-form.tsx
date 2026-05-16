@@ -52,7 +52,7 @@ export function AcceptOrgInvitationForm({
         <Alert>
           <AlertDescription>
             Tu cuenta quedó creada. Te enviamos un correo de verificación; al
-            confirmarlo podrás iniciar sesión en tu organización.
+            confirmarlo podrás iniciar sesión en tu institución.
           </AlertDescription>
         </Alert>
         <Button asChild className="w-full">

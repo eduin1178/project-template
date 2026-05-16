@@ -30,7 +30,7 @@ export default async function AccessSuspendedPage({
   }
 
   const { org: orgId } = await searchParams;
-  let orgName = "una organización";
+  let orgName = "una institución";
   if (orgId) {
     const [org] = await db
       .select({ name: organization.name })
@@ -50,12 +50,12 @@ export default async function AccessSuspendedPage({
           <CardTitle className="text-2xl">Acceso suspendido</CardTitle>
           <CardDescription>
             Tu acceso a <strong>{orgName}</strong> fue suspendido. Contacta al
-            administrador de la organización para reactivarlo.
+            administrador de la institución para reactivarlo.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild className="w-full">
-            <Link href="/account/organizations">Volver a mis organizaciones</Link>
+            <Link href="/account/organizations">Volver a mis instituciones</Link>
           </Button>
         </CardContent>
       </Card>

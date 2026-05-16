@@ -74,7 +74,7 @@ export async function updateOrganizationAction(
   try {
     await requireTenantAdminFor(parsed.data.organizationId);
   } catch {
-    return { ok: false, error: "No tienes permisos para editar esta organización." };
+    return { ok: false, error: "No tienes permisos para editar esta institución." };
   }
   try {
     await db
@@ -90,7 +90,7 @@ export async function updateOrganizationAction(
       error:
         err instanceof Error
           ? err.message
-          : "No pudimos actualizar la organización.",
+          : "No pudimos actualizar la institución.",
     };
   }
 }
@@ -121,7 +121,7 @@ export async function uploadOrganizationLogoAction(
   try {
     await requireTenantAdminFor(organizationId);
   } catch {
-    return { ok: false, error: "No tienes permisos para editar esta organización." };
+    return { ok: false, error: "No tienes permisos para editar esta institución." };
   }
 
   const [existing] = await db
@@ -199,7 +199,7 @@ export async function createTenantInvitationAction(
   try {
     session = await requireTenantAdminFor(parsed.data.organizationId);
   } catch {
-    return { ok: false, error: "No tienes permisos en esta organización." };
+    return { ok: false, error: "No tienes permisos en esta institución." };
   }
 
   const normalizedEmail = parsed.data.email.toLowerCase();
@@ -245,7 +245,7 @@ export async function createTenantInvitationAction(
   try {
     await sendTenantInvitationEmail({
       to: normalizedEmail,
-      organizationName: org?.name ?? "tu organización",
+      organizationName: org?.name ?? "tu institución",
       role: parsed.data.role,
       invitationId,
       ttlDays: INVITATION_TTL_DAYS,
@@ -279,7 +279,7 @@ export async function resendTenantInvitationAction(
   try {
     session = await requireTenantAdminFor(row.organizationId);
   } catch {
-    return { ok: false, error: "No tienes permisos en esta organización." };
+    return { ok: false, error: "No tienes permisos en esta institución." };
   }
   if (row.status !== "pending") {
     return { ok: false, error: "Esta invitación ya no está pendiente." };
@@ -300,7 +300,7 @@ export async function resendTenantInvitationAction(
   try {
     await sendTenantInvitationEmail({
       to: row.email,
-      organizationName: org?.name ?? "tu organización",
+      organizationName: org?.name ?? "tu institución",
       role: row.role ?? "member",
       invitationId: row.id,
       ttlDays: Math.max(
@@ -351,7 +351,7 @@ export async function updateMemberRoleAction(
   try {
     session = await requireTenantAdminFor(target.organizationId);
   } catch {
-    return { ok: false, error: "No tienes permisos en esta organización." };
+    return { ok: false, error: "No tienes permisos en esta institución." };
   }
 
   if (target.userId === session.user.id) {
@@ -376,7 +376,7 @@ export async function updateMemberRoleAction(
       return {
         ok: false,
         error:
-          "No puedes degradar al último admin activo de la organización.",
+          "No puedes degradar al último admin activo de la institución.",
       };
     }
   }
@@ -426,7 +426,7 @@ export async function setMemberStatusAction(
   try {
     session = await requireTenantAdminFor(target.organizationId);
   } catch {
-    return { ok: false, error: "No tienes permisos en esta organización." };
+    return { ok: false, error: "No tienes permisos en esta institución." };
   }
 
   if (target.userId === session.user.id) {
@@ -451,7 +451,7 @@ export async function setMemberStatusAction(
       return {
         ok: false,
         error:
-          "No puedes suspender al último admin activo de la organización.",
+          "No puedes suspender al último admin activo de la institución.",
       };
     }
   }
@@ -483,7 +483,7 @@ export async function deleteTenantInvitationAction(
   try {
     await requireTenantAdminFor(row.organizationId);
   } catch {
-    return { ok: false, error: "No tienes permisos en esta organización." };
+    return { ok: false, error: "No tienes permisos en esta institución." };
   }
   if (row.status !== "pending") {
     return {

@@ -16,7 +16,7 @@ type OrgAdminWelcomeEmailProps = {
 };
 
 const FEATURES: string[] = [
-  "Gestiona tu organización y configúrala a la medida de tu equipo",
+  "Gestiona tu institución y configúrala a la medida de tu equipo",
   "Invita miembros y asigna roles",
   "Crea tareas con checklists, fechas y prioridades",
   "Coordina a tu equipo con comentarios y adjuntos",
@@ -47,7 +47,7 @@ export default function OrgAdminWelcomeEmail({
       <Heading style={emailStyles.heading}>¡Bienvenido a Docentix!</Heading>
 
       <Text style={emailStyles.paragraph}>
-        Has sido invitado a administrar la organización{" "}
+        Has sido invitado a administrar la institución{" "}
         <strong>{organizationName}</strong>. Docentix es la plataforma donde
         coordinas tareas, equipos y documentación en un solo lugar.
       </Text>
@@ -97,7 +97,7 @@ export function renderOrgAdminWelcomeEmailText(
   return [
     "¡Bienvenido a Docentix!",
     "",
-    `Has sido invitado a administrar la organización "${props.organizationName}".`,
+    `Has sido invitado a administrar la institución "${props.organizationName}".`,
     "Docentix es la plataforma donde coordinas tareas, equipos y documentación en un solo lugar.",
     "",
     "Con Docentix puedes:",

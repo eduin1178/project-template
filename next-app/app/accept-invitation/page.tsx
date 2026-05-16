@@ -64,7 +64,7 @@ export default async function AcceptInvitationPage({
   }
 
   const session = await auth.api.getSession({ headers: await headers() });
-  const orgName = row.organizationName ?? "tu organización";
+  const orgName = row.organizationName ?? "tu institución";
 
   return (
     <AuthCardLayout>

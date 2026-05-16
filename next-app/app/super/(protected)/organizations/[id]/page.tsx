@@ -35,7 +35,7 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   const detail = await getOrganizationDetail(id);
-  return { title: `${detail?.name ?? "Organización"} — Docentix` };
+  return { title: `${detail?.name ?? "Institución"} — Docentix` };
 }
 
 export default async function OrganizationDetailPage({
@@ -59,7 +59,7 @@ export default async function OrganizationDetailPage({
       <Button asChild variant="ghost" size="sm">
         <Link href="/super/organizations">
           <CaretLeftIcon />
-          Volver a organizaciones
+          Volver a instituciones
         </Link>
       </Button>
 

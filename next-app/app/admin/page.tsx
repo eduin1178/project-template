@@ -33,7 +33,7 @@ export default async function AdminDashboardPage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">Panel de la organización</h1>
+        <h1 className="text-2xl font-semibold">Panel de la institución</h1>
         <p className="text-muted-foreground text-sm">
           Resumen del estado de tareas, equipo y almacenamiento.
         </p>
@@ -76,7 +76,7 @@ export default async function AdminDashboardPage() {
         />
         <StorageCard
           bytes={data.storageBytes}
-          hint="Suma de toda la organización"
+          hint="Suma de toda la institución"
         />
         <Card size="sm" className="lg:col-span-1">
           <CardContent className="px-4">
@@ -110,13 +110,13 @@ export default async function AdminDashboardPage() {
             title="Pendientes más recientes"
             tasks={data.topPending}
             hrefBuilder={(id) => `/admin/tasks/${id}`}
-            emptyMessage="No hay tareas pendientes en la organización."
+            emptyMessage="No hay tareas pendientes en la institución."
           />
           <TopTasksList
             title="En curso recién actualizadas"
             tasks={data.topInProgress}
             hrefBuilder={(id) => `/admin/tasks/${id}`}
-            emptyMessage="No hay tareas en curso en la organización."
+            emptyMessage="No hay tareas en curso en la institución."
           />
         </div>
       </section>

@@ -39,7 +39,7 @@ export async function switchActiveOrganizationAction(
   if (!row || row.status !== "active") {
     return {
       ok: false,
-      error: "No tienes acceso a esa organización.",
+      error: "No tienes acceso a esa institución.",
     };
   }
 
@@ -50,7 +50,7 @@ export async function switchActiveOrganizationAction(
     });
   } catch (err) {
     console.error("[team-switcher] setActiveOrganization falló", err);
-    return { ok: false, error: "No pudimos cambiar de organización." };
+    return { ok: false, error: "No pudimos cambiar de institución." };
   }
 
   try {

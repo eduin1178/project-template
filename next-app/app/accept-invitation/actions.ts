@@ -9,6 +9,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth/server";
 import { db } from "@/lib/db/client";
 import { invitation, member, user } from "@/lib/db/schema";
+import { createOnboardingTask } from "@/lib/tasks/onboarding";
 
 const PENDING_COOKIE = "pending-invitation-id";
 
@@ -71,6 +72,15 @@ async function acceptForUser(
         role: row.role ?? "admin",
         createdAt: new Date(),
       });
+
+      await createOnboardingTask(
+        {
+          inviterId: row.inviterId,
+          inviteeId: userId,
+          organizationId: row.organizationId,
+        },
+        tx,
+      );
     });
   } catch (err) {
     if (err instanceof Error && err.message === "INVALID") {

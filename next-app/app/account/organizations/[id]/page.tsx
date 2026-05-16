@@ -70,7 +70,7 @@ export async function generateMetadata({
     .from(organization)
     .where(eq(organization.id, id))
     .limit(1);
-  return { title: `${org?.name ?? "Organización"} — Docentix` };
+  return { title: `${org?.name ?? "Institución"} — Docentix` };
 }
 
 export default async function AccountOrgDetailPage({
@@ -148,7 +148,7 @@ export default async function AccountOrgDetailPage({
       <Button asChild variant="ghost" size="sm">
         <Link href="/account/organizations">
           <CaretLeftIcon />
-          Volver a mis organizaciones
+          Volver a mis instituciones
         </Link>
       </Button>
 

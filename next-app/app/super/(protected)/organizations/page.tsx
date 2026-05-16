@@ -15,7 +15,7 @@ import {
 
 import { listOrganizations } from "./actions";
 
-export const metadata = { title: "Organizaciones — Docentix" };
+export const metadata = { title: "Instituciones — Docentix" };
 export const dynamic = "force-dynamic";
 
 const dateFormatter = new Intl.DateTimeFormat("es", {
@@ -31,16 +31,16 @@ export default async function OrganizationsPage() {
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Organizaciones</h1>
+          <h1 className="text-2xl font-semibold">Instituciones</h1>
           <p className="text-muted-foreground text-sm">
-            Crea y administra las organizaciones de la plataforma.
+            Crea y administra las instituciones de la plataforma.
           </p>
         </div>
         {orgs.length > 0 ? (
           <Button asChild>
             <Link href="/super/organizations/new">
               <PlusIcon />
-              Nueva organización
+              Nueva institución
             </Link>
           </Button>
         ) : null}
@@ -49,13 +49,13 @@ export default async function OrganizationsPage() {
       {orgs.length === 0 ? (
         <EmptyState
           icon={<BuildingsIcon className="size-6" />}
-          title="Aún no tienes organizaciones"
-          description="Crea la primera organización e invita a su administrador para empezar."
+          title="Aún no tienes instituciones"
+          description="Crea la primera institución e invita a su administrador para empezar."
           action={
             <Button asChild>
               <Link href="/super/organizations/new">
                 <PlusIcon />
-                Crear organización
+                Crear institución
               </Link>
             </Button>
           }

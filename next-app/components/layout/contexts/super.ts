@@ -12,7 +12,7 @@ export const superSidebarConfig: SidebarConfig = {
   },
   items: [
     {
-      label: "Organizaciones",
+      label: "Instituciones",
       href: "/super/organizations",
       icon: createElement(BuildingsIcon),
       matchPrefix: "/super/organizations",

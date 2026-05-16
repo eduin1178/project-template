@@ -127,7 +127,7 @@ export function TasksListPanel({
               description={
                 query
                   ? "Prueba con otro término de búsqueda."
-                  : "Crea la primera tarea de tu organización para empezar."
+                  : "Crea la primera tarea de tu institución para empezar."
               }
             />
           </div>

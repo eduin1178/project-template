@@ -69,7 +69,7 @@ export default async function InvitationsPage() {
         <EmptyState
           icon={<EnvelopeSimpleIcon className="size-6" />}
           title="No tienes invitaciones pendientes"
-          description="Cuando alguien te invite a una organización, aparecerá aquí."
+          description="Cuando alguien te invite a una institución, aparecerá aquí."
         />
       ) : (
         <ul className="divide-border divide-y rounded-md border">

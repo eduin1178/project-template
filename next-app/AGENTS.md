@@ -48,6 +48,31 @@ Cuando toques APIs de Next.js 16, verifica la documentaci?n local instalada en `
 
 - No agregues paquetes `@radix-ui/react-*` individuales salvo decisión explícita.
 
+## Copy: "Institución" vs `organization`
+
+Docentix está dirigido a instituciones educativas. Por eso el copy visible al usuario final dice **"Institución"** y no "Organización".
+
+**Regla**: en todo texto visible al usuario final usa "Institución" / "institución" / "Instituciones" / "instituciones" en lugar de "Organización" / "organización" / "Organizaciones" / "organizaciones".
+
+Aplica a:
+
+- Páginas y componentes (`app/**/*.tsx`, `components/**/*.tsx`).
+- Plantillas de email (`lib/email/templates/**`).
+- Mensajes de validación, errores, empty states, tooltips, labels, títulos de diálogos, toasts.
+- Documentación dirigida al usuario final.
+
+**Excepciones** (se mantienen como `organization`):
+
+- Identificadores de código: variables, funciones, props, tipos (`organizationId`, `organizationName`).
+- Tablas y columnas de base de datos (`organization`, `organizationId`).
+- Rutas de API y endpoints (`/api/organization/*`).
+- Referencias al plugin `organization` de Better Auth.
+- Comentarios técnicos en el código fuente.
+- Specs en `openspec/specs/**`.
+- Archivos `AGENTS.md` cuando describen el modelo técnico (no el copy visible).
+
+El copy nuevo respeta el español neutral del proyecto: segunda persona singular `tú`, sin voseo.
+
 ## Clases CSS y Tailwind
 
 - Usa `cn` desde `@/lib/utils` para composición de clases.

@@ -47,4 +47,4 @@ Si un cambio contradice una spec, NO lo implementes silenciosamente. Explica la 
 ## Responsabilidad de archivos AGENTS.md
 
 - `/AGENTS.md`: reglas generales del repositorio, coordinaci?n y SDD.
-- `/next-app/AGENTS.md`: reglas de Next.js, UI, codificaci?n, estructura interna, validaci?n, autenticaci?n y convenciones de producto de la aplicaci?n.
+- `/next-app/AGENTS.md`: reglas de Next.js, UI, codificaci?n, estructura interna, validaci?n, autenticaci?n y convenciones de producto de la aplicaci?n. Incluye la convenci?n de copy "Instituci?n vs `organization`": el copy visible al usuario final usa "Instituci?n"; los identificadores t?cnicos siguen siendo `organization`.

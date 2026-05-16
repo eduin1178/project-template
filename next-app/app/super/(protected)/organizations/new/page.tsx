@@ -12,7 +12,7 @@ import {
 
 import { NewOrganizationForm } from "./new-organization-form";
 
-export const metadata = { title: "Nueva organización — Docentix" };
+export const metadata = { title: "Nueva institución — Docentix" };
 
 export default function NewOrganizationPage() {
   return (
@@ -20,15 +20,15 @@ export default function NewOrganizationPage() {
       <Button asChild variant="ghost" size="sm">
         <Link href="/super/organizations">
           <CaretLeftIcon />
-          Volver a organizaciones
+          Volver a instituciones
         </Link>
       </Button>
 
       <Card>
         <CardHeader>
-          <CardTitle>Crear organización</CardTitle>
+          <CardTitle>Crear institución</CardTitle>
           <CardDescription>
-            Completa los datos de la organización y de su administrador. Le
+            Completa los datos de la institución y de su administrador. Le
             enviaremos una invitación al correo indicado.
           </CardDescription>
         </CardHeader>

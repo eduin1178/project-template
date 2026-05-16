@@ -172,8 +172,8 @@ export function MemberRowActions({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirm?.kind === "demote"
-                ? "Perderá los permisos de admin en esta organización."
-                : "No podrá entrar a esta organización hasta que reactives su acceso."}
+                ? "Perderá los permisos de admin en esta institución."
+                : "No podrá entrar a esta institución hasta que reactives su acceso."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

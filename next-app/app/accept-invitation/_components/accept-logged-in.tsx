@@ -35,7 +35,7 @@ export function AcceptLoggedIn({
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">
         Estás autenticado como <strong>{currentEmail}</strong>. Al aceptar
-        quedarás vinculado como administrador de la organización.
+        quedarás vinculado como administrador de la institución.
       </p>
       {error ? (
         <Alert variant="destructive">

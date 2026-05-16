@@ -87,10 +87,10 @@ export function NewOrganizationForm() {
       }
       if (!result.emailSent) {
         toast.warning(
-          "Organización creada, pero no pudimos enviar el email. Copia el link desde el detalle.",
+          "Institución creada, pero no pudimos enviar el email. Copia el link desde el detalle.",
         );
       } else {
-        toast.success("Organización creada e invitación enviada.");
+        toast.success("Institución creada e invitación enviada.");
       }
       router.push(`/super/organizations/${result.organizationId}`);
     });
@@ -104,7 +104,7 @@ export function NewOrganizationForm() {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nombre de la organización</FormLabel>
+              <FormLabel>Nombre de la institución</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -142,7 +142,7 @@ export function NewOrganizationForm() {
         />
 
         <div className="border-t pt-6">
-          <h3 className="text-sm font-medium">Administrador de la organización</h3>
+          <h3 className="text-sm font-medium">Administrador de la institución</h3>
           <p className="text-muted-foreground text-xs">
             Recibirá una invitación por correo para crear su cuenta.
           </p>
@@ -181,7 +181,7 @@ export function NewOrganizationForm() {
         />
 
         <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? "Creando…" : "Crear organización"}
+          {isPending ? "Creando…" : "Crear institución"}
         </Button>
       </form>
     </Form>

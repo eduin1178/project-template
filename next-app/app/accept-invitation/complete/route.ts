@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import { auth } from "@/lib/auth/server";
 import { db } from "@/lib/db/client";
 import { invitation, member } from "@/lib/db/schema";
+import { createOnboardingTask } from "@/lib/tasks/onboarding";
 
 const PENDING_COOKIE = "pending-invitation-id";
 
@@ -68,6 +69,15 @@ export async function GET(request: Request) {
         role: row.role ?? "admin",
         createdAt: new Date(),
       });
+
+      await createOnboardingTask(
+        {
+          inviterId: row.inviterId,
+          inviteeId: session.user.id,
+          organizationId: row.organizationId,
+        },
+        tx,
+      );
     });
   } catch (err) {
     if (err instanceof Error && err.message === "RACE") {

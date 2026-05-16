@@ -80,7 +80,7 @@ export function EditOrgDialog({
       setError(result.error);
       return;
     }
-    toast.success("Organización actualizada.");
+    toast.success("Institución actualizada.");
     setOpen(false);
     router.refresh();
   }
@@ -122,7 +122,7 @@ export function EditOrgDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Editar organización</DialogTitle>
+          <DialogTitle>Editar institución</DialogTitle>
           <DialogDescription>
             El identificador <span className="font-mono">{slug}</span> no se puede modificar.
           </DialogDescription>

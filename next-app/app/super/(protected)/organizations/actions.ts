@@ -74,11 +74,11 @@ export async function createOrganizationWithAdminAction(
     createdOrgId = (created as { id?: string } | null)?.id ?? null;
   } catch (error) {
     console.error("[orgs] createOrganization falló", error);
-    return { ok: false, error: "No pudimos crear la organización." };
+    return { ok: false, error: "No pudimos crear la institución." };
   }
 
   if (!createdOrgId) {
-    return { ok: false, error: "No pudimos crear la organización." };
+    return { ok: false, error: "No pudimos crear la institución." };
   }
 
   await db
@@ -160,7 +160,7 @@ export async function resendOrgInvitationAction(
 
   await sendOrgAdminInvitationEmail({
     to: row.email,
-    organizationName: org?.name ?? "tu organización",
+    organizationName: org?.name ?? "tu institución",
     invitationId: row.id,
     ttlDays: Math.max(
       1,

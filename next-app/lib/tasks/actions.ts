@@ -13,6 +13,8 @@ import {
 import { db } from "@/lib/db/client";
 import { task, taskAssignee, taskComment, taskDocument } from "@/lib/db/schema";
 import type { TaskStatus, TaskVisibility } from "@/lib/db/schema/task";
+
+import { createTaskInternal } from "./internal";
 import { canActOnExpired, isTaskExpired } from "./expiration";
 import {
   deletePrivateAsset,
@@ -99,7 +101,7 @@ export async function createTask(
     if (!ok) {
       return {
         ok: false,
-        error: "El responsable seleccionado no pertenece a tu organización.",
+        error: "El responsable seleccionado no pertenece a tu institución.",
       };
     }
     responsibleId = parsed.data.responsibleId;
@@ -120,10 +122,9 @@ export async function createTask(
     }
   }
 
-  const id = randomUUID();
+  let id: string;
   try {
-    await db.insert(task).values({
-      id,
+    const inserted = await createTaskInternal({
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       dueAt: parsed.data.dueAt ?? null,
@@ -133,6 +134,7 @@ export async function createTask(
       responsibleId,
       organizationId: ctx.orgId,
     });
+    id = inserted.id;
   } catch (err) {
     console.error("[tasks] createTask falló", err);
     return { ok: false, error: "No pudimos crear la tarea." };
@@ -170,7 +172,7 @@ export async function updateTaskContent(
     .limit(1);
 
   if (!current) {
-    return { ok: false, error: "La tarea no existe en tu organización." };
+    return { ok: false, error: "La tarea no existe en tu institución." };
   }
 
   const visibility = current.visibility as TaskVisibility;
@@ -228,7 +230,7 @@ export async function updateTaskContent(
     .returning({ id: task.id });
 
   if (result.length === 0) {
-    return { ok: false, error: "La tarea no existe en tu organización." };
+    return { ok: false, error: "La tarea no existe en tu institución." };
   }
 
   revalidateTaskPaths();
@@ -267,7 +269,7 @@ export async function transitionVisibility(
     .limit(1);
 
   if (!current) {
-    return { ok: false, error: "La tarea no existe en tu organización." };
+    return { ok: false, error: "La tarea no existe en tu institución." };
   }
 
   const from = current.visibility as TaskVisibility;
@@ -288,7 +290,7 @@ export async function transitionVisibility(
     if (!ok) {
       return {
         ok: false,
-        error: "El responsable seleccionado no pertenece a tu organización.",
+        error: "El responsable seleccionado no pertenece a tu institución.",
       };
     }
     nextResponsibleId = parsed.data.responsibleId;
@@ -392,7 +394,7 @@ export async function changeTaskStatus(
     .limit(1);
 
   if (!current) {
-    return { ok: false, error: "La tarea no existe en tu organización." };
+    return { ok: false, error: "La tarea no existe en tu institución." };
   }
 
   if (current.visibility !== "active") {
@@ -514,7 +516,7 @@ export async function claimAuthorship(
     .limit(1);
 
   if (!current) {
-    return { ok: false, error: "La tarea no existe en tu organización." };
+    return { ok: false, error: "La tarea no existe en tu institución." };
   }
 
   if (current.authorId === ctx.userId) {
@@ -557,7 +559,7 @@ async function authorizeTeamMutation(taskId: string): Promise<
     .limit(1);
 
   if (!current) {
-    return { ok: false, error: "La tarea no existe en tu organización." };
+    return { ok: false, error: "La tarea no existe en tu institución." };
   }
 
   const isAdmin = isOrgAdmin(ctx.role);
@@ -594,7 +596,7 @@ export async function setResponsible(
   if (!memberOk) {
     return {
       ok: false,
-      error: "El usuario seleccionado no pertenece a tu organización.",
+      error: "El usuario seleccionado no pertenece a tu institución.",
     };
   }
 
@@ -672,7 +674,7 @@ export async function addAssignee(
   if (!memberOk) {
     return {
       ok: false,
-      error: "El usuario seleccionado no pertenece a tu organización.",
+      error: "El usuario seleccionado no pertenece a tu institución.",
     };
   }
 

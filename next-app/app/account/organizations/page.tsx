@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 
-export const metadata = { title: "Mis organizaciones — Docentix" };
+export const metadata = { title: "Mis instituciones — Docentix" };
 
 function formatDate(value: Date | string | null): string {
   if (!value) return "—";
@@ -33,12 +33,12 @@ export default async function OrganizationsPage() {
     return (
       <div className="space-y-6">
         <header>
-          <h2 className="text-xl font-semibold">Mis organizaciones</h2>
+          <h2 className="text-xl font-semibold">Mis instituciones</h2>
         </header>
         <EmptyState
           icon={<BuildingsIcon className="size-6" />}
           title="Esta sección no aplica para super administradores"
-          description="Como super administrador no perteneces a organizaciones; las gestionas desde el panel super."
+          description="Como super administrador no perteneces a instituciones; las gestionas desde el panel super."
           action={
             <Button asChild>
               <Link href="/super">Ir al panel super</Link>
@@ -67,16 +67,16 @@ export default async function OrganizationsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h2 className="text-xl font-semibold">Mis organizaciones</h2>
+        <h2 className="text-xl font-semibold">Mis instituciones</h2>
         <p className="text-muted-foreground text-sm">
-          Organizaciones en las que participas.
+          Instituciones en las que participas.
         </p>
       </header>
 
       {rows.length === 0 ? (
         <EmptyState
           icon={<BuildingsIcon className="size-6" />}
-          title="No perteneces a ninguna organización"
+          title="No perteneces a ninguna institución"
           description="Cuando aceptes una invitación, aparecerá aquí."
         />
       ) : (

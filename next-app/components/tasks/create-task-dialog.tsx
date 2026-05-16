@@ -148,7 +148,7 @@ export function CreateTaskDialog({
         <DialogHeader>
           <DialogTitle>Nueva tarea</DialogTitle>
           <DialogDescription>
-            Crea una tarea para tu organización. Puedes dejarla en borrador y
+            Crea una tarea para tu institución. Puedes dejarla en borrador y
             activarla más tarde.
           </DialogDescription>
         </DialogHeader>

@@ -36,7 +36,7 @@ export function TeamSwitcher({ teams }: { teams: TeamsConfig }) {
     startTransition(async () => {
       const result = await teams.onSwitch(orgId);
       if (result.ok) {
-        toast.success("Cambiaste de organización.");
+        toast.success("Cambiaste de institución.");
         router.refresh();
       } else {
         toast.error(result.error);
@@ -64,7 +64,7 @@ export function TeamSwitcher({ teams }: { teams: TeamsConfig }) {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{activeOrg.name}</span>
                 <span className="text-muted-foreground truncate text-xs">
-                  Organización activa
+                  Institución activa
                 </span>
               </div>
               <CaretUpDownIcon className="ml-auto size-4" />
@@ -77,7 +77,7 @@ export function TeamSwitcher({ teams }: { teams: TeamsConfig }) {
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-muted-foreground text-xs">
-              Cambiar de organización
+              Cambiar de institución
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {teams.orgs.map((org) => {

@@ -38,7 +38,7 @@ export function getUserMenuItems(role: MenuRole): UserMenuItem[] {
   if (role !== "super_admin") {
     items.push({
       key: "organizations",
-      label: "Mis organizaciones",
+      label: "Mis instituciones",
       href: "/account/organizations",
     });
   }
