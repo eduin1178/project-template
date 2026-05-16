@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { authClient } from "@/lib/auth/client";
@@ -122,6 +123,13 @@ export function AcceptInvitationForm({
         className="w-full"
         onClick={onGoogle}
       >
+        <Image
+          src="/images/google-logo.svg"
+          alt=""
+          width={18}
+          height={18}
+          aria-hidden
+        />
         Continuar con Google
       </Button>
     </div>

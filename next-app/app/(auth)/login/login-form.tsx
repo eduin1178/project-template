@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -150,6 +151,13 @@ export function LoginForm() {
         className="w-full"
         onClick={onGoogle}
       >
+        <Image
+          src="/images/google-logo.svg"
+          alt=""
+          width={18}
+          height={18}
+          aria-hidden
+        />
         Continuar con Google
       </Button>
 

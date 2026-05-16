@@ -1,6 +1,6 @@
 import { TasksFiltersPanel } from "@/components/tasks/tasks-filters-panel";
 import { TasksListPanel } from "@/components/tasks/tasks-list-panel";
-import { MobileFiltersTrigger } from "@/components/tasks/tasks-shell";
+import { FiltersTrigger } from "@/components/tasks/tasks-shell";
 import {
   type TaskStatus,
   type TaskVisibility,
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 /**
  * Shell server-rendered de las rutas de bandeja de tareas.
  *
- * - Renderiza el aside de filtros en desktop (≥md) y el botón "Filtros" mobile que abre un Sheet.
+ * - Renderiza el botón "Filtros" en TODOS los viewports que abre un Sheet con el panel.
  * - Renderiza la lista de tareas. La columna de la lista se oculta en mobile cuando hay
  *   `selectedId` (se está viendo el detalle).
  * - Renderiza el slot `detail` a la derecha (detalle o empty state).
@@ -55,17 +55,12 @@ export function TasksRouteShell({
 
   return (
     <div className="bg-background -mx-6 -my-8 flex h-[calc(100vh-4rem)] overflow-hidden">
-      <aside className="bg-muted/30 hidden w-64 shrink-0 overflow-y-auto border-r p-4 md:block">
-        {filtersPanel}
-      </aside>
-
       <section
         className={cn(
           "min-w-0 flex-col border-r",
           // Mobile/tablet (<lg): si hay selección, la lista se oculta y el detalle
           //   ocupa todo el ancho restante. Si no hay selección, la lista crece
-          //   con `flex-1` para llenar el espacio restante (no `w-full`, que en
-          //   tablet — con el aside de filtros visible — provocaría overflow).
+          //   con `flex-1` para llenar el espacio restante.
           // Desktop (lg+): la lista pasa a un ancho fijo de 110.
           selectedId
             ? "hidden lg:flex lg:w-110 lg:max-w-110 lg:shrink-0"
@@ -75,11 +70,9 @@ export function TasksRouteShell({
         <header className="flex flex-col gap-3 border-b p-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="md:hidden">
-                <MobileFiltersTrigger activeCount={activeFiltersCount}>
-                  {filtersPanel}
-                </MobileFiltersTrigger>
-              </div>
+              <FiltersTrigger activeCount={activeFiltersCount}>
+                {filtersPanel}
+              </FiltersTrigger>
               <h1 className="text-lg font-semibold">
                 {basePath === "/admin/tasks" ? "Tareas" : "Mis tareas"}
               </h1>

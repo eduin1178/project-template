@@ -6,9 +6,9 @@ import { and, eq, gt } from "drizzle-orm";
 import { auth } from "@/lib/auth/server";
 import { db } from "@/lib/db/client";
 import { invitation, organization } from "@/lib/db/schema";
+import { AuthCardLayout } from "@/components/auth/auth-card-layout";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -67,45 +67,45 @@ export default async function AcceptInvitationPage({
   const orgName = row.organizationName ?? "tu organización";
 
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Acepta tu invitación</CardTitle>
-          <CardDescription>
-            Fuiste invitado a administrar <strong>{orgName}</strong> en Docentix.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {session?.user ? (
-            <AcceptLoggedIn
-              invitationId={row.id}
-              currentEmail={session.user.email}
-            />
-          ) : (
-            <AcceptOrgInvitationForm
-              invitationId={row.id}
-              invitedEmail={row.email}
-            />
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    <AuthCardLayout>
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Acepta tu invitación</CardTitle>
+        <CardDescription>
+          Fuiste invitado a administrar <strong>{orgName}</strong> en Docentix.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {session?.user ? (
+          <AcceptLoggedIn
+            invitationId={row.id}
+            currentEmail={session.user.email}
+          />
+        ) : (
+          <AcceptOrgInvitationForm
+            invitationId={row.id}
+            invitedEmail={row.email}
+          />
+        )}
+      </CardContent>
+    </AuthCardLayout>
   );
 }
 
 function InvalidInvitation() {
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4">
-      <div className="max-w-md space-y-6 text-center">
-        <h1 className="text-2xl font-semibold">Invitación no válida</h1>
-        <p className="text-muted-foreground">
+    <AuthCardLayout>
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Invitación no válida</CardTitle>
+        <CardDescription>
           El enlace que abriste expiró, ya fue usado o no es válido. Solicita
           una nueva invitación a tu contacto en Docentix.
-        </p>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex justify-center">
         <Button asChild>
           <Link href="/login">Ir a iniciar sesión</Link>
         </Button>
-      </div>
-    </div>
+      </CardContent>
+    </AuthCardLayout>
   );
 }

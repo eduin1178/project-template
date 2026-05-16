@@ -249,6 +249,7 @@ export async function createTenantInvitationAction(
       role: parsed.data.role,
       invitationId,
       ttlDays: INVITATION_TTL_DAYS,
+      inviterName: session.user.name || session.user.email,
     });
   } catch (err) {
     console.error("[orgs] envío de email de invitación tenant falló", err);
@@ -274,8 +275,9 @@ export async function resendTenantInvitationAction(
     .where(eq(invitation.id, invitationId))
     .limit(1);
   if (!row) return { ok: false, error: "La invitación no existe." };
+  let session;
   try {
-    await requireTenantAdminFor(row.organizationId);
+    session = await requireTenantAdminFor(row.organizationId);
   } catch {
     return { ok: false, error: "No tienes permisos en esta organización." };
   }
@@ -307,6 +309,7 @@ export async function resendTenantInvitationAction(
           (row.expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000),
         ),
       ),
+      inviterName: session.user.name || session.user.email,
     });
   } catch (err) {
     console.error("[orgs] reenvío falló", err);

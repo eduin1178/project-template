@@ -1,5 +1,5 @@
+import { AuthCardLayout } from "@/components/auth/auth-card-layout";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -12,18 +12,16 @@ export const metadata = { title: "Recupera tu contraseña — Docentix" };
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Recupera tu contraseña</CardTitle>
-          <CardDescription>
-            Te enviaremos un enlace para restablecerla.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ForgotPasswordForm />
-        </CardContent>
-      </Card>
-    </div>
+    <AuthCardLayout>
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Recupera tu contraseña</CardTitle>
+        <CardDescription>
+          Te enviaremos un enlace para restablecerla.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ForgotPasswordForm />
+      </CardContent>
+    </AuthCardLayout>
   );
 }

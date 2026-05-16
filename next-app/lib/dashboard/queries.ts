@@ -239,9 +239,11 @@ export async function getMemberDashboard(
       ) t
     ),
     storage AS (
-      SELECT COALESCE(SUM(size_bytes), 0)::bigint AS bytes
-      FROM task_document
-      WHERE uploader_id = ${userId}
+      SELECT COALESCE(SUM(td.size_bytes), 0)::bigint AS bytes
+      FROM task_document td
+      JOIN task t ON t.id = td.task_id
+      WHERE td.uploader_id = ${userId}
+        AND t.organization_id = ${orgId}
     )
     SELECT
       sc.pending,

@@ -1,5 +1,5 @@
+import { AuthCardLayout } from "@/components/auth/auth-card-layout";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -17,18 +17,16 @@ export default async function ResetPasswordPage({
 }) {
   const { token } = await searchParams;
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Define tu nueva contraseña</CardTitle>
-          <CardDescription>
-            Elige una contraseña segura para tu cuenta.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResetPasswordForm token={token ?? ""} />
-        </CardContent>
-      </Card>
-    </div>
+    <AuthCardLayout>
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Define tu nueva contraseña</CardTitle>
+        <CardDescription>
+          Elige una contraseña segura para tu cuenta.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ResetPasswordForm token={token ?? ""} />
+      </CardContent>
+    </AuthCardLayout>
   );
 }

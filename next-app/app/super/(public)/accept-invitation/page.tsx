@@ -3,8 +3,8 @@ import { and, eq, gt, isNull } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import { superInvitation } from "@/lib/db/schema";
+import { AuthCardLayout } from "@/components/auth/auth-card-layout";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -45,39 +45,39 @@ export default async function AcceptInvitationPage({
   }
 
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Acepta tu invitación</CardTitle>
-          <CardDescription>
-            Fuiste invitado como super admin de Docentix. Crea tu cuenta o ingresa
-            con Google.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AcceptInvitationForm
-            token={invitation.token}
-            invitedEmail={invitation.invitedEmail}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <AuthCardLayout>
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Acepta tu invitación</CardTitle>
+        <CardDescription>
+          Fuiste invitado como super admin de Docentix. Crea tu cuenta o
+          ingresa con Google.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <AcceptInvitationForm
+          token={invitation.token}
+          invitedEmail={invitation.invitedEmail}
+        />
+      </CardContent>
+    </AuthCardLayout>
   );
 }
 
 function InvalidInvitation() {
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4">
-      <div className="max-w-md space-y-6 text-center">
-        <h1 className="text-2xl font-semibold">Invitación no válida</h1>
-        <p className="text-muted-foreground">
+    <AuthCardLayout>
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Invitación no válida</CardTitle>
+        <CardDescription>
           El enlace que abriste expiró, ya fue usado o no es válido. Solicita
           una nueva invitación a tu contacto en Docentix.
-        </p>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex justify-center">
         <Button asChild>
           <Link href="/login">Ir a iniciar sesión</Link>
         </Button>
-      </div>
-    </div>
+      </CardContent>
+    </AuthCardLayout>
   );
 }

@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AuthCardLayout } from "@/components/auth/auth-card-layout";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import { completeInvitationFromGoogleAction } from "../actions";
 
@@ -26,16 +32,22 @@ export default async function CompleteInvitationPage({
   }
 
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4">
-      <div className="max-w-md space-y-6 text-center">
-        <h1 className="text-2xl font-semibold">No pudimos completar la invitación</h1>
+    <AuthCardLayout>
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">
+          No pudimos completar la invitación
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
         <Alert variant="destructive">
           <AlertDescription>{result.error}</AlertDescription>
         </Alert>
-        <Button asChild>
-          <Link href="/login">Ir a iniciar sesión</Link>
-        </Button>
-      </div>
-    </div>
+        <div className="flex justify-center">
+          <Button asChild>
+            <Link href="/login">Ir a iniciar sesión</Link>
+          </Button>
+        </div>
+      </CardContent>
+    </AuthCardLayout>
   );
 }

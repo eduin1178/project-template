@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { authClient } from "@/lib/auth/client";
@@ -130,6 +131,13 @@ export function AcceptOrgInvitationForm({
         onClick={onGoogle}
         disabled={isGooglePending}
       >
+        <Image
+          src="/images/google-logo.svg"
+          alt=""
+          width={18}
+          height={18}
+          aria-hidden
+        />
         {isGooglePending ? "Redirigiendo…" : "Continuar con Google"}
       </Button>
     </div>

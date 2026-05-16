@@ -1,9 +1,18 @@
 import "server-only";
 
+import type { ReactElement } from "react";
 import { Resend } from "resend";
+
+import OrgAdminWelcomeEmail, {
+  renderOrgAdminWelcomeEmailText,
+} from "@/lib/email/templates/org-admin-welcome-email";
+import TenantInvitationEmail, {
+  renderTenantInvitationEmailText,
+} from "@/lib/email/templates/tenant-invitation-email";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const emailFrom = process.env.EMAIL_FROM ?? "Docentix <onboarding@resend.dev>";
+const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
@@ -11,10 +20,10 @@ type SendArgs = {
   to: string;
   subject: string;
   text: string;
-  html?: string;
+  react?: ReactElement;
 };
 
-export async function sendEmail({ to, subject, text, html }: SendArgs) {
+export async function sendEmail({ to, subject, text, react }: SendArgs) {
   if (!resend) {
     console.warn(
       `[email] RESEND_API_KEY no definida. Email NO enviado.\n→ Destinatario: ${to}\n→ Asunto: ${subject}\n→ Texto:\n${text}`,
@@ -22,13 +31,11 @@ export async function sendEmail({ to, subject, text, html }: SendArgs) {
     return { skipped: true as const };
   }
 
-  const { error } = await resend.emails.send({
-    from: emailFrom,
-    to,
-    subject,
-    text,
-    html: html ?? `<pre>${escapeHtml(text)}</pre>`,
-  });
+  const payload = react
+    ? { from: emailFrom, to, subject, react, text }
+    : { from: emailFrom, to, subject, text };
+
+  const { error } = await resend.emails.send(payload);
 
   if (error) {
     console.error("[email] Resend error", error);
@@ -51,13 +58,14 @@ export async function sendOrgAdminInvitationEmail({
   invitationId,
   ttlDays,
 }: OrgAdminInvitationArgs) {
-  const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
-  const url = `${baseUrl}/accept-invitation?invitationId=${encodeURIComponent(invitationId)}`;
+  const acceptUrl = `${baseUrl}/accept-invitation?invitationId=${encodeURIComponent(invitationId)}`;
+  const templateProps = { organizationName, invitationId, ttlDays, acceptUrl };
 
   return sendEmail({
     to,
-    subject: `Invitación para administrar ${organizationName} en Docentix`,
-    text: `Hola,\n\nTe invitamos a administrar la organización "${organizationName}" en Docentix.\n\nAbre este enlace para aceptar la invitación y crear tu cuenta:\n${url}\n\nEl enlace expira en ${ttlDays} ${ttlDays === 1 ? "día" : "días"}.\n\nSi no esperabas esta invitación, ignora este mensaje.`,
+    subject: `Bienvenido a Docentix — Administra ${organizationName}`,
+    text: renderOrgAdminWelcomeEmailText(templateProps),
+    react: OrgAdminWelcomeEmail(templateProps),
   });
 }
 
@@ -67,6 +75,7 @@ type TenantInvitationArgs = {
   role: string;
   invitationId: string;
   ttlDays: number;
+  inviterName: string;
 };
 
 export async function sendTenantInvitationEmail({
@@ -75,21 +84,22 @@ export async function sendTenantInvitationEmail({
   role,
   invitationId,
   ttlDays,
+  inviterName,
 }: TenantInvitationArgs) {
-  const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
-  const url = `${baseUrl}/accept-invitation?invitationId=${encodeURIComponent(invitationId)}`;
-  const roleLabel = role === "admin" || role === "owner" ? "administrador" : "miembro";
+  const acceptUrl = `${baseUrl}/accept-invitation?invitationId=${encodeURIComponent(invitationId)}`;
+  const templateProps = {
+    inviterName,
+    organizationName,
+    role,
+    invitationId,
+    ttlDays,
+    acceptUrl,
+  };
 
   return sendEmail({
     to,
-    subject: `Invitación para unirte a ${organizationName} en Docentix`,
-    text: `Hola,\n\nTe invitamos a unirte como ${roleLabel} a la organización "${organizationName}" en Docentix.\n\nAbre este enlace para aceptar la invitación:\n${url}\n\nEl enlace expira en ${ttlDays} ${ttlDays === 1 ? "día" : "días"}.\n\nSi no esperabas esta invitación, ignora este mensaje.`,
+    subject: `${inviterName} te invitó a ${organizationName} en Docentix`,
+    text: renderTenantInvitationEmailText(templateProps),
+    react: TenantInvitationEmail(templateProps),
   });
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
 }

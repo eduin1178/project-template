@@ -14,7 +14,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
-export function MobileFiltersTrigger({
+export function FiltersTrigger({
   activeCount,
   children,
 }: {
@@ -26,10 +26,10 @@ export function MobileFiltersTrigger({
   // se navega a una nueva URL, lo que cambia el `key` y remonta el `Sheet`,
   // resetando su estado interno a cerrado. Esto evita usar `setState` dentro
   // de un `useEffect` (anti-patrón en React 19).
-  return <MobileFiltersSheet key={pathname} activeCount={activeCount}>{children}</MobileFiltersSheet>;
+  return <FiltersSheet key={pathname} activeCount={activeCount}>{children}</FiltersSheet>;
 }
 
-function MobileFiltersSheet({
+function FiltersSheet({
   activeCount,
   children,
 }: {

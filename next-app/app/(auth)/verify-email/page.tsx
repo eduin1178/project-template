@@ -1,5 +1,12 @@
 import { redirect } from "next/navigation";
 
+import { AuthCardLayout } from "@/components/auth/auth-card-layout";
+import {
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { auth } from "@/lib/auth/server";
 
 export const metadata = { title: "Verificación de correo — Docentix" };
@@ -20,13 +27,14 @@ export default async function VerifyEmailPage({
   void auth;
 
   return (
-    <div className="bg-background flex min-h-screen items-center justify-center px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-2xl font-semibold">Verifica tu correo</h1>
-        <p className="text-muted-foreground mt-2">
+    <AuthCardLayout>
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Verifica tu correo</CardTitle>
+        <CardDescription>
           Abre el enlace que te enviamos por correo para activar tu cuenta.
-        </p>
-      </div>
-    </div>
+        </CardDescription>
+      </CardHeader>
+      <CardContent />
+    </AuthCardLayout>
   );
 }
