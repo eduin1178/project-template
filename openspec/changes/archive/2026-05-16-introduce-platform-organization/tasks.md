@@ -39,12 +39,12 @@
 > pnpm db:seed-platform
 > ```
 
-- [ ] 2.1 Inspeccionar `next-app/lib/db/migrations/` y anotar la última migración aplicada en `meta/_journal.json`  _(estado pre-reset: 0006_many_jasper_sitwell)_
-- [ ] 2.2 Borrar todos los archivos `*.sql` y la carpeta `meta/` en `next-app/lib/db/migrations/`
-- [ ] 2.3 Correr `pnpm db:generate` para regenerar `0000_init.sql` desde el schema actual
-- [ ] 2.4 Verificar que el snapshot generado contiene todas las tablas (`user`, `session`, `account`, `verification`, `organization`, `member`, `invitation`, `super_invitation`, `task`, dependientes)
-- [ ] 2.5 Revisar `0000_init.sql` y confirmar que `organization.slug` es `NOT NULL UNIQUE`
-- [ ] 2.6 Aplicar la migración contra una DB recién booteada: `docker compose down -v && docker compose up -d && pnpm db:migrate`
+- [x] 2.1 Inspeccionar `next-app/lib/db/migrations/` y anotar la última migración aplicada en `meta/_journal.json`  _(estado pre-reset: 0006_many_jasper_sitwell)_
+- [x] 2.2 Borrar todos los archivos `*.sql` y la carpeta `meta/` en `next-app/lib/db/migrations/`
+- [x] 2.3 Correr `pnpm db:generate` para regenerar `0000_init.sql` desde el schema actual
+- [x] 2.4 Verificar que el snapshot generado contiene todas las tablas (`user`, `session`, `account`, `verification`, `organization`, `member`, `invitation`, `super_invitation`, `task`, dependientes)
+- [x] 2.5 Revisar `0000_init.sql` y confirmar que `organization.slug` es `NOT NULL UNIQUE`
+- [x] 2.6 Aplicar la migración contra una DB recién booteada: `docker compose down -v && docker compose up -d && pnpm db:migrate`
 
 ## 3. Seed de la org plataforma
 

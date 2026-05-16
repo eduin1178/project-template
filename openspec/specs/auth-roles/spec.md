@@ -8,15 +8,21 @@ Modelo de roles: rol global por usuario (`super_admin` / `admin` / `user`) y rol
 
 ### Requirement: Rol global del usuario
 
-El sistema SHALL definir un rol global por usuario almacenado en `user.role` con tres valores posibles: `super_admin`, `admin`, `user`. El valor por defecto al crear un usuario nuevo SHALL ser `user`. El plugin `admin` de better-auth SHALL estar configurado con `defaultRole: "user"` y la lista de roles incluida.
+El sistema SHALL definir un rol global por usuario almacenado en `user.role` con valores `super_admin` o `user`. El valor por defecto al crear un usuario nuevo SHALL ser `user`.
+
+El rol `super_admin` SHALL tratarse como **capacidad**: única consecuencia funcional es habilitar acceso al panel `/super`. NO determina el destino de redirect, NO bloquea la pertenencia a organizaciones, NO modifica el shell del workspace excepto agregando el ítem "Panel de plataforma" al sidebar.
 
 #### Scenario: Usuario nuevo recibe rol por defecto
-- **WHEN** un usuario se registra con email/password o Google sin contexto de invitación
+- **WHEN** un usuario se registra con email/password o Google sin contexto de invitación super
 - **THEN** `user.role` se establece a `"user"`
 
-#### Scenario: Aceptación de invitación super establece rol super_admin
-- **WHEN** un usuario completa el flujo de aceptación de invitación con un token de invitación válido
-- **THEN** `user.role` se establece a `"super_admin"` en la misma transacción donde se crea el usuario
+#### Scenario: Aceptación de invitación super establece rol y membership
+- **WHEN** un usuario completa el flujo de aceptación con un token de invitación super válido
+- **THEN** `user.role` se establece a `"super_admin"` Y se crea membership owner en la org plataforma en la misma transacción
+
+#### Scenario: super_admin es una capacidad, no un modo
+- **WHEN** un super navega a `/admin` o `/app` con membresía en la org activa
+- **THEN** la página renderiza normalmente sin redirect a `/super`
 
 ### Requirement: Rol dentro de organización (tenant)
 
@@ -30,42 +36,34 @@ El sistema SHALL usar el plugin `organization` de better-auth para gestionar mem
 - **WHEN** se inspecciona el schema generado
 - **THEN** existen las tablas `organization`, `member` e `invitation` del plugin
 
-### Requirement: Super_admin no pertenece a ninguna organización
-
-Un usuario con `user.role === "super_admin"` SHALL NO tener registros en la tabla `member`. Su acceso transversal SHALL derivar exclusivamente de su rol global.
-
-#### Scenario: Super_admin creado sin membership
-- **WHEN** se completa el bootstrap de un super_admin o se acepta una invitación super
-- **THEN** no se crea ningún registro en `member` para ese usuario
-
 ### Requirement: Cálculo de `dashboardHref` según rol
 
-El sistema SHALL exponer una función `deriveDashboardHref(data)` en `lib/auth/derive-dashboard-href.ts` que devuelve la ruta de destino post-login. El algoritmo SHALL usar el rol del usuario en la **organización activa resuelta** cuando ese dato esté disponible. Cuando NO esté disponible (callers legacy), SHALL caer al algoritmo legacy basado en `user.role` global + `memberships.some(admin|owner)`.
+El sistema SHALL exponer una función `deriveDashboardHref(data)` en `lib/auth/derive-dashboard-href.ts` que devuelve la ruta de destino post-login. El algoritmo SHALL usar el rol del usuario en la **organización activa resuelta** cuando ese dato esté disponible. La capacidad `user.role === "super_admin"` SHALL NO forzar `/super` como destino: un super con membresía activa entra al workspace de esa org como cualquier otro usuario; `/super` se accede explícitamente vía el ítem "Panel de plataforma" del sidebar.
 
 Algoritmo cuando el caller provee `activeOrgRole`:
 
-1. Si `activeOrgRole === null` Y `user.role === "super_admin"` → `/super`
-2. Si `activeOrgRole === null` Y `user.role !== "super_admin"` → `/account/organizations`
-3. Si `activeOrgRole === "owner"` o `"admin"` → `/admin`
-4. Si `activeOrgRole === "member"` → `/app`
+1. Si `activeOrgRole === "owner"` o `"admin"` → `/admin`
+2. Si `activeOrgRole === "member"` → `/app`
+3. Si `activeOrgRole === null` Y `user.role === "super_admin"` → `/super` (defensa en profundidad — no debería ocurrir tras el seed)
+4. Si `activeOrgRole === null` Y `user.role !== "super_admin"` → `/account/organizations`
 
-Algoritmo legacy (sin `activeOrgRole`):
+Algoritmo legacy (sin `activeOrgRole`, callers no migrados):
 
 1. Si `user.role === "super_admin"` → `/super`
 2. Si `memberships.some(role ∈ {admin, owner})` → `/admin`
 3. En cualquier otro caso → `/app`
 
-#### Scenario: Super sin org activa redirige a /super
-- **WHEN** `deriveDashboardHref` recibe `user.role === "super_admin"` y `activeOrgRole === null`
-- **THEN** retorna `"/super"`
+#### Scenario: Super con membresía admin en org plataforma redirige a /admin
+- **WHEN** `deriveDashboardHref` recibe `user.role === "super_admin"` y `activeOrgRole === "owner"` (la org plataforma)
+- **THEN** retorna `"/admin"` (NO `/super`)
 
-#### Scenario: Super con membresía admin en org activa redirige a /admin
-- **WHEN** `deriveDashboardHref` recibe `user.role === "super_admin"` y `activeOrgRole === "admin"`
-- **THEN** retorna `"/admin"` (la capacidad super NO fuerza `/super` si hay contexto de org)
+#### Scenario: Super accede a /super solo vía sidebar
+- **WHEN** un super hace login y resuelve activeOrg = org plataforma
+- **THEN** el dashboard inicial es `/admin` y `/super` se accede vía clic en "Panel de plataforma" del sidebar
 
-#### Scenario: Super con membresía member en org activa redirige a /app
-- **WHEN** `deriveDashboardHref` recibe `user.role === "super_admin"` y `activeOrgRole === "member"`
-- **THEN** retorna `"/app"`
+#### Scenario: Defensa en profundidad para super sin membresía
+- **WHEN** un bug deja a un super_admin sin membresía y llega a `deriveDashboardHref` con `activeOrgRole === null`
+- **THEN** retorna `"/super"` (no rompe, pero se registra como error de invariante en logs)
 
 #### Scenario: Admin en org activa redirige a /admin
 - **WHEN** `deriveDashboardHref` recibe `activeOrgRole === "admin"`

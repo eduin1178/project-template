@@ -46,19 +46,40 @@ El schema de better-auth SHALL generarse con `@better-auth/cli generate` y commi
 - **WHEN** se ejecuta `npm run db:generate-auth-schema`
 - **THEN** el CLI regenera el archivo según la versión instalada de better-auth y plugins activos
 
-### Requirement: Migraciones gestionadas por drizzle-kit
+### Requirement: Migraciones de Drizzle versionadas y reentrantes
+
+El sistema SHALL mantener las migraciones de Drizzle como archivos versionados en `next-app/lib/db/migrations/`. La migración inicial `0000_*.sql` SHALL contener el snapshot completo del schema (todas las tablas y constraints) tal como existe al momento del último reset consolidado.
+
+Migraciones intermedias previas al snapshot inicial SHALL ser eliminadas cuando se ejecuta un reset consolidado (sólo permitido si no hay producción). La política "migraciones nunca se editan después de aplicadas" SHALL contar **a partir de** ese snapshot.
 
 El proyecto SHALL exponer scripts npm:
 
 - `db:push` — `drizzle-kit push` para dev (sync rápido sin SQL)
 - `db:generate` — `drizzle-kit generate` para producir migración SQL versionada
 - `db:migrate` — `drizzle-kit migrate` para aplicar migraciones en producción
+- `db:seed-platform` — `tsx --env-file=.env.local lib/db/seed-platform.ts` para sembrar la organización plataforma de forma idempotente
 
-Las migraciones SQL SHALL vivir en `next-app/lib/db/migrations/`.
+El seed de la organización plataforma SHALL ejecutarse vía script separado (no como migración SQL), para mantener la migración pura de schema.
+
+#### Scenario: Snapshot inicial cubre el schema completo
+- **WHEN** se aplica la migración `0000_*.sql` contra una base vacía
+- **THEN** existen todas las tablas necesarias: `user`, `session`, `account`, `verification`, `organization`, `member`, `invitation`, `task`, y todas las dependientes
+
+#### Scenario: organization.slug es NOT NULL UNIQUE
+- **WHEN** se inspecciona la migración inicial
+- **THEN** la columna `slug` de `organization` está declarada `NOT NULL UNIQUE`
+
+#### Scenario: Seed de plataforma es script aparte
+- **WHEN** se inspecciona `lib/db/migrations/`
+- **THEN** ninguna migración SQL contiene `INSERT INTO organization VALUES (... 'docentix' ...)`. El seed vive en `lib/db/seed-platform.ts`.
+
+#### Scenario: Rebuild local funciona desde cero
+- **WHEN** un dev clona el repo, levanta `docker compose up -d` y corre `pnpm db:migrate && pnpm db:seed-platform`
+- **THEN** la base queda con el schema completo y la org plataforma creada
 
 #### Scenario: Scripts disponibles
 - **WHEN** se inspecciona `next-app/package.json`
-- **THEN** los scripts `db:push`, `db:generate`, `db:migrate`, `db:generate-auth-schema` están definidos
+- **THEN** los scripts `db:push`, `db:generate`, `db:migrate`, `db:seed-platform`, `db:generate-auth-schema` están definidos
 
 ### Requirement: `.env.example` documenta todas las variables
 

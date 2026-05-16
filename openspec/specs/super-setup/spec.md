@@ -38,9 +38,19 @@ El endpoint de setup SHALL requerir un campo `setupToken` que coincida exactamen
 - **WHEN** `SUPER_ADMIN_SETUP_TOKEN` no está definida en el entorno
 - **THEN** el endpoint responde con 500 y un mensaje genérico de configuración faltante en logs server
 
-### Requirement: Creación atómica del primer super_admin
+### Requirement: Bootstrap del primer super_admin
 
 La creación del primer super_admin SHALL ocurrir dentro de una transacción de BD que adquiera un lock sobre la tabla `user` (por ejemplo `SELECT ... FOR UPDATE` sobre `count(*) WHERE role = 'super_admin'` o lock advisory) para prevenir race conditions.
+
+El flujo `/super/setup` SHALL crear el primer `super_admin` y, en la misma transacción, SHALL invocar `ensurePlatformMembership(newUser.id, tx)` para garantizar que el nuevo super pertenece a la org plataforma con `role="owner"` y `status="active"`. La transacción SHALL setear `user.lastActiveOrganizationId = <orgPlataforma.id>` para el nuevo super.
+
+#### Scenario: Setup crea super + membership en una transacción
+- **WHEN** un agente completa el formulario de `/super/setup` con el token correcto
+- **THEN** al terminar la transacción existen: (a) `user` con `role="super_admin"`, (b) `member` para ese user en la org plataforma con `role="owner"`, (c) `user.lastActiveOrganizationId === platformOrg.id`
+
+#### Scenario: Setup idempotente ante reintento parcial
+- **WHEN** el setup se reintenta tras una falla parcial (super creado, membership no)
+- **THEN** una segunda llamada a `ensurePlatformMembership` repara el estado sin duplicar filas
 
 #### Scenario: Dos requests simultáneos crean solo un super
 - **WHEN** dos requests válidos llegan al endpoint en paralelo con la BD vacía
