@@ -1,11 +1,15 @@
 "use client";
 
 import {
+  createContext,
   useCallback,
+  useContext,
+  useMemo,
   useRef,
   useState,
   useTransition,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
 
 import { CheckIcon, TrashIcon, XIcon } from "@phosphor-icons/react";
@@ -25,6 +29,27 @@ import { cn } from "@/lib/utils";
 
 const LABEL_MAX = 200;
 
+type ChecklistContextValue = {
+  taskId: string;
+  items: TaskChecklistItemView[];
+  canManageChecklist: boolean;
+  optimisticToggle: (itemId: string, checked: boolean) => void;
+  optimisticDelete: (itemId: string) => void;
+  appendItem: (item: TaskChecklistItemView) => void;
+};
+
+const ChecklistContext = createContext<ChecklistContextValue | null>(null);
+
+function useChecklistContext(): ChecklistContextValue {
+  const ctx = useContext(ChecklistContext);
+  if (!ctx) {
+    throw new Error(
+      "TaskChecklist subcomponents must be used inside TaskChecklistProvider.",
+    );
+  }
+  return ctx;
+}
+
 /**
  * ChecklistItemRow — fila individual del checklist.
  *
@@ -33,13 +58,11 @@ const LABEL_MAX = 200;
  */
 function ChecklistItemRow({
   item,
-  taskId,
   canManage,
   onOptimisticToggle,
   onOptimisticDelete,
 }: {
   item: TaskChecklistItemView;
-  taskId: string;
   canManage: boolean;
   onOptimisticToggle: (itemId: string, checked: boolean) => void;
   onOptimisticDelete: (itemId: string) => void;
@@ -58,7 +81,6 @@ function ChecklistItemRow({
     startTransition(async () => {
       const result = await toggleChecklistItem(item.id, newChecked);
       if (!result.ok) {
-        // Revertir estado optimista refrescando
         router.refresh();
       }
     });
@@ -69,7 +91,6 @@ function ChecklistItemRow({
     setEditValue(item.label);
     setEditError(null);
     setIsEditing(true);
-    // Enfocar el input en el siguiente frame
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [canManage, item.label]);
 
@@ -228,41 +249,33 @@ function ChecklistItemRow({
 }
 
 /**
- * TaskChecklistPanel
+ * TaskChecklistProvider
  *
- * Panel inline del checklist dentro del tab "Detalle" de TaskDetailPane.
- *
- * Render condicional:
- *   - Sin items + sin canManageChecklist → no se renderiza nada
- *   - Sin items + con canManageChecklist → título + input agregar
- *   - Con items + sin canManageChecklist → solo lectura (sin input, sin edición, sin eliminar)
- *   - Con items + con canManageChecklist → interactivo completo
+ * Aloja el estado compartido del checklist (items optimistas) para que la lista
+ * y el formulario de agregar puedan vivir en distintas zonas del layout — por
+ * ejemplo, el input fijo al fondo del tab Detalle mientras la lista vive en el
+ * área scrollable.
  */
-export function TaskChecklistPanel({
+export function TaskChecklistProvider({
   taskId,
   items: initialItems,
   canManageChecklist,
+  children,
 }: {
   taskId: string;
   items: TaskChecklistItemView[];
   canManageChecklist: boolean;
+  children: ReactNode;
 }) {
-  const router = useRouter();
   const [items, setItems] = useState<TaskChecklistItemView[]>(initialItems);
-  const [newLabel, setNewLabel] = useState("");
-  const [addError, setAddError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const addInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Sincronizar items externos (cuando el server component refresca)
-  // Solo si cambia la referencia del arreglo original (prop)
   const prevInitialRef = useRef(initialItems);
   if (prevInitialRef.current !== initialItems) {
     prevInitialRef.current = initialItems;
     setItems(initialItems);
   }
 
-  const handleOptimisticToggle = useCallback(
+  const optimisticToggle = useCallback(
     (itemId: string, checked: boolean) => {
       setItems((prev) =>
         prev.map((it) => (it.id === itemId ? { ...it, checked } : it)),
@@ -271,22 +284,97 @@ export function TaskChecklistPanel({
     [],
   );
 
-  const handleOptimisticDelete = useCallback((itemId: string) => {
+  const optimisticDelete = useCallback((itemId: string) => {
     setItems((prev) => prev.filter((it) => it.id !== itemId));
   }, []);
 
-  const handleAddKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      submitNew();
-    }
-  };
+  const appendItem = useCallback((item: TaskChecklistItemView) => {
+    setItems((prev) => [...prev, item]);
+  }, []);
+
+  const value = useMemo<ChecklistContextValue>(
+    () => ({
+      taskId,
+      items,
+      canManageChecklist,
+      optimisticToggle,
+      optimisticDelete,
+      appendItem,
+    }),
+    [
+      taskId,
+      items,
+      canManageChecklist,
+      optimisticToggle,
+      optimisticDelete,
+      appendItem,
+    ],
+  );
+
+  return (
+    <ChecklistContext.Provider value={value}>
+      {children}
+    </ChecklistContext.Provider>
+  );
+}
+
+/**
+ * TaskChecklistList
+ *
+ * Renderiza el título "Checklist" y la lista de items. No renderiza el input
+ * para agregar — ese se monta aparte con `TaskChecklistAddForm` para poder
+ * fijarlo al fondo del contenedor.
+ *
+ * Render condicional:
+ *   - Sin items + sin canManageChecklist → no se renderiza nada
+ *   - Sin items + con canManageChecklist → solo el título (el input vive afuera)
+ */
+export function TaskChecklistList() {
+  const { items, canManageChecklist, optimisticToggle, optimisticDelete } =
+    useChecklistContext();
+
+  if (items.length === 0 && !canManageChecklist) {
+    return null;
+  }
+
+  return (
+    <section className="space-y-3">
+      {items.length > 0 ? (
+        <ul className="space-y-0.5">
+          {items.map((item) => (
+            <ChecklistItemRow
+              key={item.id}
+              item={item}
+              canManage={canManageChecklist}
+              onOptimisticToggle={optimisticToggle}
+              onOptimisticDelete={optimisticDelete}
+            />
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  );
+}
+
+/**
+ * TaskChecklistAddForm
+ *
+ * Input + botón "Agregar" para crear nuevos items. Se monta separado de la
+ * lista para poder fijarlo al fondo del tab Detalle (similar al input de
+ * comentarios). Solo se renderiza si el usuario tiene `canManageChecklist`.
+ */
+export function TaskChecklistAddForm() {
+  const router = useRouter();
+  const { taskId, canManageChecklist, appendItem } = useChecklistContext();
+  const [newLabel, setNewLabel] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const addInputRef = useRef<HTMLInputElement | null>(null);
 
   const submitNew = () => {
     if (isPending) return;
     const trimmed = newLabel.trim();
     if (trimmed.length === 0) {
-      // Label vacío: no hacer nada (validación silenciosa per spec)
       return;
     }
     if (trimmed.length > LABEL_MAX) {
@@ -295,7 +383,6 @@ export function TaskChecklistPanel({
     }
     setAddError(null);
     setNewLabel("");
-    // Mantener el foco en el input para encadenar varios items seguidos
     addInputRef.current?.focus();
     startTransition(async () => {
       const result = await createChecklistItem(taskId, trimmed);
@@ -304,65 +391,47 @@ export function TaskChecklistPanel({
         addInputRef.current?.focus();
         return;
       }
-      // Agregar el nuevo item al estado local y refrescar
-      setItems((prev) => [...prev, result.data]);
+      appendItem(result.data);
       router.refresh();
       addInputRef.current?.focus();
     });
   };
 
-  // Si no hay items Y no puede gestionar → no renderizar nada
-  if (items.length === 0 && !canManageChecklist) {
-    return null;
-  }
+  const handleAddKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      submitNew();
+    }
+  };
+
+  if (!canManageChecklist) return null;
 
   return (
-    <section className="mt-6 space-y-3">
-      <h3 className="text-sm font-semibold">Checklist</h3>
-
-      {items.length > 0 ? (
-        <ul className="space-y-0.5">
-          {items.map((item) => (
-            <ChecklistItemRow
-              key={item.id}
-              item={item}
-              taskId={taskId}
-              canManage={canManageChecklist}
-              onOptimisticToggle={handleOptimisticToggle}
-              onOptimisticDelete={handleOptimisticDelete}
-            />
-          ))}
-        </ul>
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <Input
+          ref={addInputRef}
+          value={newLabel}
+          onChange={(e) => setNewLabel(e.target.value)}
+          onKeyDown={handleAddKeyDown}
+          placeholder="Agrega un item al checklist"
+          className="h-8 text-sm"
+          maxLength={LABEL_MAX}
+          aria-label="Agrega un item al checklist"
+        />
+        <Button
+          type="button"
+          size="sm"
+          onClick={submitNew}
+          disabled={isPending || newLabel.trim().length === 0}
+          className="shrink-0"
+        >
+          Agregar
+        </Button>
+      </div>
+      {addError ? (
+        <p className="text-destructive text-xs">{addError}</p>
       ) : null}
-
-      {canManageChecklist ? (
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Input
-              ref={addInputRef}
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              onKeyDown={handleAddKeyDown}
-              placeholder="Agrega un item"
-              className="h-8 text-sm"
-              maxLength={LABEL_MAX}
-              aria-label="Agrega un item al checklist"
-            />
-            <Button
-              type="button"
-              size="sm"
-              onClick={submitNew}
-              disabled={isPending || newLabel.trim().length === 0}
-              className="shrink-0"
-            >
-              Agregar
-            </Button>
-          </div>
-          {addError ? (
-            <p className="text-destructive text-xs">{addError}</p>
-          ) : null}
-        </div>
-      ) : null}
-    </section>
+    </div>
   );
 }

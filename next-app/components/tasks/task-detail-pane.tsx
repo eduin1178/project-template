@@ -21,7 +21,11 @@ import type {
 
 import type { TaskCapabilities } from "./capabilities";
 import { EditTaskDialog } from "./edit-task-dialog";
-import { TaskChecklistPanel } from "./task-checklist-panel";
+import {
+  TaskChecklistAddForm,
+  TaskChecklistList,
+  TaskChecklistProvider,
+} from "./task-checklist-panel";
 import { TaskCommentsPanel } from "./task-comments-panel";
 import { TaskDetailActions } from "./task-detail-actions";
 import { TaskDocumentsPanel } from "./task-documents-panel";
@@ -190,15 +194,19 @@ export function TaskDetailPane({
       >
         <TabsList className="mx-5 mt-3 w-fit">
           <TabsTrigger value="detail">Detalle</TabsTrigger>
+          <TabsTrigger value="checklist">
+            Checklist
+            {checklistItems.length > 0 ? ` (${checklistItems.length})` : ""}
+          </TabsTrigger>
+          <TabsTrigger value="documents">
+            Documentos
+            {documents.length > 0 ? ` (${documents.length})` : ""}
+          </TabsTrigger>
           <TabsTrigger value="comments">
             Comentarios
             {comments.filter((c) => c.deletedAt === null).length > 0
               ? ` (${comments.filter((c) => c.deletedAt === null).length})`
               : ""}
-          </TabsTrigger>
-          <TabsTrigger value="documents">
-            Documentos
-            {documents.length > 0 ? ` (${documents.length})` : ""}
           </TabsTrigger>
         </TabsList>
         <TabsContent
@@ -214,11 +222,30 @@ export function TaskDetailPane({
               Esta tarea no tiene descripción.
             </p>
           )}
-          <TaskChecklistPanel
+        </TabsContent>
+        <TabsContent
+          value="checklist"
+          className="mt-0 flex min-h-0 flex-1 flex-col"
+        >
+          <TaskChecklistProvider
             taskId={task.id}
             items={checklistItems}
             canManageChecklist={capabilities.canManageChecklist}
-          />
+          >
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <TaskChecklistList />
+              {checklistItems.length === 0 && !capabilities.canManageChecklist ? (
+                <p className="text-muted-foreground text-sm italic">
+                  Esta tarea no tiene checklist.
+                </p>
+              ) : null}
+            </div>
+            {capabilities.canManageChecklist ? (
+              <div className="bg-background border-t p-3">
+                <TaskChecklistAddForm />
+              </div>
+            ) : null}
+          </TaskChecklistProvider>
         </TabsContent>
         <TabsContent
           value="comments"
