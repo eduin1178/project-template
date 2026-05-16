@@ -30,6 +30,10 @@ export function AppSidebar({
   teams,
   ...sidebarProps
 }: AppSidebarProps) {
+  const visibleItems = config.items.filter(
+    (item) => !item.requiresRole || item.requiresRole === role,
+  );
+
   return (
     <Sidebar collapsible="icon" {...sidebarProps}>
       <SidebarHeader>
@@ -40,7 +44,7 @@ export function AppSidebar({
         )}
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={config.items} />
+        <NavMain items={visibleItems} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} role={role} />

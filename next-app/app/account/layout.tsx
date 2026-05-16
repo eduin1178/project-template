@@ -21,10 +21,7 @@ export default async function AccountLayout({
     redirect("/login");
   }
 
-  const memberships =
-    session.user.role === "super_admin"
-      ? []
-      : await loadMembershipsFor(session.user.id);
+  const memberships = await loadMembershipsFor(session.user.id);
   const backHref = deriveDashboardHref({
     user: { role: session.user.role ?? null },
     memberships,

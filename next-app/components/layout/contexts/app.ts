@@ -1,5 +1,9 @@
 import { createElement } from "react";
-import { HouseIcon, ListChecksIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  HouseIcon,
+  ListChecksIcon,
+  ShieldStarIcon,
+} from "@phosphor-icons/react/dist/ssr";
 
 import type { SidebarConfig } from "../types";
 
@@ -20,6 +24,12 @@ export const appSidebarConfig: SidebarConfig = {
       label: "Tareas",
       href: "/tasks",
       icon: createElement(ListChecksIcon),
+    },
+    {
+      label: "Panel de plataforma",
+      href: "/super",
+      icon: createElement(ShieldStarIcon),
+      requiresRole: "super_admin",
     },
   ],
 };

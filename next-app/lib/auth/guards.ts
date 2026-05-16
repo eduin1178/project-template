@@ -7,6 +7,7 @@ import { db } from "@/lib/db/client";
 import { member, organization } from "@/lib/db/schema";
 import { and, asc, eq } from "drizzle-orm";
 
+import { ensurePlatformMembership } from "./platform-org";
 import { auth } from "./server";
 
 export async function getCurrentSession() {
@@ -231,16 +232,38 @@ export async function redirectToDashboard() {
   const lastActiveOrgId =
     (session.user as { lastActiveOrganizationId?: string | null })
       .lastActiveOrganizationId ?? null;
-  const activeOrgs = await loadActiveOrganizationsFor(session.user.id);
-  const { activeOrgRole } = resolveActiveOrganization({
+  let activeOrgs = await loadActiveOrganizationsFor(session.user.id);
+  let { activeOrgRole } = resolveActiveOrganization({
     sessionActiveOrgId,
     lastActiveOrgId,
     activeOrgs,
   });
 
+  // Defensa en profundidad: tras el seed/hook todo super debería tener
+  // membership activa en la org plataforma. Si por algún motivo no la tiene
+  // (bug, borrado manual de fila en `member`), intentamos auto-repararla
+  // una vez antes de caer a `/super`.
   if (session.user.role === "super_admin" && activeOrgRole === null) {
-    redirect("/super");
+    console.error(
+      "[guards] super_admin sin membresía activa detectado; intentando auto-reparar via ensurePlatformMembership.",
+      { userId: session.user.id },
+    );
+    try {
+      await ensurePlatformMembership(session.user.id);
+      activeOrgs = await loadActiveOrganizationsFor(session.user.id);
+      ({ activeOrgRole } = resolveActiveOrganization({
+        sessionActiveOrgId,
+        lastActiveOrgId,
+        activeOrgs,
+      }));
+    } catch (err) {
+      console.error("[guards] auto-reparación de membership falló", err);
+    }
+    if (activeOrgRole === null) {
+      redirect("/super");
+    }
   }
+
   if (activeOrgRole === null) {
     redirect("/account/organizations");
   }

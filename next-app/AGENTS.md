@@ -73,6 +73,44 @@ Aplica a:
 
 El copy nuevo respeta el español neutral del proyecto: segunda persona singular `tú`, sin voseo.
 
+## Org plataforma y rol super
+
+Docentix se opera como un tenant más sobre su propia base. Por eso existe una
+**organización plataforma** con `slug = "docentix"` y nombre `"Docentix"`. Todo
+usuario con `user.role = "super_admin"` es `owner` activo de esa organización.
+
+Constantes y helpers viven en `lib/auth/platform-org.ts`:
+
+- `PLATFORM_ORG_SLUG = "docentix"`
+- `PLATFORM_ORG_NAME = "Docentix"`
+- `getOrCreatePlatformOrg(executor?)` — SELECT por slug, INSERT idempotente si falta.
+- `ensurePlatformMembership(userId, executor?)` — garantiza la membresía `owner`/`active`.
+- `ensurePlatformMembershipAndSetLastActive(userId, executor?)` — además setea `user.lastActiveOrganizationId`.
+
+**Regla**: toda mutación que setea `user.role = "super_admin"` (setup, aceptación
+de invitación super, cualquier flujo nuevo) DEBE llamar
+`ensurePlatformMembershipAndSetLastActive(userId, tx)` dentro de la misma
+transacción. Los helpers aceptan un executor (`db` o `tx`) para componerse.
+
+`redirectToDashboard()` en `lib/auth/guards.ts` aplica defensa en profundidad:
+si detecta un `super_admin` sin membresía activa, intenta auto-reparar via
+`ensurePlatformMembership` antes de caer a `/super`.
+
+`/super` es **panel de plataforma**, no un dashboard de workspace. El header
+del shell dice "Plataforma Docentix". El sidebar del workspace muestra el ítem
+"Panel de plataforma" solo para `super_admin`; el sidebar de `/super` muestra
+"Volver a mi institución" (que va a `/post-login`).
+
+## Base de datos y seed
+
+- Migraciones en `lib/db/migrations/` empezando por `0000_init.sql` (snapshot
+  consolidado). La política "migraciones nunca se editan después de aplicadas"
+  cuenta a partir de ese archivo.
+- Tras `pnpm db:migrate` corré `pnpm db:seed-platform` para crear la org
+  plataforma y enrolar a los supers existentes. El script es idempotente:
+  re-ejecutarlo no duplica filas. Requiere `tsx` (incluido en devDependencies)
+  y `.env.local` con `DATABASE_URL`.
+
 ## Clases CSS y Tailwind
 
 - Usa `cn` desde `@/lib/utils` para composición de clases.

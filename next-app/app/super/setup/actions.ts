@@ -7,6 +7,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth/server";
+import { ensurePlatformMembershipAndSetLastActive } from "@/lib/auth/platform-org";
 import { db } from "@/lib/db/client";
 import { user } from "@/lib/db/schema";
 
@@ -92,21 +93,39 @@ export async function bootstrapFirstSuperAdminAction(
     };
   }
 
-  // Promote to super_admin only if no super admin exists yet (race guard)
-  const updated = await db
-    .update(user)
-    .set({ role: "super_admin" })
-    .where(
-      and(
-        eq(user.id, createdUserId),
-        sql`NOT EXISTS (SELECT 1 FROM "user" u2 WHERE u2.role = 'super_admin')`,
-      ),
-    )
-    .returning({ id: user.id });
+  // Promote to super_admin and enrol in platform org atomically.
+  let promoted = false;
+  try {
+    await db.transaction(async (tx) => {
+      const updated = await tx
+        .update(user)
+        .set({ role: "super_admin" })
+        .where(
+          and(
+            eq(user.id, createdUserId!),
+            sql`NOT EXISTS (SELECT 1 FROM "user" u2 WHERE u2.role = 'super_admin')`,
+          ),
+        )
+        .returning({ id: user.id });
 
-  if (updated.length === 0) {
-    // Race: otro super se creó antes. Revertimos eliminando la cuenta.
-    await db.delete(user).where(eq(user.id, createdUserId));
+      if (updated.length === 0) {
+        // Race: otro super se creó antes. Revertir eliminando la cuenta.
+        await tx.delete(user).where(eq(user.id, createdUserId!));
+        return;
+      }
+
+      await ensurePlatformMembershipAndSetLastActive(createdUserId!, tx);
+      promoted = true;
+    });
+  } catch (error) {
+    console.error("[setup] transacción de promoción a super falló", error);
+    return {
+      ok: false,
+      error: "No pudimos completar el setup. Intenta nuevamente.",
+    };
+  }
+
+  if (!promoted) {
     return { ok: false, error: "Ya existe un super admin registrado." };
   }
 

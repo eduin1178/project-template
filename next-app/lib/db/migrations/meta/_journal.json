@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1778718654597,
-      "tag": "0000_simple_piledriver",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1778719298043,
-      "tag": "0001_new_sleepwalker",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1778728513740,
-      "tag": "0002_broken_reptil",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1778732860483,
-      "tag": "0003_overrated_goblin_queen",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1778740657551,
-      "tag": "0004_add_task_comment",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1778832419576,
-      "tag": "0005_dashing_beast",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1778870950777,
-      "tag": "0006_many_jasper_sitwell",
+      "when": 1778962074530,
+      "tag": "0000_strong_firelord",
       "breakpoints": true
     }
   ]

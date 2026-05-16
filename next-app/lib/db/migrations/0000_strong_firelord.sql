@@ -70,6 +70,7 @@ CREATE TABLE "user" (
 	"banned" boolean DEFAULT false,
 	"ban_reason" text,
 	"ban_expires" timestamp,
+	"last_active_organization_id" text,
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
@@ -95,6 +96,61 @@ CREATE TABLE "super_invitation" (
 	CONSTRAINT "super_invitation_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
+CREATE TABLE "task" (
+	"id" text PRIMARY KEY NOT NULL,
+	"title" text NOT NULL,
+	"description" text,
+	"due_at" timestamp with time zone,
+	"visibility" text DEFAULT 'draft' NOT NULL,
+	"status" text DEFAULT 'pending' NOT NULL,
+	"author_id" text NOT NULL,
+	"responsible_id" text,
+	"organization_id" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "task_visibility_check" CHECK ("task"."visibility" IN ('draft', 'active', 'archived')),
+	CONSTRAINT "task_status_check" CHECK ("task"."status" IN ('pending', 'in_progress', 'done'))
+);
+--> statement-breakpoint
+CREATE TABLE "task_assignee" (
+	"task_id" text NOT NULL,
+	"user_id" text NOT NULL,
+	CONSTRAINT "task_assignee_task_id_user_id_pk" PRIMARY KEY("task_id","user_id")
+);
+--> statement-breakpoint
+CREATE TABLE "task_checklist_item" (
+	"id" text PRIMARY KEY NOT NULL,
+	"task_id" text NOT NULL,
+	"label" text NOT NULL,
+	"checked" boolean DEFAULT false NOT NULL,
+	"checked_by_id" text,
+	"checked_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "task_comment" (
+	"id" text PRIMARY KEY NOT NULL,
+	"task_id" text NOT NULL,
+	"author_id" text NOT NULL,
+	"body" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"deleted_by_name" text,
+	"deleted_by_email" text
+);
+--> statement-breakpoint
+CREATE TABLE "task_document" (
+	"id" text PRIMARY KEY NOT NULL,
+	"task_id" text NOT NULL,
+	"uploader_id" text,
+	"file_name" text NOT NULL,
+	"mime_type" text NOT NULL,
+	"size_bytes" integer NOT NULL,
+	"storage_key" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "invitation" ADD CONSTRAINT "invitation_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "invitation" ADD CONSTRAINT "invitation_inviter_id_user_id_fk" FOREIGN KEY ("inviter_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -103,6 +159,17 @@ ALTER TABLE "member" ADD CONSTRAINT "member_user_id_user_id_fk" FOREIGN KEY ("us
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "super_invitation" ADD CONSTRAINT "super_invitation_invited_by_user_id_fk" FOREIGN KEY ("invited_by") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "super_invitation" ADD CONSTRAINT "super_invitation_accepted_by_user_id_fk" FOREIGN KEY ("accepted_by") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task" ADD CONSTRAINT "task_author_id_user_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task" ADD CONSTRAINT "task_responsible_id_user_id_fk" FOREIGN KEY ("responsible_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task" ADD CONSTRAINT "task_organization_id_organization_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organization"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task_assignee" ADD CONSTRAINT "task_assignee_task_id_task_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task_assignee" ADD CONSTRAINT "task_assignee_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task_checklist_item" ADD CONSTRAINT "task_checklist_item_task_id_task_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task_checklist_item" ADD CONSTRAINT "task_checklist_item_checked_by_id_user_id_fk" FOREIGN KEY ("checked_by_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task_comment" ADD CONSTRAINT "task_comment_task_id_task_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task_comment" ADD CONSTRAINT "task_comment_author_id_user_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task_document" ADD CONSTRAINT "task_document_task_id_task_id_fk" FOREIGN KEY ("task_id") REFERENCES "public"."task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task_document" ADD CONSTRAINT "task_document_uploader_id_user_id_fk" FOREIGN KEY ("uploader_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "account" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "invitation_organizationId_idx" ON "invitation" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "invitation_email_idx" ON "invitation" USING btree ("email");--> statement-breakpoint
@@ -112,4 +179,13 @@ CREATE UNIQUE INDEX "organization_slug_uidx" ON "organization" USING btree ("slu
 CREATE INDEX "session_userId_idx" ON "session" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "verification_identifier_idx" ON "verification" USING btree ("identifier");--> statement-breakpoint
 CREATE INDEX "super_invitation_invited_by_idx" ON "super_invitation" USING btree ("invited_by");--> statement-breakpoint
-CREATE INDEX "super_invitation_expires_at_idx" ON "super_invitation" USING btree ("expires_at");
+CREATE INDEX "super_invitation_expires_at_idx" ON "super_invitation" USING btree ("expires_at");--> statement-breakpoint
+CREATE INDEX "task_organization_id_idx" ON "task" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "task_author_id_idx" ON "task" USING btree ("author_id");--> statement-breakpoint
+CREATE INDEX "task_responsible_id_idx" ON "task" USING btree ("responsible_id");--> statement-breakpoint
+CREATE INDEX "task_assignee_user_id_idx" ON "task_assignee" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "task_checklist_item_task_id_created_at_idx" ON "task_checklist_item" USING btree ("task_id","created_at");--> statement-breakpoint
+CREATE INDEX "task_comment_task_id_created_at_idx" ON "task_comment" USING btree ("task_id","created_at");--> statement-breakpoint
+CREATE INDEX "task_comment_author_id_idx" ON "task_comment" USING btree ("author_id");--> statement-breakpoint
+CREATE INDEX "task_document_task_id_created_at_idx" ON "task_document" USING btree ("task_id","created_at");--> statement-breakpoint
+CREATE UNIQUE INDEX "task_document_storage_key_unique" ON "task_document" USING btree ("storage_key");

@@ -8,7 +8,6 @@ import { auth } from "@/lib/auth/server";
 import { db } from "@/lib/db/client";
 import { member, organization } from "@/lib/db/schema";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export const metadata = { title: "Mis instituciones — Docentix" };
@@ -27,26 +26,6 @@ export default async function OrganizationsPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     redirect("/login");
-  }
-
-  if (session.user.role === "super_admin") {
-    return (
-      <div className="space-y-6">
-        <header>
-          <h2 className="text-xl font-semibold">Mis instituciones</h2>
-        </header>
-        <EmptyState
-          icon={<BuildingsIcon className="size-6" />}
-          title="Esta sección no aplica para super administradores"
-          description="Como super administrador no perteneces a instituciones; las gestionas desde el panel super."
-          action={
-            <Button asChild>
-              <Link href="/super">Ir al panel super</Link>
-            </Button>
-          }
-        />
-      </div>
-    );
   }
 
   const rows = await db

@@ -12,6 +12,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "db:seed-platform": "tsx --env-file=.env.local lib/db/seed-platform.ts",
     "db:generate-auth-schema": "npx @better-auth/cli generate --config ./lib/auth/server.ts --output ./lib/db/schema/auth.ts --y"
   },
   "dependencies": {
@@ -51,6 +52,7 @@
     "eslint-config-next": "16.2.6",
     "react-email": "^6.1.4",
     "tailwindcss": "^4",
+    "tsx": "^4.19.2",
     "typescript": "^5",
     "vitest": "^4.1.6"
   }

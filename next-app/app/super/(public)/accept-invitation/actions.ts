@@ -5,6 +5,7 @@ import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { auth } from "@/lib/auth/server";
+import { ensurePlatformMembershipAndSetLastActive } from "@/lib/auth/platform-org";
 import { db } from "@/lib/db/client";
 import { superInvitation, user } from "@/lib/db/schema";
 
@@ -75,7 +76,8 @@ export async function acceptSuperInvitationEmailAction(
     };
   }
 
-  // Promover a super_admin y marcar invitación aceptada atómicamente
+  // Promover a super_admin, enrolar en org plataforma y marcar invitación
+  // aceptada atómicamente.
   await db.transaction(async (tx) => {
     await tx
       .update(user)
@@ -98,6 +100,8 @@ export async function acceptSuperInvitationEmailAction(
       await tx.delete(user).where(eq(user.id, createdUserId!));
       throw new Error("RACE");
     }
+
+    await ensurePlatformMembershipAndSetLastActive(createdUserId!, tx);
   }).catch((err) => {
     console.error("[invitation] acceptance race", err);
     throw err;
@@ -131,6 +135,7 @@ export async function completeInvitationFromGoogleAction(
     return { ok: false, error: "La invitación ya fue usada o expiró." };
   }
 
+  let platformOrgId: string | null = null;
   await db.transaction(async (tx) => {
     await tx
       .update(user)
@@ -150,7 +155,29 @@ export async function completeInvitationFromGoogleAction(
     if (updated.length === 0) {
       throw new Error("RACE");
     }
+
+    const result = await ensurePlatformMembershipAndSetLastActive(
+      session.user.id,
+      tx,
+    );
+    platformOrgId = result.organizationId;
   });
+
+  // El flujo Google ya tiene sesión activa; apuntá la sesión a la org
+  // plataforma para que `/post-login` y `/super` rindan inmediatamente.
+  if (platformOrgId) {
+    try {
+      await auth.api.setActiveOrganization({
+        body: { organizationId: platformOrgId },
+        headers: await headers(),
+      });
+    } catch (err) {
+      console.error(
+        "[invitation/google] setActiveOrganization falló (no bloqueante)",
+        err,
+      );
+    }
+  }
 
   // Touch sql to keep import used; remove if not needed
   void sql;

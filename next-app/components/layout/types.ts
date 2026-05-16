@@ -1,10 +1,18 @@
 import type { ReactNode } from "react";
 
+import type { MenuRole } from "@/lib/auth/role-menu";
+
 export type SidebarItem = {
   label: string;
   href: string;
   icon?: ReactNode;
   matchPrefix?: string;
+  /**
+   * Si está definido, el ítem solo se renderiza para usuarios cuyo rol
+   * de menú es exactamente ese valor. Útil para entradas globales como
+   * "Panel de plataforma" que solo aplican a super_admin.
+   */
+  requiresRole?: MenuRole;
 };
 
 export type SidebarBrand = {

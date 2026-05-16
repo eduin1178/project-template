@@ -41,7 +41,7 @@ export default async function SuperProtectedLayout({
           <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-16" />
-            <span className="text-sm font-medium">Panel super</span>
+            <span className="text-sm font-medium">Plataforma Docentix</span>
             <div className="ml-auto flex items-center">
               <ThemeToggle />
             </div>

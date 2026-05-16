@@ -33,21 +33,17 @@ export function deriveMenuRole(
 export function getUserMenuItems(role: MenuRole): UserMenuItem[] {
   const items: UserMenuItem[] = [
     { key: "profile", label: "Mi perfil", href: "/account/profile" },
-  ];
-
-  if (role !== "super_admin") {
-    items.push({
+    {
       key: "organizations",
       label: "Mis instituciones",
       href: "/account/organizations",
-    });
-  }
-
-  items.push({
-    key: "invitations",
-    label: "Invitaciones",
-    href: "/account/invitations",
-  });
+    },
+    {
+      key: "invitations",
+      label: "Invitaciones",
+      href: "/account/invitations",
+    },
+  ];
 
   items.push({ key: "sign-out", label: "Cerrar sesión" });
 
