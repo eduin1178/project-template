@@ -10,8 +10,15 @@ import { createOnboardingTask } from "@/lib/tasks/onboarding";
 
 const PENDING_COOKIE = "pending-invitation-id";
 
+function getPublicOrigin(request: Request): string {
+  const fromEnv = process.env.BETTER_AUTH_URL;
+  if (fromEnv) return fromEnv.replace(/\/$/, "");
+  return new URL(request.url).origin;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const publicOrigin = getPublicOrigin(request);
 
   const jar = await cookies();
   const invitationId = jar.get(PENDING_COOKIE)?.value ?? null;
@@ -111,14 +118,15 @@ export async function GET(request: Request) {
       role === "owner" || role === "admin"
         ? `/${org.slug}/admin`
         : `/${org.slug}`;
-    return NextResponse.redirect(new URL(target, url.origin));
+    return NextResponse.redirect(new URL(target, publicOrigin));
   }
 
-  return NextResponse.redirect(new URL("/post-login", url.origin));
+  return NextResponse.redirect(new URL("/post-login", publicOrigin));
 }
 
 function errorRedirect(currentUrl: URL, message: string) {
-  const target = new URL("/accept-invitation/complete/error", currentUrl.origin);
+  const origin = process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ?? currentUrl.origin;
+  const target = new URL("/accept-invitation/complete/error", origin);
   target.searchParams.set("msg", message);
   return NextResponse.redirect(target);
 }
