@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm view *)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(pnpm --version)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm why *)",
+      "Bash(pnpm install *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}
