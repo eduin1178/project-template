@@ -96,9 +96,11 @@ export function TaskCommentsPanel({
   }, []);
 
   // Scroll al final cuando cambia la cantidad o ids de comentarios.
+  const lastId = sorted[sorted.length - 1]?.id;
+  const sortedLength = sorted.length;
   useLayoutEffect(() => {
     scrollToBottom();
-  }, [scrollToBottom, sorted.length, sorted[sorted.length - 1]?.id]);
+  }, [scrollToBottom, sortedLength, lastId]);
 
   // Cuando el tab se activa (Radix hace display:none en tabs inactivos),
   // el contenedor pasa de 0 a >0 de alto: scrollear al fondo en ese momento.

@@ -18,21 +18,27 @@ export const siteContent = {
     sections: [
       { href: "#como-funciona", label: "Cómo funciona" },
       { href: "#caracteristicas", label: "Características" },
+      { href: "#producto", label: "Producto" },
       { href: "#planes", label: "Planes" },
       { href: "#faq", label: "Preguntas" },
     ],
   },
   hero: {
     eyebrow: "Para instituciones educativas",
-    title: "Tareas docentes claras, con plazos y seguimiento.",
+    title: "Tareas docentes claras, con plazos y seguimiento real.",
     subtitle:
       "Docentix es la plataforma donde rectores y coordinadores asignan, hacen seguimiento y cierran tareas con sus docentes. Menos WhatsApp, menos correos perdidos, más foco en lo que importa.",
     primaryCta: "Solicitar demo",
     secondaryCta: "Ver cómo funciona",
+    badges: [
+      "Solo por invitación",
+      "Cifrado en tránsito",
+      "Mobile-first",
+    ],
     image: {
       light: "/images/dashboard.png",
       dark: "/images/dashboard-dark.png",
-      alt: "Captura del panel de Docentix mostrando tareas asignadas a docentes con sus plazos de entrega.",
+      alt: "Panel de Docentix mostrando tareas asignadas a docentes con sus plazos de entrega.",
     },
   },
 } as const;
@@ -50,7 +56,14 @@ export type IconName =
   | "Tag"
   | "Funnel"
   | "Lock"
-  | "DeviceMobile";
+  | "DeviceMobile"
+  | "CheckSquare"
+  | "Paperclip"
+  | "Buildings"
+  | "Rocket"
+  | "Sparkle"
+  | "EnvelopeSimple"
+  | "Compass";
 
 export const painsContent = {
   eyebrow: "Lo conocido",
@@ -95,13 +108,13 @@ export const howItWorksContent = {
   eyebrow: "Cómo funciona",
   title: "Cuatro pasos para dejar el caos atrás",
   subtitle:
-    "Un flujo simple, pensado para que el rector mantenga el control sin micromanagement.",
+    "Un flujo simple, pensado para que el rector mantenga el control sin caer en el micromanagement.",
   steps: [
     {
       number: "01",
       title: "Define la tarea",
       description:
-        "El rector o coordinador crea la tarea con título, descripción, criterios y fecha límite.",
+        "El rector o el coordinador crea la tarea con título, descripción, criterios, checklist y fecha límite.",
     },
     {
       number: "02",
@@ -119,7 +132,7 @@ export const howItWorksContent = {
       number: "04",
       title: "Cierra y archiva",
       description:
-        "El docente entrega, tú revisas y cierras. Todo queda registrado para reportes y auditoría.",
+        "El docente entrega con sus documentos, tú revisas y cierras. Todo queda registrado para reportes y auditoría.",
     },
   ],
 } as const;
@@ -137,28 +150,16 @@ export const featuresContent = {
         "Define qué se espera, cómo se entrega y cuándo. Sin ambigüedades.",
     },
     {
-      icon: "CalendarCheck" as IconName,
-      title: "Plazos visibles",
+      icon: "CheckSquare" as IconName,
+      title: "Checklist por tarea",
       description:
-        "Cada tarea tiene fecha límite y el sistema avisa antes de que se cumpla.",
+        "Divide cada tarea en subpasos verificables para que el avance sea explícito.",
     },
     {
-      icon: "Users" as IconName,
-      title: "Roles y permisos",
+      icon: "Paperclip" as IconName,
+      title: "Documentos adjuntos",
       description:
-        "Rector, coordinador y docente: cada uno ve lo que necesita y nada más.",
-    },
-    {
-      icon: "Bell" as IconName,
-      title: "Notificaciones inteligentes",
-      description:
-        "Avisos al asignar, al acercarse el vencimiento y al cerrar la tarea.",
-    },
-    {
-      icon: "ChartLine" as IconName,
-      title: "Reportes y métricas",
-      description:
-        "Cumplimiento por docente, por área, por período. Para tomar decisiones con datos.",
+        "Los docentes suben los entregables directamente a la tarea, sin pasar por correo.",
     },
     {
       icon: "ChatsCircle" as IconName,
@@ -167,22 +168,52 @@ export const featuresContent = {
         "Dudas y aclaraciones quedan dentro de la tarea, no perdidas en un chat aparte.",
     },
     {
-      icon: "Tag" as IconName,
-      title: "Categorías y etiquetas",
+      icon: "CalendarCheck" as IconName,
+      title: "Plazos visibles",
       description:
-        "Organiza por área, ciclo, grado o como lo necesite tu institución.",
+        "Cada tarea tiene fecha límite y el sistema avisa antes de que se cumpla.",
     },
     {
-      icon: "Funnel" as IconName,
-      title: "Filtros y vistas",
+      icon: "Bell" as IconName,
+      title: "Notificaciones por correo",
       description:
-        "Encuentra rápido lo que importa: pendientes, vencidas, por docente, por mes.",
+        "Avisos al asignar, al acercarse el vencimiento y al cerrar la tarea.",
+    },
+    {
+      icon: "ChartLine" as IconName,
+      title: "Dashboard de cumplimiento",
+      description:
+        "Vista agregada del estado de tareas por docente y por período, lista para reuniones.",
+    },
+    {
+      icon: "Users" as IconName,
+      title: "Roles y permisos",
+      description:
+        "Rector, coordinador y docente: cada uno ve lo que necesita y nada más.",
+    },
+    {
+      icon: "Buildings" as IconName,
+      title: "Workspace por institución",
+      description:
+        "Cada institución opera en su propio espacio con una URL propia. Si trabajas en varias, cambias de una en un clic.",
+    },
+    {
+      icon: "Compass" as IconName,
+      title: "Onboarding guiado",
+      description:
+        "La primera tarea enseña el flujo. El equipo entiende la herramienta sin necesidad de un manual.",
     },
     {
       icon: "DeviceMobile" as IconName,
       title: "Adaptado a móvil",
       description:
         "Los docentes acceden desde su teléfono sin necesidad de instalar nada.",
+    },
+    {
+      icon: "ShieldCheck" as IconName,
+      title: "Acceso solo por invitación",
+      description:
+        "Nadie se registra solo. El rector invita coordinadores y docentes. Sin accesos sorpresa.",
     },
   ],
 } as const;
@@ -206,7 +237,7 @@ export const audiencesContent = {
       role: "Coordinador",
       tagline: "Asignación y seguimiento al detalle",
       bullets: [
-        "Crea tareas con criterios y plazos.",
+        "Crea tareas con criterios, checklist y plazos.",
         "Sigue el avance de su equipo en tiempo real.",
         "Aclara dudas dentro de cada tarea.",
       ],
@@ -217,8 +248,41 @@ export const audiencesContent = {
       bullets: [
         "Todas sus tareas en un solo lugar.",
         "Avisos antes del vencimiento.",
-        "Entrega y cierre en pocos clicks.",
+        "Entrega documentos y cierra en pocos clics.",
       ],
+    },
+  ],
+} as const;
+
+export const productShowcaseContent = {
+  eyebrow: "El producto",
+  title: "Así se ve Docentix en el día a día",
+  subtitle:
+    "Capturas reales del producto. Cada vista está pensada para responder a la pregunta correcta en el momento correcto.",
+  items: [
+    {
+      title: "Dashboard de cumplimiento",
+      description:
+        "El rector y el coordinador entran y ven el estado de la institución de un vistazo: pendientes, en curso, vencidas y completadas por docente y por área.",
+      image: "/images/showcase-dashboard.png",
+      imageDark: "/images/showcase-dashboard-dark.png",
+      alt: "Dashboard de cumplimiento de Docentix con métricas por docente y por estado de tarea.",
+    },
+    {
+      title: "Vista de tarea con checklist, comentarios y documentos",
+      description:
+        "Toda la conversación, los archivos y los subpasos viven dentro de la tarea. Nada se dispersa en correos o chats paralelos.",
+      image: "/images/showcase-task.png",
+      imageDark: "/images/showcase-task-dark.png",
+      alt: "Vista de una tarea en Docentix con checklist, hilo de comentarios y documentos adjuntos.",
+    },
+    {
+      title: "Vista mobile del docente",
+      description:
+        "El docente revisa lo pendiente, comenta y entrega desde el celular, sin instalar nada y sin perderse entre canales.",
+      image: "/images/showcase-mobile.png",
+      imageDark: "/images/showcase-mobile-dark.png",
+      alt: "Vista móvil de Docentix con la lista de tareas pendientes del docente y un detalle de tarea.",
     },
   ],
 } as const;
@@ -240,7 +304,7 @@ export const benefitsContent = {
     {
       title: "Trazabilidad real",
       description:
-        "Cualquier consulta o reclamo tiene historia clara: qué se pidió, cuándo, qué se entregó.",
+        "Cualquier consulta o reclamo tiene historia clara: qué se pidió, cuándo y qué se entregó.",
     },
     {
       title: "Docentes con menos ruido",
@@ -260,31 +324,36 @@ export const benefitsContent = {
   ],
 } as const;
 
-export const integrationsContent = {
-  eyebrow: "Integraciones",
-  title: "Conecta con lo que tu institución ya usa",
+export const roadmapContent = {
+  eyebrow: "Roadmap",
+  title: "En camino, no prometido como entregado",
   subtitle:
-    "Docentix se integra con las herramientas más comunes en el ámbito educativo, para que nadie tenga que cambiar de hábitos.",
+    "Estas capacidades están en construcción y se irán liberando a las instituciones piloto a medida que estén listas. Las marcamos explícitamente para no inflar lo que el producto entrega hoy.",
+  badge: "Próximamente",
   items: [
     {
+      icon: "EnvelopeSimple" as IconName,
       name: "Google Workspace",
       description:
-        "Inicio de sesión institucional, correo y calendario en una sola identidad.",
+        "Inicio de sesión con cuenta institucional de Google y sincronización de calendarios.",
     },
     {
+      icon: "EnvelopeSimple" as IconName,
       name: "Microsoft 365",
       description:
-        "Compatibilidad con cuentas institucionales y agendas de Outlook.",
+        "Inicio de sesión con cuenta institucional de Microsoft y compatibilidad con Outlook.",
     },
     {
-      name: "Correo institucional",
-      description:
-        "Avisos y resúmenes enviados al correo oficial de cada miembro.",
-    },
-    {
+      icon: "CalendarCheck" as IconName,
       name: "Calendarios externos",
       description:
         "Sincronización de plazos con Google Calendar y Outlook Calendar.",
+    },
+    {
+      icon: "Bell" as IconName,
+      name: "Notificaciones in-app y push",
+      description:
+        "Avisos dentro de la plataforma y notificaciones push al celular, además del correo.",
     },
   ],
 } as const;
@@ -293,13 +362,13 @@ export const securityContent = {
   eyebrow: "Seguridad y privacidad",
   title: "Datos institucionales tratados con responsabilidad",
   subtitle:
-    "Sabemos que la información de una institución educativa es sensible. Por eso, seguridad y privacidad son base, no extras.",
+    "La información de una institución educativa es sensible. Por eso, seguridad y privacidad son base, no extras.",
   bullets: [
     {
       icon: "Lock" as IconName,
       title: "Cifrado en tránsito",
       description:
-        "Toda la comunicación entre tu navegador y nuestros servidores está cifrada con TLS.",
+        "Toda la comunicación entre tu navegador y los servidores está cifrada con TLS.",
     },
     {
       icon: "ShieldCheck" as IconName,
@@ -326,7 +395,7 @@ export const socialProofContent = {
   eyebrow: "Prueba social",
   title: "Lo que dicen quienes ya lo usan",
   subtitle:
-    "Testimonios ilustrativos para esta versión inicial. Pronto reemplazaremos por casos reales de instituciones que confían en Docentix.",
+    "Testimonios ilustrativos para esta versión inicial. Pronto los reemplazaremos con casos reales de instituciones que confían en Docentix.",
   testimonials: [
     {
       name: "María Restrepo",
@@ -354,55 +423,56 @@ export const socialProofContent = {
 
 export const pricingContent = {
   eyebrow: "Planes",
-  title: "Planes pensados para distintos tamaños",
+  title: "Un precio único, simple y por usuario",
   subtitle:
-    "Estructura preliminar. Los valores definitivos se acuerdan en la conversación de demo según el tamaño y necesidades de tu institución.",
+    "COP $1.000 por usuario al mes, con facturación anual. Pagas solo por los usuarios que necesitas, con todas las funciones incluidas.",
+  priceLabel: "COP $1.000",
+  priceUnit: "por usuario / mes",
+  priceNote: "Facturación anual.",
+  commonFeaturesTitle: "Todos los planes incluyen",
+  commonFeatures: [
+    "Tareas ilimitadas por usuario",
+    "Control de plazos de entrega",
+    "Documentos adjuntos",
+    "Checklist por tarea",
+    "Comentarios en contexto",
+    "Múltiples usuarios para una tarea",
+  ],
   plans: [
     {
       name: "Básico",
-      price: "A medida",
       description:
         "Para instituciones pequeñas que están empezando a ordenar la asignación de tareas.",
-      features: [
-        "Hasta 25 docentes",
-        "Rector + 2 coordinadores",
-        "Tareas, plazos y notificaciones",
-        "Reportes básicos",
-      ],
+      users: "Hasta 50 usuarios",
+      storage: "100 GB de almacenamiento",
       cta: "Solicitar demo",
       highlighted: false,
     },
     {
       name: "Institucional",
-      price: "A medida",
       description:
         "Para colegios y centros con varias áreas y necesidad de reportes detallados.",
-      features: [
-        "Hasta 100 docentes",
-        "Coordinadores ilimitados",
-        "Reportes avanzados y exportables",
-        "Integración con Google Workspace o Microsoft 365",
-        "Soporte prioritario",
-      ],
+      users: "Hasta 100 usuarios",
+      storage: "250 GB de almacenamiento",
       cta: "Solicitar demo",
       highlighted: true,
     },
     {
-      name: "Enterprise",
-      price: "A medida",
+      name: "Gran institución",
       description:
-        "Para redes educativas y instituciones grandes con requisitos específicos.",
-      features: [
-        "Docentes ilimitados",
-        "Múltiples sedes y áreas",
-        "Roles personalizados",
-        "Onboarding asistido",
-        "SLA y soporte dedicado",
-      ],
+        "Para colegios grandes y redes educativas que coordinan varios equipos en simultáneo.",
+      users: "Hasta 150 usuarios",
+      storage: "500 GB de almacenamiento",
       cta: "Solicitar demo",
       highlighted: false,
     },
   ],
+  enterprise: {
+    title: "¿Más de 150 usuarios?",
+    description:
+      "Si tu institución necesita superar los 150 usuarios o tiene requisitos específicos de almacenamiento, sedes o soporte, armamos un plan a medida contigo.",
+    cta: "Contáctanos",
+  },
 } as const;
 
 export const faqContent = {
@@ -422,12 +492,12 @@ export const faqContent = {
     {
       question: "¿Qué pasa con los datos si dejamos de usar la plataforma?",
       answer:
-        "Podés exportar las tareas y reportes históricos antes de cancelar el servicio. Después, los datos se eliminan según lo acordado en el contrato institucional.",
+        "Puedes exportar las tareas y reportes históricos antes de cancelar el servicio. Después, los datos se eliminan según lo acordado en el contrato institucional.",
     },
     {
       question: "¿El sistema reemplaza al correo o a WhatsApp?",
       answer:
-        "No reemplaza, ordena. Las tareas formales viven en Docentix; el correo y el chat siguen siendo útiles para conversaciones espontáneas.",
+        "No los reemplaza, los ordena. Las tareas formales viven en Docentix; el correo y el chat siguen siendo útiles para conversaciones espontáneas.",
     },
     {
       question: "¿Cuánto demora implementarlo?",
@@ -442,15 +512,21 @@ export const faqContent = {
     {
       question: "¿Funciona en celular?",
       answer:
-        "Sí. La interfaz está pensada mobile-first. Los docentes pueden ver, comentar y entregar tareas desde el celular sin instalar nada.",
+        "Sí. La interfaz está pensada mobile-first. Los docentes pueden ver, comentar, adjuntar y entregar tareas desde el celular sin instalar nada.",
+    },
+    {
+      question: "¿Una persona puede pertenecer a varias instituciones?",
+      answer:
+        "Sí. Cada institución tiene su propio espacio con una URL propia y un mismo usuario puede cambiar entre instituciones con un clic.",
     },
   ],
 } as const;
 
 export const finalCtaContent = {
+  eyebrow: "Listo para empezar",
   title: "¿Listo para ordenar la asignación de tareas en tu institución?",
   subtitle:
-    "Agendamos una demo de 30 minutos, con tu equipo, mostrando casos reales aplicables a tu colegio o instituto.",
+    "Agendamos una demo de 30 minutos con tu equipo, mostrando casos reales aplicables a tu colegio o instituto.",
   cta: "Solicitar demo",
 } as const;
 
@@ -463,12 +539,14 @@ export const footerContent = {
       links: [
         { label: "Cómo funciona", href: "#como-funciona" },
         { label: "Características", href: "#caracteristicas" },
+        { label: "Producto en acción", href: "#producto" },
+        { label: "Roadmap", href: "#roadmap" },
         { label: "Planes", href: "#planes" },
         { label: "Preguntas frecuentes", href: "#faq" },
       ],
     },
     {
-      title: "Empresa",
+      title: "Institución",
       links: [
         { label: "Solicitar demo", href: "#contacto" },
         { label: "Contacto", href: "mailto:hola@docentix.com" },
@@ -565,7 +643,7 @@ export const requestDemoForm = {
   success:
     "Recibimos tu solicitud. Te contactaremos al correo institucional en las próximas 48 horas.",
   errorGeneric:
-    "No pudimos enviar tu solicitud. Por favor intentá de nuevo en unos minutos.",
+    "No pudimos enviar tu solicitud. Por favor intenta de nuevo en unos minutos.",
 } as const;
 
 export type SiteContent = typeof siteContent;

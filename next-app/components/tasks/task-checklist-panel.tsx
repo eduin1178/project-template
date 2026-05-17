@@ -202,7 +202,6 @@ function ChecklistItemRow({
             ) : null}
           </div>
         ) : (
-          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
           <span
             role={canManage ? "button" : undefined}
             tabIndex={canManage ? 0 : undefined}
@@ -268,10 +267,11 @@ export function TaskChecklistProvider({
   children: ReactNode;
 }) {
   const [items, setItems] = useState<TaskChecklistItemView[]>(initialItems);
+  const [prevInitial, setPrevInitial] =
+    useState<TaskChecklistItemView[]>(initialItems);
 
-  const prevInitialRef = useRef(initialItems);
-  if (prevInitialRef.current !== initialItems) {
-    prevInitialRef.current = initialItems;
+  if (prevInitial !== initialItems) {
+    setPrevInitial(initialItems);
     setItems(initialItems);
   }
 

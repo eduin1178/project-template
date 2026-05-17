@@ -1,16 +1,23 @@
 import type { ComponentType } from "react";
 import {
   BellIcon,
+  BuildingsIcon,
   CalendarCheckIcon,
   ChalkboardTeacherIcon,
   ChartLineIcon,
   ChatsCircleIcon,
+  CheckSquareIcon,
   ClipboardTextIcon,
+  CompassIcon,
   DeviceMobileIcon,
+  EnvelopeSimpleIcon,
   FunnelIcon,
   LightningIcon,
   LockIcon,
+  PaperclipIcon,
+  RocketIcon,
   ShieldCheckIcon,
+  SparkleIcon,
   TagIcon,
   UsersIcon,
 } from "@phosphor-icons/react/dist/ssr";
@@ -31,6 +38,13 @@ const map: Record<IconName, ComponentType<IconProps>> = {
   Funnel: FunnelIcon,
   Lock: LockIcon,
   DeviceMobile: DeviceMobileIcon,
+  CheckSquare: CheckSquareIcon,
+  Paperclip: PaperclipIcon,
+  Buildings: BuildingsIcon,
+  Rocket: RocketIcon,
+  Sparkle: SparkleIcon,
+  EnvelopeSimple: EnvelopeSimpleIcon,
+  Compass: CompassIcon,
 };
 
 export function SectionIcon({

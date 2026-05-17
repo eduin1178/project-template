@@ -14,20 +14,20 @@ export function SocialProof() {
         {socialProofContent.testimonials.map((t) => (
           <figure
             key={t.name}
-            className="flex h-full flex-col gap-4 rounded-3xl bg-card p-6 ring-1 ring-foreground/10"
+            className="relative flex h-full flex-col gap-4 rounded-3xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
           >
             <QuotesIcon
-              size={28}
-              weight="duotone"
-              className="text-primary"
+              size={32}
+              weight="fill"
+              className="text-primary/30"
               aria-hidden
             />
-            <blockquote className="text-sm text-foreground">
-              “{t.quote}”
+            <blockquote className="text-base leading-relaxed text-foreground">
+              {t.quote}
             </blockquote>
             <figcaption className="mt-auto flex items-center gap-3 border-t border-border/60 pt-4">
               <span
-                className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary"
+                className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-primary/20 to-primary/10 text-sm font-semibold text-primary"
                 aria-hidden
               >
                 {t.name

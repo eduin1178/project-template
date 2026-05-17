@@ -10,7 +10,7 @@
  * o equivalente en tu entorno; el cliente db.ts lee `process.env.DATABASE_URL`).
  */
 
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 import { db } from "./client";
 import { user } from "./schema";

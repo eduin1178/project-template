@@ -1,25 +1,34 @@
-import { PlugsConnectedIcon } from "@phosphor-icons/react/dist/ssr";
+import { RocketIcon } from "@phosphor-icons/react/dist/ssr";
 import { Section, SectionHeader } from "./section";
-import { integrationsContent } from "@/content/landing";
+import { SectionIcon } from "./icon";
+import { Badge } from "@/components/ui/badge";
+import { roadmapContent } from "@/content/landing";
 
-export function Integrations() {
+export function Roadmap() {
   return (
-    <Section id="integraciones" className="bg-muted/30">
+    <Section id="roadmap" className="bg-muted/30">
       <SectionHeader
-        eyebrow={integrationsContent.eyebrow}
-        title={integrationsContent.title}
-        subtitle={integrationsContent.subtitle}
+        eyebrow={roadmapContent.eyebrow}
+        title={roadmapContent.title}
+        subtitle={roadmapContent.subtitle}
       />
       <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {integrationsContent.items.map((item) => (
+        {roadmapContent.items.map((item) => (
           <div
             key={item.name}
-            className="flex flex-col gap-2 rounded-2xl bg-card p-5 ring-1 ring-foreground/10"
+            className="relative flex flex-col gap-3 rounded-2xl border border-dashed border-border bg-card/60 p-5"
           >
+            <Badge
+              variant="secondary"
+              className="absolute top-4 right-4 gap-1 bg-primary/10 text-primary"
+            >
+              <RocketIcon size={12} weight="bold" aria-hidden />
+              {roadmapContent.badge}
+            </Badge>
             <span className="inline-flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <PlugsConnectedIcon size={20} weight="duotone" aria-hidden />
+              <SectionIcon name={item.icon} size={20} />
             </span>
-            <h3 className="font-heading text-base font-medium text-foreground">
+            <h3 className="pr-20 font-heading text-base font-medium text-foreground">
               {item.name}
             </h3>
             <p className="text-sm text-muted-foreground">{item.description}</p>

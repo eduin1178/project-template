@@ -31,7 +31,6 @@ import {
   deleteTaskSchema,
   removeAssigneeSchema,
   setResponsibleSchema,
-  transitionStatusSchema,
   transitionVisibilitySchema,
   updateTaskContentSchema,
   type AddAssigneeInput,

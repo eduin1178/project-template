@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,16 +82,20 @@ export function EditTaskDialog({
     },
   });
 
-  useEffect(() => {
-    if (open) {
-      form.reset({
-        title: task.title,
-        description: task.description ?? "",
-        dueAt: toInputValue(task.dueAt),
-      });
-      setError(null);
-    }
-  }, [open, task, form]);
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (nextOpen) {
+        form.reset({
+          title: task.title,
+          description: task.description ?? "",
+          dueAt: toInputValue(task.dueAt),
+        });
+        setError(null);
+      }
+      onOpenChange(nextOpen);
+    },
+    [form, task, onOpenChange],
+  );
 
   async function onSubmit(values: FormValues) {
     setError(null);
@@ -141,7 +145,7 @@ export function EditTaskDialog({
   const contentDisabled = !capabilities.canEditContent;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edita la tarea</DialogTitle>

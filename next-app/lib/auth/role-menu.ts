@@ -30,7 +30,7 @@ export function deriveMenuRole(
   return "user";
 }
 
-export function getUserMenuItems(role: MenuRole): UserMenuItem[] {
+export function getUserMenuItems(_role: MenuRole): UserMenuItem[] {
   const items: UserMenuItem[] = [
     { key: "profile", label: "Mi perfil", href: "/account/profile" },
     {

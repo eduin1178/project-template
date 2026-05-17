@@ -4,23 +4,20 @@ import { benefitsContent } from "@/content/landing";
 
 export function Benefits() {
   return (
-    <Section id="beneficios">
+    <Section id="beneficios" className="bg-muted/30">
       <SectionHeader
         eyebrow={benefitsContent.eyebrow}
         title={benefitsContent.title}
       />
-      <div className="mt-12 grid gap-6 sm:grid-cols-2">
+      <div className="mt-12 grid gap-4 sm:grid-cols-2">
         {benefitsContent.items.map((b) => (
           <div
             key={b.title}
-            className="flex items-start gap-3 rounded-2xl bg-card p-5 ring-1 ring-foreground/10"
+            className="flex items-start gap-4 rounded-2xl border border-border/60 bg-card p-5 transition-shadow hover:shadow-md"
           >
-            <CheckCircleIcon
-              size={24}
-              weight="duotone"
-              className="mt-1 shrink-0 text-primary"
-              aria-hidden
-            />
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <CheckCircleIcon size={22} weight="duotone" aria-hidden />
+            </span>
             <div>
               <h3 className="font-heading text-base font-medium text-foreground">
                 {b.title}

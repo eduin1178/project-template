@@ -4,9 +4,10 @@ import { Pains } from "@/components/landing/pains";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Features } from "@/components/landing/features";
 import { Audiences } from "@/components/landing/audiences";
+import { ProductShowcase } from "@/components/landing/product-showcase";
 import { Benefits } from "@/components/landing/benefits";
-import { Integrations } from "@/components/landing/integrations";
 import { Security } from "@/components/landing/security";
+import { Roadmap } from "@/components/landing/roadmap";
 import { SocialProof } from "@/components/landing/social-proof";
 import { Pricing } from "@/components/landing/pricing";
 import { Faq } from "@/components/landing/faq";
@@ -26,9 +27,10 @@ export default function HomePage() {
           <HowItWorks />
           <Features />
           <Audiences />
+          <ProductShowcase />
           <Benefits />
-          <Integrations />
           <Security />
+          <Roadmap />
           <SocialProof />
           <Pricing />
           <Faq />

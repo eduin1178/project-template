@@ -10,13 +10,13 @@ export function Features() {
         title={featuresContent.title}
         subtitle={featuresContent.subtitle}
       />
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {featuresContent.items.map((item) => (
           <div
             key={item.title}
-            className="flex flex-col gap-3 rounded-3xl bg-card p-6 ring-1 ring-foreground/10"
+            className="group relative flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
           >
-            <span className="inline-flex size-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
               <SectionIcon name={item.icon} size={22} />
             </span>
             <h3 className="font-heading text-base font-medium text-foreground">
