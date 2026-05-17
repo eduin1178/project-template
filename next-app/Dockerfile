@@ -10,6 +10,11 @@ RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 ENV NEXT_TELEMETRY_DISABLED=1
+# Placeholders solo para que módulos top-level no lancen durante "Collecting page data".
+# Los valores reales se inyectan en runtime desde Dokploy. NO usar para conexiones reales.
+ENV DATABASE_URL=postgres://build:build@localhost:5432/build
+ENV BETTER_AUTH_SECRET=build-time-placeholder-not-a-real-secret
+ENV BETTER_AUTH_URL=http://localhost:3000
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN pnpm build
