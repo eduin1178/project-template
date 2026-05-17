@@ -1,21 +1,44 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: docentix-postgres
+  web:
+    image: ${DOCKER_IMAGE:-tu-usuario/docentix:latest}
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-docentix}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-docentix_dev}
-      POSTGRES_DB: ${POSTGRES_DB:-docentix}
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-docentix} -d ${POSTGRES_DB:-docentix}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
 
-volumes:
-  pgdata:
+      # Plataforma
+      PLATFORM_ORG_SLUG: ${PLATFORM_ORG_SLUG}
+      DEMO_REQUEST_WEBHOOK_URL: ${DEMO_REQUEST_WEBHOOK_URL}
+
+      # Base de datos
+      DATABASE_URL: ${DATABASE_URL}
+
+      # Better Auth
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+
+      # OAuth Google
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+
+      # Super admin + email
+      SUPER_ADMIN_SETUP_TOKEN: ${SUPER_ADMIN_SETUP_TOKEN}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAIL_FROM: ${EMAIL_FROM}
+
+      # Cloudflare R2
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET: ${R2_BUCKET}
+      R2_PUBLIC_BASE_URL: ${R2_PUBLIC_BASE_URL}
+      R2_DOCUMENTS_BUCKET: ${R2_DOCUMENTS_BUCKET}
+    networks:
+      - dokploy-network
+    expose:
+      - "3000"
+
+networks:
+  dokploy-network:
+    external: true
