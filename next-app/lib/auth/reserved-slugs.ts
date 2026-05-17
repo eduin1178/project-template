@@ -10,6 +10,7 @@ export const RESERVED_SLUGS = new Set<string>([
   "check-email",
   "accept-invitation",
   "post-login",
+  "no-organization",
   "_next",
   "favicon.ico",
   "robots.txt",

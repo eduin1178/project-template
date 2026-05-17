@@ -1,19 +1,18 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr";
 
+import { AppShell } from "@/components/layout/app-shell";
+import { AccountHeaderLabel } from "@/components/layout/account-header-label";
+import { buildAppSidebarConfig } from "@/components/layout/contexts/app";
+import { buildAccountFallbackSidebarConfig } from "@/components/layout/contexts/account";
+import { switchActiveOrganizationAction } from "@/components/layout/team-switcher-actions";
 import { auth } from "@/lib/auth/server";
 import {
-  loadActiveOrganizationsFor,
-  loadMembershipsFor,
-  resolveActiveOrganization,
+  loadActiveMembershipsFor,
+  resolveActiveOrgForShell,
 } from "@/lib/auth/guards";
-import { deriveDashboardHref } from "@/lib/auth/derive-dashboard-href";
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { deriveMenuRole } from "@/lib/auth/role-menu";
 
 export default async function AccountLayout({
   children,
@@ -25,51 +24,44 @@ export default async function AccountLayout({
     redirect("/login");
   }
 
-  const [memberships, activeOrgs] = await Promise.all([
-    loadMembershipsFor(session.user.id),
-    loadActiveOrganizationsFor(session.user.id),
-  ]);
-
   const sessionActiveOrgId =
     (session.session as { activeOrganizationId?: string | null } | undefined)
       ?.activeOrganizationId ?? null;
   const lastActiveOrgId =
     (session.user as { lastActiveOrganizationId?: string | null })
       .lastActiveOrganizationId ?? null;
-  const resolved = resolveActiveOrganization({
-    sessionActiveOrgId,
-    lastActiveOrgId,
-    activeOrgs,
-  });
-  const activeOrg = activeOrgs.find((o) => o.id === resolved.activeOrgId) ?? null;
 
-  const backHref = deriveDashboardHref({
-    user: { role: session.user.role ?? null },
-    memberships,
-    activeOrgRole: resolved.activeOrgRole,
-    activeOrgSlug: activeOrg?.slug ?? null,
-  });
+  const [memberships, shellOrg] = await Promise.all([
+    loadActiveMembershipsFor(session.user.id),
+    resolveActiveOrgForShell(session.user.id, sessionActiveOrgId, lastActiveOrgId),
+  ]);
+
+  const sidebarConfig = shellOrg.activeOrgSlug
+    ? buildAppSidebarConfig(shellOrg.activeOrgSlug)
+    : buildAccountFallbackSidebarConfig();
 
   return (
-    <TooltipProvider>
-      <div className="bg-background text-foreground min-h-screen">
-        <header className="bg-background sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b px-6">
-          <Link
-            href={backHref}
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
-          >
-            <ArrowLeftIcon className="size-4" />
-            Volver al panel
-          </Link>
-          <span className="bg-border h-4 w-px" aria-hidden />
-          <h1 className="text-sm font-medium">Mi cuenta</h1>
-          <div className="ml-auto flex items-center">
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="mx-auto w-full max-w-3xl px-6 py-8">{children}</main>
-        <Toaster />
-      </div>
-    </TooltipProvider>
+    <AppShell
+      sidebarConfig={sidebarConfig}
+      user={{
+        name: session.user.name ?? session.user.email,
+        email: session.user.email,
+        image: session.user.image ?? null,
+      }}
+      role={deriveMenuRole(session, memberships)}
+      teams={{
+        orgs: shellOrg.orgs.map((o) => ({
+          id: o.id,
+          slug: o.slug,
+          name: o.name,
+          logo: o.logo,
+        })),
+        activeOrgId: shellOrg.activeOrgId,
+        onSwitch: switchActiveOrganizationAction,
+      }}
+      headerLabel={<AccountHeaderLabel />}
+    >
+      {children}
+    </AppShell>
   );
 }

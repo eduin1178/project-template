@@ -1,10 +1,4 @@
-# app-shell Specification
-
-## Purpose
-
-Define el componente `AppShell` reusable que unifica el shell visual de todas las rutas autenticadas con sidebar (workspace member, workspace admin, y panel de plataforma). Documenta props, dependencias y consumidores.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Componente `AppShell` unifica el shell de rutas autenticadas
 
@@ -45,6 +39,8 @@ NO existen otros layouts con shell-de-sidebar duplicado. Los layouts `app/(app)/
 - **WHEN** un consumidor pasa `headerLabel={<AccountHeaderLabel />}` (client component)
 - **THEN** `AppShell` lo renderiza dentro del slot del header sin romper su naturaleza server-side
 
+## ADDED Requirements
+
 ### Requirement: `TeamSwitcher` soporta estado "sin institución"
 
 El componente `components/layout/team-switcher.tsx` SHALL renderizar un placeholder no-interactivo cuando `teams.orgs.length === 0` (o cuando no se puede resolver una `activeOrg`). El placeholder SHALL:
@@ -80,46 +76,3 @@ Este config SHALL ser usado por el layout de cuenta cuando no hay org activa res
 #### Scenario: AppSidebar renderiza items vacío sin error
 - **WHEN** `AppSidebar` recibe `config.items = []`
 - **THEN** renderiza el brand y el user menu sin sección de items intermedios; no lanza error
-
-### Requirement: Sidebar configs construidos por slug
-
-Los items del sidebar de workspace SHALL construirse vía funciones `buildAppSidebarConfig(slug: string)` y `buildAdminSidebarConfig(slug: string)` que retornan un `SidebarConfig` con hrefs ya resueltos. El componente `AppSidebar` recibe el config ya armado y NO necesita conocer el slug.
-
-Items que sean rutas globales (no scoped al workspace) SHALL tener hrefs absolutos (ej. `/super`, `/account/profile`).
-
-#### Scenario: Builder resuelve hrefs
-- **WHEN** se inspecciona `components/layout/contexts/app.ts`
-- **THEN** `buildAppSidebarConfig("acme")` retorna un `SidebarConfig` con hrefs como `/acme`, `/acme/tasks` (sin placeholder `{slug}`)
-
-#### Scenario: Render del sidebar usa hrefs absolutos
-- **WHEN** `AppSidebar` recibe el config retornado por `buildAppSidebarConfig`
-- **THEN** los hrefs ya están resueltos; no requiere transformación adicional
-
-### Requirement: Ítem condicional "Panel de plataforma" en sidebar
-
-El sidebar de workspace SHALL incluir un ítem con label `"Panel de plataforma"` y `href = "/super"` cuando el usuario tiene `user.role === "super_admin"`. Para usuarios sin esa capacidad, el ítem NO aparece. El filtrado por rol vive en `AppSidebar` (usa el `role` que ya recibe vía `deriveMenuRole`).
-
-#### Scenario: Super ve "Panel de plataforma"
-- **WHEN** un super con `user.role === "super_admin"` carga `/<slug>` o `/<slug>/admin`
-- **THEN** el sidebar muestra el ítem "Panel de plataforma" con href `/super`
-
-#### Scenario: User regular no ve "Panel de plataforma"
-- **WHEN** un usuario con `user.role === "user"` carga `/<slug>`
-- **THEN** el sidebar NO incluye el ítem "Panel de plataforma"
-
-### Requirement: Ítem "Volver a mi institución" en `/super`
-
-El sidebar de `/super` SHALL construirse vía `buildSuperSidebarConfig(activeOrgSlug?: string | null)` y SHALL incluir un ítem con label `"Volver a mi institución"` cuyo `href` es:
-
-- `/<slugDeActiveOrg>` cuando hay org activa resoluble a slug
-- `/post-login` como fallback
-
-Este `href` SHALL resolverse en el server al construir la sidebarConfig (no en el cliente).
-
-#### Scenario: Super con org activa navega a /<slug>
-- **WHEN** un super con `session.activeOrganizationId === <docentix.id>` está en `/super` y clica "Volver a mi institución"
-- **THEN** la navegación termina en `/docentix`
-
-#### Scenario: Super sin activeOrg cae a /post-login
-- **WHEN** el sidebar se construye sin org activa resoluble
-- **THEN** el `href` del ítem es `/post-login`

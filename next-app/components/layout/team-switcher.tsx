@@ -2,7 +2,11 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CaretUpDownIcon, CheckIcon } from "@phosphor-icons/react";
+import {
+  BuildingsIcon,
+  CaretUpDownIcon,
+  CheckIcon,
+} from "@phosphor-icons/react";
 import { toast } from "sonner";
 
 import { OrgAvatar } from "@/components/organizations/org-avatar";
@@ -44,7 +48,25 @@ export function TeamSwitcher({ teams }: { teams: TeamsConfig }) {
     });
   }
 
-  if (!activeOrg) return null;
+  if (!activeOrg) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton size="lg" disabled aria-disabled="true">
+            <div className="bg-sidebar-accent text-sidebar-accent-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+              <BuildingsIcon className="size-4" />
+            </div>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">Sin institución</span>
+              <span className="text-muted-foreground truncate text-xs">
+                No perteneces a ninguna institución
+              </span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
 
   return (
     <SidebarMenu>

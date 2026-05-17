@@ -58,13 +58,6 @@ export default async function InvitationsPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="text-xl font-semibold">Invitaciones</h2>
-        <p className="text-muted-foreground text-sm">
-          Invitaciones pendientes recibidas en tu correo.
-        </p>
-      </header>
-
       {rows.length === 0 ? (
         <EmptyState
           icon={<EnvelopeSimpleIcon className="size-6" />}

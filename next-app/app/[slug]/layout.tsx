@@ -3,9 +3,10 @@ import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { auth } from "@/lib/auth/server";
+import { loadActiveMembershipsFor } from "@/lib/auth/guards";
 import { db } from "@/lib/db/client";
-import { member, organization, user as userTable } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
+import { organization, user as userTable } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 type LayoutProps = {
   params: Promise<{ slug: string }>;
@@ -23,6 +24,14 @@ export default async function SlugWorkspaceLayout({
     redirect(`/login?next=/${slug}`);
   }
 
+  // Si el usuario no tiene NINGUNA membership activa en cualquier org,
+  // lo redirigimos a la ruta informativa antes de revelar (vía notFound)
+  // si la org del slug existe o no.
+  const activeMemberships = await loadActiveMembershipsFor(session.user.id);
+  if (activeMemberships.length === 0) {
+    redirect("/no-organization");
+  }
+
   const [org] = await db
     .select({ id: organization.id })
     .from(organization)
@@ -32,14 +41,10 @@ export default async function SlugWorkspaceLayout({
     notFound();
   }
 
-  const [membership] = await db
-    .select({ status: member.status })
-    .from(member)
-    .where(
-      and(eq(member.userId, session.user.id), eq(member.organizationId, org.id)),
-    )
-    .limit(1);
-  if (!membership || membership.status !== "active") {
+  const isMemberOfThisOrg = activeMemberships.some(
+    (m) => m.organizationId === org.id,
+  );
+  if (!isMemberOfThisOrg) {
     notFound();
   }
 

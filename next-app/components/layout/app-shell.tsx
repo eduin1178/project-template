@@ -24,7 +24,7 @@ type AppShellProps = {
   user: SidebarUser;
   role: MenuRole;
   teams?: TeamsConfig;
-  headerLabel: string;
+  headerLabel: ReactNode;
   children: ReactNode;
 };
 

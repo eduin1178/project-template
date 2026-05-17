@@ -258,6 +258,36 @@ export function resolveActiveOrganization({
   return { activeOrgId: null, activeOrgRole: null, needsPersist: false };
 }
 
+// Wrapper de conveniencia para el shell de cuenta y /no-organization.
+// Reusa `resolveActiveOrganization` (misma cascada) y agrega el slug y la
+// lista de orgs ya formateada para `TeamsConfig`.
+export type ShellOrgContext = {
+  activeOrgId: string | null;
+  activeOrgSlug: string | null;
+  activeOrgRole: OrgMemberRole | null;
+  orgs: ActiveOrgSummary[];
+};
+
+export async function resolveActiveOrgForShell(
+  userId: string,
+  sessionActiveOrgId: string | null,
+  lastActiveOrgId: string | null,
+): Promise<ShellOrgContext> {
+  const orgs = await loadActiveOrganizationsFor(userId);
+  const resolved = resolveActiveOrganization({
+    sessionActiveOrgId,
+    lastActiveOrgId,
+    activeOrgs: orgs,
+  });
+  const activeOrg = orgs.find((o) => o.id === resolved.activeOrgId) ?? null;
+  return {
+    activeOrgId: resolved.activeOrgId,
+    activeOrgSlug: activeOrg?.slug ?? null,
+    activeOrgRole: resolved.activeOrgRole,
+    orgs,
+  };
+}
+
 export async function redirectToDashboard() {
   const session = await getCurrentSession();
   if (!session?.user) {

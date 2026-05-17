@@ -45,13 +45,6 @@ export default async function OrganizationsPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="text-xl font-semibold">Mis instituciones</h2>
-        <p className="text-muted-foreground text-sm">
-          Instituciones en las que participas.
-        </p>
-      </header>
-
       {rows.length === 0 ? (
         <EmptyState
           icon={<BuildingsIcon className="size-6" />}

@@ -37,7 +37,7 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="icon" {...sidebarProps}>
       <SidebarHeader>
-        {teams && teams.orgs.length > 0 ? (
+        {teams ? (
           <TeamSwitcher teams={teams} />
         ) : (
           <NavBrand brand={config.brand} />
