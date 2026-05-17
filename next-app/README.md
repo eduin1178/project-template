@@ -2,16 +2,18 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Este proyecto usa **pnpm** como gestor de paquetes (fijado vía `packageManager` en `package.json`). Si no lo tenés, habilitalo con Corepack:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+corepack enable
+corepack prepare pnpm@11.1.2 --activate
+```
+
+Instalá dependencias y arrancá el dev server:
+
+```bash
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
