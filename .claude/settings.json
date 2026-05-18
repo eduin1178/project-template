@@ -1,15 +1,35 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(pnpm view *)",
-      "WebFetch(domain:www.npmjs.com)",
-      "WebFetch(domain:registry.npmjs.org)",
-      "Bash(pnpm --version)",
-      "Bash(pnpm build *)",
-      "Bash(pnpm why *)",
-      "Bash(pnpm install *)",
-      "Bash(git add *)",
-      "Bash(git commit -m ' *)"
-    ]
-  }
+	"permissions": {
+		"allow": [
+			"Bash(pnpm view *)",
+			"WebFetch(domain:www.npmjs.com)",
+			"WebFetch(domain:registry.npmjs.org)",
+			"Bash(pnpm --version)",
+			"Bash(pnpm build *)",
+			"Bash(pnpm why *)",
+			"Bash(pnpm install *)",
+			"Bash(git add *)",
+			"Bash(git commit -m ' *)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix status)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix diff --stat)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix log --oneline -10)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix branch -a)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix diff next-app/.env.example .claude/settings.json)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix diff next-app/.env.example)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix add next-app/Dockerfile next-app/.dockerignore next-app/docker-compose.yml next-app/next.config.ts next-app/.env.example .github/workflows/build-and-push.yml)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix commit -m 'feat\\(deploy\\): add dockerized build and dokploy compose *)",
+			"Bash(git checkout main)",
+			"Bash(git checkout dev)",
+			"Bash(git merge --ff-only dev)",
+			"Bash(git push origin main)",
+			"Bash(git push origin dev)",
+			"Bash(git stash *)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix checkout main)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix checkout dev)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix merge --ff-only dev)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix push origin main)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix push origin dev)",
+			"Bash(git -C d:/EDUNET/EDUNET/docentix stash *)"
+		]
+	}
 }
