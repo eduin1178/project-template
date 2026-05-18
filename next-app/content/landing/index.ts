@@ -326,34 +326,34 @@ export const benefitsContent = {
 
 export const roadmapContent = {
   eyebrow: "Roadmap",
-  title: "En camino, no prometido como entregado",
+  title: "Funcionalidades futuras",
   subtitle:
-    "Estas capacidades están en construcción y se irán liberando a las instituciones piloto a medida que estén listas. Las marcamos explícitamente para no inflar lo que el producto entrega hoy.",
+    "Estas capacidades están en construcción y se irán liberando medida que estén listas.",
   badge: "Próximamente",
   items: [
     {
       icon: "EnvelopeSimple" as IconName,
-      name: "Google Workspace",
+      name: "Google Drive",
       description:
-        "Inicio de sesión con cuenta institucional de Google y sincronización de calendarios.",
+        "Almacenamiento de archivos en Google Drive sin límites",
     },
     {
       icon: "EnvelopeSimple" as IconName,
-      name: "Microsoft 365",
+      name: "OneDrive",
       description:
-        "Inicio de sesión con cuenta institucional de Microsoft y compatibilidad con Outlook.",
+        "Almacenamiento de arhivos en Microsoft OneDrive sin límietes.",
     },
     {
       icon: "CalendarCheck" as IconName,
-      name: "Calendarios externos",
+      name: "Calendarios",
       description:
-        "Sincronización de plazos con Google Calendar y Outlook Calendar.",
+        "Sincronización de plazos con Google Calendar.",
     },
     {
       icon: "Bell" as IconName,
-      name: "Notificaciones in-app y push",
+      name: "Notificaciones",
       description:
-        "Avisos dentro de la plataforma y notificaciones push al celular, además del correo.",
+        "Avisos dentro de la plataforma y notificaciones por WhatsApp y por email.",
     },
   ],
 } as const;
@@ -393,28 +393,28 @@ export const securityContent = {
 
 export const socialProofContent = {
   eyebrow: "Prueba social",
-  title: "Lo que dicen quienes ya lo usan",
+  title: "Comentarios de nuestros usuarios",
   subtitle:
-    "Testimonios ilustrativos para esta versión inicial. Pronto los reemplazaremos con casos reales de instituciones que confían en Docentix.",
+    "Testimonios de usuarios actuales de Docentix. Se reemplazaron los nombres reales por privacidad.",
   testimonials: [
     {
       name: "María Restrepo",
       role: "Rectora",
-      institution: "Colegio San Ignacio",
+      institution: "Institución Educativa Simón Bolívar",
       quote:
         "Pasamos de no saber qué tarea estaba pendiente a tener todo a la vista. Las reuniones operativas bajaron a la mitad.",
     },
     {
       name: "Andrés Cárdenas",
       role: "Coordinador Académico",
-      institution: "Instituto Bilingüe del Norte",
+      institution: "Institución Educativa María Auxiliadora",
       quote:
         "Por fin un lugar donde el equipo entiende qué se le pide y para cuándo. Los docentes lo agradecen.",
     },
     {
       name: "Lucía Mendoza",
       role: "Docente",
-      institution: "Escuela Normal Superior",
+      institution: "Escuela Normal Superior Rafael Núñez",
       quote:
         "Tengo todas mis tareas en un solo sitio, con recordatorios. Es como tener una agenda institucional clara.",
     },

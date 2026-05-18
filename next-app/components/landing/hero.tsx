@@ -15,7 +15,7 @@ export function Hero() {
       {/* Capa decorativa: grid de puntos suave */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 opacity-[0.25] bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_40%,transparent_100%)]"
+        className="absolute inset-0 -z-10 opacity-[0.25] bg-[radial-gradient(var(--color-border)_1px,transparent_1px)] bg-size-[24px_24px] mask-[radial-gradient(ellipse_60%_60%_at_50%_0%,#000_40%,transparent_100%)]"
       />
 
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-12 lg:items-center lg:gap-12 lg:py-28">
