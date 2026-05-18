@@ -1,4 +1,4 @@
-import { ImageSquareIcon } from "@phosphor-icons/react/dist/ssr";
+import Image from "next/image";
 import { Section, SectionHeader } from "./section";
 import { productShowcaseContent } from "@/content/landing";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,11 @@ export function ProductShowcase() {
                   reversed && "lg:order-1",
                 )}
               >
-                <ShowcaseFrame alt={item.alt} />
+                <ShowcaseFrame
+                  light={item.image}
+                  dark={item.imageDark}
+                  alt={item.alt}
+                />
               </div>
             </article>
           );
@@ -56,26 +60,36 @@ export function ProductShowcase() {
   );
 }
 
-function ShowcaseFrame({ alt }: { alt: string }) {
+function ShowcaseFrame({
+  light,
+  dark,
+  alt,
+}: {
+  light: string;
+  dark: string;
+  alt: string;
+}) {
   return (
-    <div className="relative aspect-16/10 w-full overflow-hidden rounded-3xl border border-border bg-card shadow-xl ring-1 ring-foreground/5">
+    <div className="relative">
       <div
-        role="img"
-        aria-label={alt}
-        className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-linear-to-br from-primary/5 via-muted/40 to-background"
-      >
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-size-[32px_32px] opacity-30" />
-        <div className="relative flex flex-col items-center gap-2 text-center">
-          <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-            <ImageSquareIcon size={26} weight="duotone" aria-hidden />
-          </span>
-          <p className="max-w-xs px-4 text-sm font-medium text-foreground">
-            Captura del producto
-          </p>
-          <p className="max-w-xs px-4 text-xs text-muted-foreground">
-            {alt}
-          </p>
-        </div>
+        aria-hidden
+        className="absolute -inset-4 -z-10 rounded-4xl bg-linear-to-tr from-primary/15 via-primary/5 to-transparent blur-2xl dark:from-primary/25"
+      />
+      <div className="relative aspect-16/10 w-full overflow-hidden rounded-3xl border border-border bg-card p-2 shadow-xl ring-1 ring-foreground/5 sm:p-3">
+        <Image
+          src={light}
+          alt={alt}
+          fill
+          sizes="(max-width: 1024px) 100vw, 60vw"
+          className="object-contain object-center p-1 dark:hidden"
+        />
+        <Image
+          src={dark}
+          alt={alt}
+          fill
+          sizes="(max-width: 1024px) 100vw, 60vw"
+          className="hidden object-contain object-center p-1 dark:block"
+        />
       </div>
     </div>
   );

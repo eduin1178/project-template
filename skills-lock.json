@@ -13,6 +13,12 @@
       "skillPath": "better-auth/create-auth/SKILL.md",
       "computedHash": "393e8d2d795fa5797c9a4e0665f29183ea2e140233db59746d510340a10456e6"
     },
+    "gpt-image-2": {
+      "source": "agentspace-so/agent-skills",
+      "sourceType": "github",
+      "skillPath": "gpt-image-2/SKILL.md",
+      "computedHash": "d539380caff7d3ec09ddc8ce7cac4f031e54689d466c3dd5cf2850419f56b969"
+    },
     "organization-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
