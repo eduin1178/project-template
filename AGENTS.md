@@ -4,12 +4,22 @@ Gu?a general para agentes que trabajen en este repositorio.
 
 ## Alcance del repositorio
 
-Este repositorio es una plantilla de proyecto con dos ?reas principales:
+Este repositorio contiene varios subproyectos independientes (no es un monorepo
+pnpm con workspace raíz; cada subproyecto tiene su propio `package.json` y se
+instala por separado):
 
-- `next-app/`: aplicaci?n web de Docentix. Sus reglas t?cnicas, de estilo y codificaci?n viven en `next-app/AGENTS.md`.
-- `openspec/`: especificaciones del producto y decisiones funcionales mediante Spec-Driven Development.
+- `next-app/`: aplicación web de Docentix. Reglas técnicas en `next-app/AGENTS.md`.
+- `docs-app/`: sitio público de documentación con Fumadocs. Reglas en `docs-app/AGENTS.md`.
+- `docs-automation/`: scripts locales (Playwright) para capturar y verificar
+  documentación. Reglas en `docs-automation/AGENTS.md`.
+- `openspec/`: especificaciones del producto y decisiones funcionales mediante
+  Spec-Driven Development.
 
-La ra?z debe mantenerse como capa de coordinaci?n general. NO pongas aqu? reglas espec?ficas de framework, UI, componentes, estilos o estructura interna de la app; esas pertenecen al `AGENTS.md` del subproyecto correspondiente.
+Los subproyectos son totalmente independientes: no comparten paquetes ni se
+importan entre sí. La raíz se mantiene como capa de coordinación general y
+documentación SDD. NO pongas aquí reglas específicas de framework, UI,
+componentes, estilos o estructura interna de la app; esas pertenecen al
+`AGENTS.md` del subproyecto correspondiente.
 
 ## Reglas globales
 
@@ -46,5 +56,15 @@ Si un cambio contradice una spec, NO lo implementes silenciosamente. Explica la 
 
 ## Responsabilidad de archivos AGENTS.md
 
-- `/AGENTS.md`: reglas generales del repositorio, coordinaci?n y SDD.
-- `/next-app/AGENTS.md`: reglas de Next.js, UI, codificaci?n, estructura interna, validaci?n, autenticaci?n y convenciones de producto de la aplicaci?n. Incluye la convenci?n de copy "Instituci?n vs `organization`": el copy visible al usuario final usa "Instituci?n"; los identificadores t?cnicos siguen siendo `organization`.
+- `/AGENTS.md`: reglas generales del repositorio, coordinación y SDD.
+- `/next-app/AGENTS.md`: reglas de Next.js, UI, codificación, estructura
+  interna, validación, autenticación y convenciones de producto de la
+  aplicación. Incluye la convención de copy "Institución vs `organization`":
+  el copy visible al usuario final usa "Institución"; los identificadores
+  técnicos siguen siendo `organization`.
+- `/docs-app/AGENTS.md`: reglas del sitio público de documentación (Fumadocs).
+  Stack, convenciones de copy en español neutral, estructura por chunks,
+  prohibición de imports cruzados con `next-app/`.
+- `/docs-automation/AGENTS.md`: reglas del workspace de automatización local
+  con Playwright. Schema del manifest YAML, convenciones de naming de
+  screenshots, restricción local-only.

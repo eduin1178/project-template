@@ -1,0 +1,66 @@
+- generic [ref=e2]:
+  - generic [ref=e5]:
+    - list [ref=e7]:
+      - listitem [ref=e8]:
+        - button "SIEMPRENET S.A.S. Institución activa" [ref=e9]:
+          - generic [ref=e11]:
+            - generic [ref=e12]: SIEMPRENET S.A.S.
+            - generic [ref=e13]: Institución activa
+          - img [ref=e14]
+    - list [ref=e18]:
+      - listitem [ref=e19]:
+        - link "Inicio" [ref=e20] [cursor=pointer]:
+          - /url: /siemprenet/admin
+          - img [ref=e21]
+          - generic [ref=e23]: Inicio
+      - listitem [ref=e24]:
+        - link "Tareas" [ref=e25] [cursor=pointer]:
+          - /url: /siemprenet/admin/tasks
+          - img [ref=e26]
+          - generic [ref=e28]: Tareas
+    - list [ref=e30]:
+      - listitem [ref=e31]:
+        - button "EP Eduin Peñata Romero admin@siempre.net.co" [ref=e32]:
+          - generic [ref=e34]: EP
+          - generic [ref=e35]:
+            - generic [ref=e36]: Eduin Peñata Romero
+            - generic [ref=e37]: admin@siempre.net.co
+          - img [ref=e38]
+    - button "Toggle Sidebar" [ref=e40]
+  - main [ref=e41]:
+    - generic [ref=e42]:
+      - button "Toggle Sidebar" [ref=e43]:
+        - img
+        - generic [ref=e44]: Toggle Sidebar
+      - generic [ref=e45]: Panel admin
+      - button "Cambiar a modo oscuro" [ref=e47]
+    - main [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - button "Abrir filtros" [ref=e55]:
+                - img
+                - text: Filtros
+              - heading "Tareas" [level=1] [ref=e56]
+            - button "Nueva tarea" [ref=e57]:
+              - img
+              - text: Nueva tarea
+          - generic [ref=e59]:
+            - img [ref=e60]
+            - textbox "Buscar" [ref=e62]
+          - list [ref=e64]:
+            - listitem [ref=e65]:
+              - 'link "Aprender a usar Docentix hace 1 d Bienvenido a Docentix. Estas son las funciones principales que te ayudarán a empezar: • Panel — visualiza tus tareas y actividad reciente desde el dashboard de tu institución. • Tareas — crea, asigna y haz seguimiento del trabajo con responsables, fechas de vencimiento y estados. • Checklist — divide cada tarea en pasos verificables. • Documentos — adjunta y descarga archivos relacionados con cada tarea. • Comentarios — conversa con tu equipo dentro de cada tarea. • Miembros — invita personas a tu institución y gestiona sus roles. • Notificaciones — recibe alertas de invitaciones, cambios de estado, vencimientos y nuevos comentarios. • Perfil — completa tus datos personales y preferencias. Activa Pendiente" [ref=e66] [cursor=pointer]':
+                - /url: /siemprenet/admin/tasks/1f9f8e21-6149-4870-97b5-78bd81f171bb
+                - generic [ref=e67]:
+                  - generic [ref=e68]: Aprender a usar Docentix
+                  - generic [ref=e69]: hace 1 d
+                - paragraph [ref=e70]: "Bienvenido a Docentix. Estas son las funciones principales que te ayudarán a empezar: • Panel — visualiza tus tareas y actividad reciente desde el dashboard de tu institución. • Tareas — crea, asigna y haz seguimiento del trabajo con responsables, fechas de vencimiento y estados. • Checklist — divide cada tarea en pasos verificables. • Documentos — adjunta y descarga archivos relacionados con cada tarea. • Comentarios — conversa con tu equipo dentro de cada tarea. • Miembros — invita personas a tu institución y gestiona sus roles. • Notificaciones — recibe alertas de invitaciones, cambios de estado, vencimientos y nuevos comentarios. • Perfil — completa tus datos personales y preferencias."
+                - generic [ref=e71]:
+                  - generic [ref=e72]: Activa
+                  - generic [ref=e73]: Pendiente
+        - generic [ref=e77]:
+          - heading "Selecciona una tarea" [level=3] [ref=e78]
+          - paragraph [ref=e79]: Elige una tarea de la lista para ver su detalle y administrar su estado.
+  - region "Notifications alt+T"

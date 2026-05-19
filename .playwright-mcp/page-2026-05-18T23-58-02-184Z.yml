@@ -1,0 +1,114 @@
+- generic [ref=e2]:
+  - generic [ref=e5]:
+    - list [ref=e7]:
+      - listitem [ref=e8]:
+        - button "SIEMPRENET S.A.S. Institución activa" [ref=e9]:
+          - generic [ref=e11]:
+            - generic [ref=e12]: SIEMPRENET S.A.S.
+            - generic [ref=e13]: Institución activa
+          - img [ref=e14]
+    - list [ref=e18]:
+      - listitem [ref=e19]:
+        - link "Inicio" [ref=e20] [cursor=pointer]:
+          - /url: /siemprenet/admin
+          - img [ref=e21]
+          - generic [ref=e23]: Inicio
+      - listitem [ref=e24]:
+        - link "Tareas" [ref=e25] [cursor=pointer]:
+          - /url: /siemprenet/admin/tasks
+          - img [ref=e26]
+          - generic [ref=e28]: Tareas
+    - list [ref=e30]:
+      - listitem [ref=e31]:
+        - button "EP Eduin Peñata Romero admin@siempre.net.co" [ref=e32]:
+          - generic [ref=e34]: EP
+          - generic [ref=e35]:
+            - generic [ref=e36]: Eduin Peñata Romero
+            - generic [ref=e37]: admin@siempre.net.co
+          - img [ref=e38]
+    - button "Toggle Sidebar" [ref=e40]
+  - main [ref=e41]:
+    - generic [ref=e42]:
+      - button "Toggle Sidebar" [ref=e43]:
+        - img
+        - generic [ref=e44]: Toggle Sidebar
+      - generic [ref=e45]: Panel admin
+      - button "Cambiar a modo oscuro" [ref=e47]
+    - main [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e53]:
+            - generic [ref=e54]:
+              - button "Abrir filtros" [ref=e55]:
+                - img
+                - text: Filtros
+              - heading "Tareas" [level=1] [ref=e56]
+            - button "Nueva tarea" [ref=e57]:
+              - img
+              - text: Nueva tarea
+          - generic [ref=e59]:
+            - img [ref=e60]
+            - textbox "Buscar" [ref=e62]
+          - list [ref=e64]:
+            - listitem [ref=e65]:
+              - link "Plan de mejora académica primer semestre hace 7 min Coordinar con el equipo docente la elaboración del plan de mejora académica del primer semestre. El objetivo es definir acciones concretas para reforzar las áreas con menor desempeño detectadas en el corte anterior y proponer indicadores de seguimiento medibles. Cada responsable debe revisar los resultados de su grado, identificar las temáticas críticas y proponer estrategias pedagógicas que se puedan ejecutar antes del próximo corte. Las propuestas deben incluir actividades en aula, material de apoyo y mecanismos de retroalimentación con los estudiantes. Al finalizar, consolidaremos las propuestas en un único documento que será presentado al consejo académico. Cualquier duda durante el proceso se resuelve directamente en los comentarios de esta tarea para mantener la trazabilidad de las decisiones. Borrador Pendiente" [ref=e66] [cursor=pointer]:
+                - /url: /siemprenet/admin/tasks/9acbad24-794b-4359-ac00-d94c138779dd
+                - generic [ref=e67]:
+                  - generic [ref=e68]: Plan de mejora académica primer semestre
+                  - generic [ref=e69]: hace 7 min
+                - paragraph [ref=e70]: Coordinar con el equipo docente la elaboración del plan de mejora académica del primer semestre. El objetivo es definir acciones concretas para reforzar las áreas con menor desempeño detectadas en el corte anterior y proponer indicadores de seguimiento medibles. Cada responsable debe revisar los resultados de su grado, identificar las temáticas críticas y proponer estrategias pedagógicas que se puedan ejecutar antes del próximo corte. Las propuestas deben incluir actividades en aula, material de apoyo y mecanismos de retroalimentación con los estudiantes. Al finalizar, consolidaremos las propuestas en un único documento que será presentado al consejo académico. Cualquier duda durante el proceso se resuelve directamente en los comentarios de esta tarea para mantener la trazabilidad de las decisiones.
+                - generic [ref=e71]:
+                  - generic [ref=e72]: Borrador
+                  - generic [ref=e73]: Pendiente
+            - listitem [ref=e74]:
+              - 'link "Aprender a usar Docentix hace 1 d Bienvenido a Docentix. Estas son las funciones principales que te ayudarán a empezar: • Panel — visualiza tus tareas y actividad reciente desde el dashboard de tu institución. • Tareas — crea, asigna y haz seguimiento del trabajo con responsables, fechas de vencimiento y estados. • Checklist — divide cada tarea en pasos verificables. • Documentos — adjunta y descarga archivos relacionados con cada tarea. • Comentarios — conversa con tu equipo dentro de cada tarea. • Miembros — invita personas a tu institución y gestiona sus roles. • Notificaciones — recibe alertas de invitaciones, cambios de estado, vencimientos y nuevos comentarios. • Perfil — completa tus datos personales y preferencias. Activa Pendiente" [ref=e75] [cursor=pointer]':
+                - /url: /siemprenet/admin/tasks/1f9f8e21-6149-4870-97b5-78bd81f171bb
+                - generic [ref=e76]:
+                  - generic [ref=e77]: Aprender a usar Docentix
+                  - generic [ref=e78]: hace 1 d
+                - paragraph [ref=e79]: "Bienvenido a Docentix. Estas son las funciones principales que te ayudarán a empezar: • Panel — visualiza tus tareas y actividad reciente desde el dashboard de tu institución. • Tareas — crea, asigna y haz seguimiento del trabajo con responsables, fechas de vencimiento y estados. • Checklist — divide cada tarea en pasos verificables. • Documentos — adjunta y descarga archivos relacionados con cada tarea. • Comentarios — conversa con tu equipo dentro de cada tarea. • Miembros — invita personas a tu institución y gestiona sus roles. • Notificaciones — recibe alertas de invitaciones, cambios de estado, vencimientos y nuevos comentarios. • Perfil — completa tus datos personales y preferencias."
+                - generic [ref=e80]:
+                  - generic [ref=e81]: Activa
+                  - generic [ref=e82]: Pendiente
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - generic [ref=e88]: EP
+              - generic [ref=e89]:
+                - heading "Plan de mejora académica primer semestre" [level=2] [ref=e90]
+                - generic [ref=e91]: Eduin Peñata Romero
+                - generic [ref=e92]: Creada 18 de mayo de 2026, 18:51
+            - generic [ref=e93]:
+              - generic [ref=e94]:
+                - generic [ref=e95]:
+                  - generic [ref=e97]: EP
+                  - generic [ref=e99]: EP
+                  - generic [ref=e101]: EP
+                  - generic [ref=e103]: EP
+                - button "Editar equipo" [ref=e104]:
+                  - img
+              - button "Editar" [ref=e105]:
+                - img
+                - text: Editar
+              - button "Acciones" [ref=e106]:
+                - img
+          - generic [ref=e107]:
+            - generic [ref=e108]: Borrador
+            - generic [ref=e109]: Pendiente
+            - generic [ref=e110]: "Plazo: 25 de mayo de 2026, 18:00"
+          - generic [ref=e111]:
+            - button "Activar" [ref=e112]:
+              - img
+              - text: Activar
+            - button "Eliminar" [ref=e113]:
+              - img
+              - text: Eliminar
+          - generic [ref=e114]:
+            - tablist [ref=e115]:
+              - tab "Detalle" [selected] [ref=e116]
+              - tab "Checklist (2)" [ref=e117]
+              - tab "Documentos" [ref=e118]
+              - tab "Comentarios" [ref=e119]
+            - tabpanel "Detalle" [ref=e120]:
+              - paragraph [ref=e121]: Coordinar con el equipo docente la elaboración del plan de mejora académica del primer semestre. El objetivo es definir acciones concretas para reforzar las áreas con menor desempeño detectadas en el corte anterior y proponer indicadores de seguimiento medibles. Cada responsable debe revisar los resultados de su grado, identificar las temáticas críticas y proponer estrategias pedagógicas que se puedan ejecutar antes del próximo corte. Las propuestas deben incluir actividades en aula, material de apoyo y mecanismos de retroalimentación con los estudiantes. Al finalizar, consolidaremos las propuestas en un único documento que será presentado al consejo académico. Cualquier duda durante el proceso se resuelve directamente en los comentarios de esta tarea para mantener la trazabilidad de las decisiones.
+  - region "Notifications alt+T"

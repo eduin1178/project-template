@@ -1,0 +1,213 @@
+---
+title: Crear una tarea y asignar al equipo
+description: Crea una tarea desde el listado, asigna responsable y equipo de apoyo, y agrega el checklist con los pasos a verificar.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+
+Una tarea en Docentix tiene un único **responsable** —la persona que rinde
+cuentas de su avance— y, opcionalmente, un **equipo de apoyo** que participa
+en su ejecución. Además puedes dividir el trabajo en pasos verificables
+mediante el **checklist**.
+
+Este flujo te lleva desde el listado de tareas hasta una tarea con
+descripción larga, responsable, dos integrantes en el equipo de apoyo y un
+checklist de cinco pasos.
+
+<Callout type="info">
+  Para crear tareas en una institución debes tener el rol **Administrador**
+  o **Propietario**.
+</Callout>
+
+## Antes de empezar
+
+- Estás dentro del panel de administración de tu institución
+  (`/<slug>/admin`).
+- Conoces a la persona que será responsable y a quienes integrarán el equipo
+  de apoyo. Todos deben ser miembros activos de la institución.
+- Tienes claro el alcance de la tarea: título, descripción y los pasos que
+  quieres dejar en el checklist.
+
+## Pasos
+
+<Steps>
+
+<Step>
+
+### Abre el listado de tareas
+
+Desde el menú lateral entra a **Tareas**. Verás el listado de tareas
+existentes de la institución y, en la esquina superior derecha, el botón
+**Nueva tarea**.
+
+![Listado de tareas con el botón Nueva tarea visible](/screenshots/tareas/01-lista-tareas.png)
+
+</Step>
+
+<Step>
+
+### Abre el formulario de nueva tarea
+
+Pulsa **Nueva tarea**. Se abre un diálogo con los campos básicos: título,
+descripción, visibilidad inicial, plazo y responsable.
+
+![Diálogo de nueva tarea vacío](/screenshots/tareas/02-dialog-vacio.png)
+
+<Callout type="info">
+  En este diálogo solo defines responsable y datos básicos. El **equipo de
+  apoyo** y el **checklist** se agregan después, desde el detalle de la
+  tarea.
+</Callout>
+
+</Step>
+
+<Step>
+
+### Completa el título y la descripción
+
+Ingresa un título corto y descriptivo. En la descripción usa varios
+párrafos para dejar contexto, objetivos y criterios de éxito. Cuanto más
+clara sea la descripción, menos consultas tendrás después en los
+comentarios.
+
+![Diálogo con título y descripción completados](/screenshots/tareas/03-dialog-completo.png)
+
+</Step>
+
+<Step>
+
+### Elige el responsable y crea la tarea
+
+Abre el selector **Responsable** y elige a la persona que rendirá cuentas
+del avance. Si lo dejas en **Sin responsable**, la tarea queda sin dueño y
+solo podrás activarla más adelante.
+
+![Diálogo con un responsable seleccionado](/screenshots/tareas/04-dialog-con-responsable.png)
+
+Pulsa **Crear tarea**. El diálogo se cierra y la nueva tarea aparece en el
+listado. Haz clic sobre ella para abrir el detalle.
+
+<Callout type="warn">
+  La visibilidad por defecto es **Borrador**. Mientras la tarea esté en
+  borrador, el responsable y el equipo de apoyo aún no la verán como parte
+  de su trabajo. Cuando esté lista, pulsa **Activar** en el detalle.
+</Callout>
+
+</Step>
+
+<Step>
+
+### Abre el panel del equipo
+
+Dentro del detalle de la tarea, junto a las iniciales del responsable,
+verás el botón **Editar equipo**. Pulsa ese botón para abrir el panel donde
+se gestiona el responsable y el equipo de apoyo.
+
+![Panel de equipo de la tarea sin equipo de apoyo asignado](/screenshots/tareas/05-equipo-vacio.png)
+
+</Step>
+
+<Step>
+
+### Agrega integrantes al equipo de apoyo
+
+En **Agregar al equipo de apoyo** abre el selector, elige al primer
+integrante y pulsa **Agregar**. La persona aparece bajo el bloque **Equipo
+de apoyo**. Repite el proceso para sumar al segundo integrante.
+
+![Panel de equipo con responsable y dos integrantes de apoyo](/screenshots/tareas/06-equipo-completo.png)
+
+<Callout type="info">
+  El selector solo muestra a los miembros de la institución que aún no
+  forman parte de la tarea. La persona asignada como responsable no aparece
+  como opción en el equipo de apoyo.
+</Callout>
+
+Cierra el panel cuando termines.
+
+</Step>
+
+<Step>
+
+### Cambia a la pestaña Checklist
+
+En el detalle de la tarea, el contenido se organiza en cuatro pestañas:
+**Detalle**, **Checklist**, **Documentos** y **Comentarios**. Pulsa
+**Checklist** para empezar a desglosar los pasos.
+
+![Pestaña Checklist vacía con el campo para agregar el primer item](/screenshots/tareas/07-checklist-vacio.png)
+
+</Step>
+
+<Step>
+
+### Agrega los items del checklist
+
+Escribe cada paso en el campo **Agrega un item al checklist** y pulsa
+**Agregar** (o **Enter**). Cada item queda como una casilla independiente
+que el responsable o el equipo podrá marcar como hecha a medida que avanza.
+
+![Pestaña Checklist con cinco items agregados](/screenshots/tareas/08-checklist-completo.png)
+
+<Callout type="info">
+  Divide el trabajo en pasos verificables y concretos. Un buen checklist
+  responde a "¿cómo sabré que esta tarea está realmente terminada?".
+</Callout>
+
+</Step>
+
+<Step>
+
+### Revisa el detalle completo
+
+Vuelve a la pestaña **Detalle** para confirmar que toda la información
+quedó como esperabas: descripción visible, responsable y equipo de apoyo en
+la cabecera, y el contador del checklist actualizado al lado de su pestaña.
+
+![Detalle de la tarea con descripción, equipo y checklist listos](/screenshots/tareas/09-detalle-final.png)
+
+</Step>
+
+</Steps>
+
+## Recorrido por las pestañas del detalle
+
+Cuando la tarea ya está creada, su detalle se organiza en cuatro pestañas.
+Estas son las dos que usamos durante este flujo:
+
+<Tabs items={['Detalle', 'Checklist']}>
+
+<Tab value="Detalle">
+
+Muestra la descripción completa de la tarea. Es la vista que abren
+responsable y equipo cuando entran al detalle. Si la descripción es larga,
+aquí se ve con saltos de párrafo y respetando el formato original.
+
+![Pestaña Detalle con la descripción completa](/screenshots/tareas/09-detalle-final.png)
+
+</Tab>
+
+<Tab value="Checklist">
+
+Concentra los pasos verificables. Cada item se puede marcar como hecho de
+forma independiente, y el contador junto al nombre de la pestaña refleja el
+avance frente al total.
+
+![Pestaña Checklist con los cinco items](/screenshots/tareas/08-checklist-completo.png)
+
+</Tab>
+
+</Tabs>
+
+## ¿Y después?
+
+Una vez creada la tarea y completado el equipo:
+
+- **Activa la tarea** desde el botón **Activar** en la cabecera del detalle
+  para que el equipo la vea en sus listas de trabajo.
+- **Conversen en Comentarios** ante cualquier duda, para mantener la
+  trazabilidad de las decisiones dentro de la propia tarea.
+- **Adjunten archivos** desde **Documentos** cuando necesiten compartir
+  material de apoyo o entregables.

@@ -1,0 +1,97 @@
+# Manifest del chunk Invitaciones.
+# Captura y verificación del flujo "Invitar a un miembro".
+#
+# Requiere sesión iniciada como admin de la institución `siemprenet`.
+# El runner (cuando exista) debe encargarse del login previo y de resolver
+# el ID real de la institución; aquí dejamos placeholders explícitos.
+
+chunk: invitaciones
+description: |
+  Flujo para invitar a una persona como miembro o administrador de una
+  institución, desde el detalle de la institución en /account/organizations.
+
+screenshots:
+  - id: 01-mis-instituciones
+    route: /account/organizations
+    description: Listado de instituciones del usuario.
+    steps:
+      - action: wait
+        timeout: 500
+
+  - id: 02-tab-miembros
+    route: /account/organizations/Rgs8gckX5F81FirPob1ENFYMbfp31m8V
+    description: Detalle de la institución con la pestaña Miembros activa.
+    steps:
+      - action: wait
+        timeout: 500
+
+  - id: 03-dialog-vacio
+    route: /account/organizations/Rgs8gckX5F81FirPob1ENFYMbfp31m8V
+    description: Diálogo de nueva invitación vacío.
+    steps:
+      - action: click
+        selector: '[role="tab"]:has-text("Invitaciones")'
+      - action: wait
+        timeout: 400
+      - action: click
+        selector: 'button:has-text("Invitar")'
+      - action: wait
+        timeout: 500
+
+  - id: 04-dialog-completo
+    route: /account/organizations/Rgs8gckX5F81FirPob1ENFYMbfp31m8V
+    description: Diálogo con correo y rol completados antes de enviar.
+    steps:
+      - action: click
+        selector: '[role="tab"]:has-text("Invitaciones")'
+      - action: wait
+        timeout: 400
+      - action: click
+        selector: 'button:has-text("Invitar")'
+      - action: wait
+        timeout: 400
+      - action: fill
+        selector: '[role="dialog"] input[type="email"]'
+        value: edpta@hotmail.com
+
+  - id: 05-invitacion-pendiente
+    route: /account/organizations/Rgs8gckX5F81FirPob1ENFYMbfp31m8V
+    description: Tabla de invitaciones con la nueva fila en estado Pendiente.
+    steps:
+      - action: click
+        selector: '[role="tab"]:has-text("Invitaciones")'
+      - action: wait
+        timeout: 500
+
+verify:
+  - page: invitaciones/invitar-miembro.mdx
+    route: /account/organizations/Rgs8gckX5F81FirPob1ENFYMbfp31m8V
+    steps:
+      - action: click
+        selector: '[role="tab"]:has-text("Invitaciones")'
+      - action: wait
+        timeout: 400
+    assertions:
+      - type: selector-exists
+        selector: 'button:has-text("Invitar")'
+      - type: text-contains
+        text: Invitaciones
+
+  - page: invitaciones/invitar-miembro.mdx
+    route: /account/organizations/Rgs8gckX5F81FirPob1ENFYMbfp31m8V
+    steps:
+      - action: click
+        selector: '[role="tab"]:has-text("Invitaciones")'
+      - action: wait
+        timeout: 300
+      - action: click
+        selector: 'button:has-text("Invitar")'
+      - action: wait
+        timeout: 500
+    assertions:
+      - type: selector-exists
+        selector: '[role="dialog"] input[type="email"]'
+      - type: text-contains
+        text: Nueva invitación
+      - type: text-contains
+        text: Enviaremos un correo a la persona invitada

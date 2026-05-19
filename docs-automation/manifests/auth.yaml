@@ -1,0 +1,71 @@
+# Manifest del chunk Autenticación.
+# Captura y verificación del flujo "Iniciar sesión" con email y contraseña.
+#
+# Requiere que el runner (cuando exista) parta de una sesión cerrada.
+# Las credenciales reales NO viven aquí; el runner debe inyectarlas vía
+# variables de entorno o un secret store local.
+
+chunk: auth
+description: |
+  Flujo de inicio de sesión con email y contraseña en /login, y aterrizaje
+  en el panel de la institución del usuario tras autenticarse.
+
+screenshots:
+  - id: 01-login-vacio
+    route: /login
+    description: Formulario de inicio de sesión vacío, con botón de Google.
+    steps:
+      - action: wait
+        timeout: 500
+
+  - id: 02-login-completo
+    route: /login
+    description: Formulario con correo y contraseña completados.
+    steps:
+      - action: fill
+        selector: 'input[type="email"]'
+        value: admin@siempre.net.co
+      - action: fill
+        selector: 'input[type="password"]'
+        value: __PASSWORD__
+      - action: wait
+        timeout: 300
+
+  - id: 03-panel-admin
+    route: /post-login
+    description: |
+      Panel de la institución activa tras iniciar sesión correctamente.
+      El resolver de /post-login redirige al workspace del usuario
+      (en este caso /siemprenet/admin).
+    steps:
+      - action: wait
+        timeout: 800
+
+verify:
+  - page: auth/iniciar-sesion.mdx
+    route: /login
+    steps:
+      - action: wait
+        timeout: 300
+    assertions:
+      - type: selector-exists
+        selector: 'input[type="email"]'
+      - type: selector-exists
+        selector: 'input[type="password"]'
+      - type: selector-exists
+        selector: 'button:has-text("Iniciar sesión")'
+      - type: text-contains
+        text: Inicia sesión
+
+  - page: auth/iniciar-sesion.mdx
+    route: /login
+    steps:
+      - action: wait
+        timeout: 300
+    assertions:
+      - type: selector-exists
+        selector: 'button:has-text("Continuar con Google")'
+      - type: selector-exists
+        selector: 'a[href="/forgot-password"]'
+      - type: text-contains
+        text: o continúa con

@@ -1,0 +1,146 @@
+# Manifest del chunk Tareas.
+# Captura y verificación del flujo "Crear una tarea y asignar al equipo".
+#
+# Requiere sesión iniciada como admin de la institución `siemprenet`. El
+# runner (cuando exista) debe encargarse del login previo y de crear/limpiar
+# la tarea de prueba. Los selectores de tab usan keyboard (Space) porque el
+# componente Radix Tabs no responde a un click sintético sin pointer events.
+
+chunk: tareas
+description: |
+  Flujo para crear una tarea desde el listado de la institución, asignar
+  responsable y dos integrantes al equipo de apoyo, y agregar un checklist
+  de cinco items.
+
+screenshots:
+  - id: 01-lista-tareas
+    route: /siemprenet/admin/tasks
+    description: Listado de tareas de la institución con el botón Nueva tarea.
+    steps:
+      - action: wait
+        timeout: 600
+
+  - id: 02-dialog-vacio
+    route: /siemprenet/admin/tasks
+    description: Diálogo de nueva tarea recién abierto, sin datos.
+    steps:
+      - action: click
+        selector: 'button:has-text("Nueva tarea")'
+      - action: wait
+        timeout: 500
+
+  - id: 03-dialog-completo
+    route: /siemprenet/admin/tasks
+    description: Diálogo de nueva tarea con título y descripción completados.
+    steps:
+      - action: click
+        selector: 'button:has-text("Nueva tarea")'
+      - action: wait
+        timeout: 400
+      - action: fill
+        selector: '[role="dialog"] input[name="title"]'
+        value: Plan de mejora académica primer semestre
+      - action: fill
+        selector: '[role="dialog"] textarea[name="description"]'
+        value: |
+          Coordinar con el equipo docente la elaboración del plan de mejora académica del primer semestre. El objetivo es definir acciones concretas para reforzar las áreas con menor desempeño detectadas en el corte anterior y proponer indicadores de seguimiento medibles.
+
+          Cada responsable debe revisar los resultados de su grado, identificar las temáticas críticas y proponer estrategias pedagógicas que se puedan ejecutar antes del próximo corte. Las propuestas deben incluir actividades en aula, material de apoyo y mecanismos de retroalimentación con los estudiantes.
+
+          Al finalizar, consolidaremos las propuestas en un único documento que será presentado al consejo académico. Cualquier duda durante el proceso se resuelve directamente en los comentarios de esta tarea para mantener la trazabilidad de las decisiones.
+
+  - id: 04-dialog-con-responsable
+    route: /siemprenet/admin/tasks
+    description: Diálogo de nueva tarea con un responsable seleccionado.
+    steps:
+      - action: click
+        selector: 'button:has-text("Nueva tarea")'
+      - action: wait
+        timeout: 400
+      - action: click
+        selector: '[role="dialog"] button[role="combobox"]:has-text("Sin responsable")'
+      - action: wait
+        timeout: 300
+      - action: click
+        selector: '[role="option"]:has-text("admin@siempre.net.co")'
+
+  - id: 05-equipo-vacio
+    route: /siemprenet/admin/tasks/<task-id>
+    description: Panel "Equipo de la tarea" abierto, sin equipo de apoyo asignado.
+    steps:
+      - action: click
+        selector: 'button[aria-label="Editar equipo"]'
+      - action: wait
+        timeout: 500
+
+  - id: 06-equipo-completo
+    route: /siemprenet/admin/tasks/<task-id>
+    description: Panel "Equipo de la tarea" con responsable y dos integrantes de apoyo.
+    steps:
+      - action: click
+        selector: 'button[aria-label="Editar equipo"]'
+      - action: wait
+        timeout: 500
+
+  - id: 07-checklist-vacio
+    route: /siemprenet/admin/tasks/<task-id>
+    description: Pestaña Checklist activa antes de agregar items.
+    steps:
+      - action: click
+        selector: '[role="tab"]:has-text("Checklist")'
+      - action: wait
+        timeout: 400
+
+  - id: 08-checklist-completo
+    route: /siemprenet/admin/tasks/<task-id>
+    description: Pestaña Checklist con los cinco items agregados.
+    steps:
+      - action: click
+        selector: '[role="tab"]:has-text("Checklist")'
+      - action: wait
+        timeout: 400
+
+  - id: 09-detalle-final
+    route: /siemprenet/admin/tasks/<task-id>
+    description: Pestaña Detalle de la tarea con toda la información lista.
+    steps:
+      - action: click
+        selector: '[role="tab"]:has-text("Detalle")'
+      - action: wait
+        timeout: 400
+
+verify:
+  - page: tareas/crear-tarea-y-asignar-equipo.mdx
+    route: /siemprenet/admin/tasks
+    assertions:
+      - type: selector-exists
+        selector: 'button:has-text("Nueva tarea")'
+      - type: text-contains
+        text: Tareas
+
+  - page: tareas/crear-tarea-y-asignar-equipo.mdx
+    route: /siemprenet/admin/tasks
+    steps:
+      - action: click
+        selector: 'button:has-text("Nueva tarea")'
+      - action: wait
+        timeout: 500
+    assertions:
+      - type: selector-exists
+        selector: '[role="dialog"] input[name="title"]'
+      - type: selector-exists
+        selector: '[role="dialog"] textarea[name="description"]'
+      - type: text-contains
+        text: Nueva tarea
+      - type: text-contains
+        text: Visibilidad inicial
+
+  - page: tareas/crear-tarea-y-asignar-equipo.mdx
+    route: /siemprenet/admin/tasks/<task-id>
+    assertions:
+      - type: selector-exists
+        selector: 'button[aria-label="Editar equipo"]'
+      - type: selector-exists
+        selector: '[role="tab"]:has-text("Checklist")'
+      - type: text-contains
+        text: Equipo de apoyo

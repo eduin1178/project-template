@@ -2,6 +2,30 @@
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
 
+/*
+ * Overrides de marca Docentix.
+ * Valores copiados literalmente de next-app/app/globals.css.
+ * NO importar desde next-app — ambos proyectos son independientes.
+ * Si el branding cambia significativamente, actualizar ambos lados a mano.
+ */
+@theme inline {
+  --color-fd-primary: var(--docentix-primary);
+  --color-fd-primary-foreground: var(--docentix-primary-foreground);
+  --color-fd-ring: var(--docentix-ring);
+}
+
+:root {
+  --docentix-primary: oklch(0.508 0.118 165.612);
+  --docentix-primary-foreground: oklch(0.979 0.021 166.113);
+  --docentix-ring: oklch(0.709 0.01 56.259);
+}
+
+.dark {
+  --docentix-primary: oklch(0.696 0.17 162.48);
+  --docentix-primary-foreground: oklch(0.262 0.051 172.552);
+  --docentix-ring: oklch(0.553 0.013 58.071);
+}
+
 html {
   scrollbar-gutter: stable;
 }

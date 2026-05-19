@@ -1,0 +1,114 @@
+---
+title: Invitar a un miembro
+description: Envía una invitación para que una persona se una a tu institución como administrador o miembro.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+
+Cuando necesitas sumar a una persona a tu institución, envías una invitación
+por correo desde el detalle de la institución. La invitación queda en estado
+**Pendiente** hasta que la persona acepte el enlace.
+
+<Callout type="info">
+  Solo los administradores y propietarios de una institución pueden enviar
+  invitaciones.
+</Callout>
+
+## Antes de empezar
+
+- Tienes el rol **Administrador** o **Propietario** en la institución a la
+  que invitarás a la persona.
+- Conoces el correo de la persona que quieres invitar.
+- Decidiste qué rol tendrá: **Miembro** (acceso estándar) o
+  **Administrador** (puede gestionar miembros e invitaciones).
+
+## Pasos
+
+<Steps>
+
+<Step>
+
+### Abre tus instituciones
+
+Desde el menú de tu cuenta entra a **Mis instituciones**. Verás la lista de
+instituciones de las que formas parte.
+
+![Listado de instituciones del usuario](/screenshots/invitaciones/01-mis-instituciones.png)
+
+</Step>
+
+<Step>
+
+### Entra al detalle de la institución
+
+Haz clic en el nombre de la institución a la que quieres invitar a la
+persona. Se abre el detalle con dos pestañas: **Miembros** e
+**Invitaciones**.
+
+![Detalle de la institución en la pestaña Miembros](/screenshots/invitaciones/02-tab-miembros.png)
+
+</Step>
+
+<Step>
+
+### Abre el formulario de invitación
+
+Cambia a la pestaña **Invitaciones** y pulsa el botón **Invitar** en la
+esquina superior derecha. Se abre un diálogo para capturar los datos de la
+nueva invitación.
+
+![Diálogo de nueva invitación vacío](/screenshots/invitaciones/03-dialog-vacio.png)
+
+</Step>
+
+<Step>
+
+### Completa el correo y el rol
+
+Ingresa el correo de la persona y elige el rol:
+
+- **Miembro**: acceso estándar a la institución.
+- **Administrador**: además puede gestionar miembros e invitaciones.
+
+![Diálogo con correo y rol completados](/screenshots/invitaciones/04-dialog-completo.png)
+
+<Callout type="warn">
+  Verifica que el correo esté bien escrito. Si la persona ya existe en
+  Docentix, recibirá el enlace en esa misma cuenta; si no, podrá crear una
+  nueva al aceptar la invitación.
+</Callout>
+
+</Step>
+
+<Step>
+
+### Envía la invitación
+
+Pulsa **Enviar**. Docentix envía un correo con el enlace de aceptación y
+agrega una fila a la tabla de invitaciones con estado **Pendiente** y la
+fecha de expiración.
+
+![Invitación pendiente recién creada en la tabla](/screenshots/invitaciones/05-invitacion-pendiente.png)
+
+</Step>
+
+</Steps>
+
+## ¿Y después?
+
+Mientras la persona no acepte, puedes gestionar la invitación desde la
+tabla:
+
+- **Copiar link**: copia el enlace de aceptación para compartirlo por otro
+  canal.
+- **Reenviar**: vuelve a enviar el correo (renueva la expiración).
+- **Eliminar**: cancela la invitación.
+
+Cuando la persona acepta el enlace, su fila se mueve a la pestaña
+**Miembros** con el rol que elegiste.
+
+<Callout type="info">
+  Si la invitación expira antes de ser aceptada, su estado cambia y deja de
+  ser válida. Reenvíala desde la misma tabla para emitir un nuevo enlace.
+</Callout>

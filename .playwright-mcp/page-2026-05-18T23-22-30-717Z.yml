@@ -1,0 +1,110 @@
+- generic [ref=e2]:
+  - generic [ref=e5]:
+    - list [ref=e7]:
+      - listitem [ref=e8]:
+        - button "SIEMPRENET S.A.S. Institución activa" [ref=e9]:
+          - generic [ref=e11]:
+            - generic [ref=e12]: SIEMPRENET S.A.S.
+            - generic [ref=e13]: Institución activa
+          - img [ref=e14]
+    - list [ref=e18]:
+      - listitem [ref=e19]:
+        - link "Inicio" [ref=e20] [cursor=pointer]:
+          - /url: /siemprenet
+          - img [ref=e21]
+          - generic [ref=e23]: Inicio
+      - listitem [ref=e24]:
+        - link "Tareas" [ref=e25] [cursor=pointer]:
+          - /url: /siemprenet/tasks
+          - img [ref=e26]
+          - generic [ref=e28]: Tareas
+    - list [ref=e30]:
+      - listitem [ref=e31]:
+        - button "EP Eduin Peñata Romero admin@siempre.net.co" [ref=e32]:
+          - generic [ref=e34]: EP
+          - generic [ref=e35]:
+            - generic [ref=e36]: Eduin Peñata Romero
+            - generic [ref=e37]: admin@siempre.net.co
+          - img [ref=e38]
+    - button "Toggle Sidebar" [ref=e40]
+  - main [ref=e41]:
+    - generic [ref=e42]:
+      - button "Toggle Sidebar" [ref=e43]:
+        - img
+        - generic [ref=e44]: Toggle Sidebar
+      - generic [ref=e45]: Mis instituciones
+      - button "Cambiar a modo oscuro" [ref=e47]
+    - main [ref=e49]:
+      - generic [ref=e50]:
+        - link "Volver a mis instituciones" [ref=e51] [cursor=pointer]:
+          - /url: /account/organizations
+          - img
+          - text: Volver a mis instituciones
+        - generic [ref=e52]:
+          - generic [ref=e55]:
+            - heading "SIEMPRENET S.A.S." [level=1] [ref=e56]
+            - paragraph [ref=e57]: siemprenet
+            - paragraph [ref=e58]: Creada el 17 may 2026
+          - generic [ref=e59]:
+            - generic [ref=e60]: Admin
+            - button "Editar" [ref=e61]
+        - generic [ref=e62]:
+          - tablist [ref=e63]:
+            - tab "Miembros (4)" [selected] [ref=e64]
+            - tab "Invitaciones" [ref=e65]
+          - tabpanel "Miembros (4)" [ref=e66]:
+            - table [ref=e69]:
+              - rowgroup [ref=e70]:
+                - row "Nombre Email Rol Estado Se unió" [ref=e71]:
+                  - columnheader "Nombre" [ref=e72]
+                  - columnheader "Email" [ref=e73]
+                  - columnheader "Rol" [ref=e74]
+                  - columnheader "Estado" [ref=e75]
+                  - columnheader "Se unió" [ref=e76]
+                  - columnheader [ref=e77]
+              - rowgroup [ref=e78]:
+                - row "Eduin Peñata Romero(tú) admin@siempre.net.co Admin Activo 17 may 2026 Acciones para Eduin Peñata Romero" [ref=e79]:
+                  - cell "Eduin Peñata Romero(tú)" [ref=e80]
+                  - cell "admin@siempre.net.co" [ref=e81]
+                  - cell "Admin" [ref=e82]:
+                    - generic [ref=e83]: Admin
+                  - cell "Activo" [ref=e84]:
+                    - generic [ref=e85]: Activo
+                  - cell "17 may 2026" [ref=e86]
+                  - cell "Acciones para Eduin Peñata Romero" [ref=e87]:
+                    - button "Acciones para Eduin Peñata Romero" [disabled]:
+                      - img
+                - row "Eduin Peñata Romero siempregerente@gmail.com Miembro Activo 17 may 2026 Acciones para Eduin Peñata Romero" [ref=e88]:
+                  - cell "Eduin Peñata Romero" [ref=e89]
+                  - cell "siempregerente@gmail.com" [ref=e90]
+                  - cell "Miembro" [ref=e91]:
+                    - generic [ref=e92]: Miembro
+                  - cell "Activo" [ref=e93]:
+                    - generic [ref=e94]: Activo
+                  - cell "17 may 2026" [ref=e95]
+                  - cell "Acciones para Eduin Peñata Romero" [ref=e96]:
+                    - button "Acciones para Eduin Peñata Romero" [ref=e97]:
+                      - img
+                - row "Eduin Peñata Romero sogasproject@gmail.com Miembro Activo 17 may 2026 Acciones para Eduin Peñata Romero" [ref=e98]:
+                  - cell "Eduin Peñata Romero" [ref=e99]
+                  - cell "sogasproject@gmail.com" [ref=e100]
+                  - cell "Miembro" [ref=e101]:
+                    - generic [ref=e102]: Miembro
+                  - cell "Activo" [ref=e103]:
+                    - generic [ref=e104]: Activo
+                  - cell "17 may 2026" [ref=e105]
+                  - cell "Acciones para Eduin Peñata Romero" [ref=e106]:
+                    - button "Acciones para Eduin Peñata Romero" [ref=e107]:
+                      - img
+                - row "Eduin Peñata Romero eduin1178@gmail.com Miembro Activo 17 may 2026 Acciones para Eduin Peñata Romero" [ref=e108]:
+                  - cell "Eduin Peñata Romero" [ref=e109]
+                  - cell "eduin1178@gmail.com" [ref=e110]
+                  - cell "Miembro" [ref=e111]:
+                    - generic [ref=e112]: Miembro
+                  - cell "Activo" [ref=e113]:
+                    - generic [ref=e114]: Activo
+                  - cell "17 may 2026" [ref=e115]
+                  - cell "Acciones para Eduin Peñata Romero" [ref=e116]:
+                    - button "Acciones para Eduin Peñata Romero" [ref=e117]:
+                      - img
+  - region "Notifications alt+T"

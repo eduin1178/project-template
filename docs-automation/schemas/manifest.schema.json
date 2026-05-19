@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docentix.local/schemas/docs-manifest.json",
+  "title": "Docs Chunk Manifest",
+  "description": "Manifest que liga un chunk de documentación con screenshots a capturar y verificaciones de regresión contra docs-app y next-app.",
+  "type": "object",
+  "required": ["chunk"],
+  "additionalProperties": false,
+  "properties": {
+    "chunk": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Nombre del chunk en kebab-case. Debe coincidir con la carpeta bajo docs-app/content/docs/."
+    },
+    "description": {
+      "type": "string"
+    },
+    "screenshots": {
+      "type": "array",
+      "default": [],
+      "items": { "$ref": "#/$defs/screenshot" }
+    },
+    "verify": {
+      "type": "array",
+      "default": [],
+      "items": { "$ref": "#/$defs/verifyEntry" }
+    }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "required": ["action"],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["goto", "click", "fill", "wait", "press"]
+        },
+        "selector": { "type": "string" },
+        "value": { "type": "string" },
+        "url": { "type": "string" },
+        "timeout": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "screenshot": {
+      "type": "object",
+      "required": ["id", "route"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "route": { "type": "string" },
+        "description": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/step" }
+        },
+        "clip": {
+          "type": "object",
+          "required": ["selector"],
+          "additionalProperties": false,
+          "properties": {
+            "selector": { "type": "string" }
+          }
+        }
+      }
+    },
+    "assertion": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["selector-exists", "text-contains", "url-matches"]
+        },
+        "selector": { "type": "string" },
+        "text": { "type": "string" },
+        "pattern": { "type": "string" }
+      }
+    },
+    "verifyEntry": {
+      "type": "object",
+      "required": ["page", "route", "assertions"],
+      "additionalProperties": false,
+      "properties": {
+        "page": { "type": "string" },
+        "route": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/step" }
+        },
+        "assertions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/assertion" }
+        }
+      }
+    }
+  }
+}

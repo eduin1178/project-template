@@ -1,0 +1,21 @@
+{
+  "name": "docs-automation",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Scripts locales para capturar screenshots y verificar regresiones de docs-app usando Playwright.",
+  "scripts": {
+    "capture": "tsx scripts/capture.ts",
+    "verify": "tsx scripts/verify.ts"
+  },
+  "dependencies": {
+    "yaml": "^2.6.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^20.17.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "pnpm@11.1.2"
+}

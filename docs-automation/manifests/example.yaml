@@ -1,0 +1,38 @@
+# Manifest de ejemplo — referencia del schema, no se ejecuta.
+# Cuando documentes un chunk real, copia este archivo a <chunk>.yaml
+# y reemplaza los valores.
+
+chunk: example
+description: |
+  Manifest de referencia para mostrar la estructura completa del schema.
+  Sin uso productivo.
+
+screenshots:
+  - id: login-form
+    route: /login
+    description: Formulario de inicio de sesión vacío
+    clip:
+      selector: form
+  - id: login-error
+    route: /login
+    description: Mensaje de error tras credenciales inválidas
+    steps:
+      - action: fill
+        selector: input[name="email"]
+        value: usuario@ejemplo.com
+      - action: fill
+        selector: input[name="password"]
+        value: incorrecto
+      - action: click
+        selector: button[type="submit"]
+      - action: wait
+        timeout: 500
+
+verify:
+  - page: auth/login.mdx
+    route: /login
+    assertions:
+      - type: selector-exists
+        selector: input[name="email"]
+      - type: text-contains
+        text: Iniciar sesión

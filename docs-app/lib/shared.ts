@@ -1,11 +1,11 @@
-export const appName = 'My App';
+export const appName = 'Documentación Docentix';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
 
-// fill this with your actual GitHub info, for example:
+// TODO: confirmar repo público antes de exponer este link en el nav.
 export const gitConfig = {
-  user: 'fuma-nama',
-  repo: 'fumadocs',
+  user: 'edunet',
+  repo: 'docentix',
   branch: 'main',
 };
