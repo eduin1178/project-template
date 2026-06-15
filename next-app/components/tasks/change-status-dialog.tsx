@@ -26,10 +26,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { TaskStatus } from "@/lib/db/schema/task";
 import { changeTaskStatus } from "@/lib/tasks/actions";
-import {
-  STATUS_CHANGE_COMMENT_MAX,
-  STATUS_CHANGE_COMMENT_MIN,
-} from "@/lib/tasks/schemas";
+import { STATUS_CHANGE_COMMENT_MAX } from "@/lib/tasks/schemas";
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
   pending: "Pendiente",
@@ -76,7 +73,6 @@ export function ChangeStatusDialog({
   const [isPending, startTransition] = useTransition();
 
   const trimmedLength = body.trim().length;
-  const tooShort = trimmedLength < STATUS_CHANGE_COMMENT_MIN;
   const tooLong = trimmedLength > STATUS_CHANGE_COMMENT_MAX;
 
   function reset() {
@@ -97,17 +93,18 @@ export function ChangeStatusDialog({
 
   function onConfirm() {
     setError(null);
-    if (tooShort || tooLong) {
+    if (tooLong) {
       setError(
-        `Justifica el cambio con entre ${STATUS_CHANGE_COMMENT_MIN} y ${STATUS_CHANGE_COMMENT_MAX} caracteres.`,
+        `El comentario no puede superar los ${STATUS_CHANGE_COMMENT_MAX} caracteres.`,
       );
       return;
     }
+    const trimmed = body.trim();
     startTransition(async () => {
       const result = await changeTaskStatus({
         taskId,
         newStatus,
-        commentBody: body,
+        commentBody: trimmed ? trimmed : undefined,
       });
       if (!result.ok) {
         setError(result.error);
@@ -128,8 +125,8 @@ export function ChangeStatusDialog({
         <DialogHeader>
           <DialogTitle>Cambia el estado</DialogTitle>
           <DialogDescription>
-            Elige el estado nuevo y justifica el cambio. Tu comentario quedará
-            registrado en el historial de la tarea.
+            Elige el estado nuevo. Si quieres, agrega un comentario para dejar
+            registro del motivo en el historial de la tarea.
           </DialogDescription>
         </DialogHeader>
 
@@ -162,9 +159,7 @@ export function ChangeStatusDialog({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="change-status-body">
-            Justifica el cambio (mínimo {STATUS_CHANGE_COMMENT_MIN} caracteres)
-          </Label>
+          <Label htmlFor="change-status-body">Comentario (opcional)</Label>
           <Textarea
             id="change-status-body"
             value={body}
@@ -178,11 +173,9 @@ export function ChangeStatusDialog({
               {trimmedLength} / {STATUS_CHANGE_COMMENT_MAX}
             </span>
             <span>
-              {tooShort
-                ? `Faltan ${STATUS_CHANGE_COMMENT_MIN - trimmedLength} caracteres`
-                : tooLong
-                  ? `Sobran ${trimmedLength - STATUS_CHANGE_COMMENT_MAX} caracteres`
-                  : "Listo para confirmar"}
+              {tooLong
+                ? `Sobran ${trimmedLength - STATUS_CHANGE_COMMENT_MAX} caracteres`
+                : "Listo para confirmar"}
             </span>
           </div>
         </div>
@@ -199,7 +192,7 @@ export function ChangeStatusDialog({
           <Button
             type="button"
             onClick={onConfirm}
-            disabled={isPending || tooShort || tooLong}
+            disabled={isPending || tooLong}
           >
             Confirmar
           </Button>

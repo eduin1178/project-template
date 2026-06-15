@@ -1,19 +1,28 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   ArchiveIcon,
   ArrowCounterClockwiseIcon,
   CheckCircleIcon,
+  DotsThreeVerticalIcon,
   PaperPlaneTiltIcon,
   PlayIcon,
   TrashIcon,
   UserSwitchIcon,
+  type Icon as PhosphorIcon,
 } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   type TaskStatus,
   type TaskVisibility,
@@ -35,6 +44,24 @@ type Task = {
   responsibleId: string | null;
 };
 
+function statusButtonMeta(current: TaskStatus): {
+  label: string;
+  Icon: PhosphorIcon;
+  preset: TaskStatus;
+} {
+  if (current === "pending")
+    return { label: "Iniciar", Icon: PlayIcon, preset: "in_progress" };
+  if (current === "in_progress")
+    return { label: "Marcar como hecha", Icon: CheckCircleIcon, preset: "done" };
+  return { label: "Reabrir", Icon: ArrowCounterClockwiseIcon, preset: "in_progress" };
+}
+
+/**
+ * Barra de acciones consolidada del detalle: acciones primarias contextuales
+ * como botones (transición de estado y la transición de visibilidad primaria)
+ * y el resto agrupado en un único menú de overflow. Es la ÚNICA fuente de
+ * acciones del detalle: no se duplica en el header.
+ */
 export function TaskDetailActions({
   task,
   capabilities,
@@ -44,6 +71,7 @@ export function TaskDetailActions({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 
   function runAction(fn: () => Promise<{ ok: boolean; error?: string }>) {
     startTransition(async () => {
@@ -77,37 +105,36 @@ export function TaskDetailActions({
     runAction(() => deleteTask({ taskId: task.id }));
   }
 
-  const showVisibilityButton = capabilities.canTransitionVisibility;
-  const showStatusButton = capabilities.canChangeStatus;
+  const showVisibility = capabilities.canTransitionVisibility;
+  const showStatus = capabilities.canChangeStatus;
   const showClaim = capabilities.canClaim;
   const showDelete = capabilities.canDelete;
 
-  if (
-    !showVisibilityButton &&
-    !showStatusButton &&
-    !showClaim &&
-    !showDelete
-  ) {
+  if (!showVisibility && !showStatus && !showClaim && !showDelete) {
     return null;
   }
 
-  function presetForStatus(current: TaskStatus): TaskStatus {
-    if (current === "pending") return "in_progress";
-    if (current === "in_progress") return "done";
-    return "in_progress";
-  }
+  const statusMeta = statusButtonMeta(task.status);
 
-  function statusButtonLabel(current: TaskStatus) {
-    if (current === "pending")
-      return { label: "Iniciar", Icon: PlayIcon };
-    if (current === "in_progress")
-      return { label: "Marcar como hecha", Icon: CheckCircleIcon };
-    return { label: "Reabrir", Icon: ArrowCounterClockwiseIcon };
-  }
+  // El overflow agrupa lo que no es acción primaria: transiciones de
+  // visibilidad secundarias (solo aplican cuando la tarea está `active`),
+  // tomar posesión y eliminar.
+  const showSecondaryVisibility = showVisibility && task.visibility === "active";
+  const hasOverflow = showSecondaryVisibility || showClaim || showDelete;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b px-5 py-3">
-      {showVisibilityButton && task.visibility === "draft" ? (
+    <div className="flex items-center gap-2">
+      {showStatus ? (
+        <ChangeStatusDialog
+          taskId={task.id}
+          currentStatus={task.status}
+          presetStatus={statusMeta.preset}
+          open={statusDialogOpen}
+          onOpenChange={setStatusDialogOpen}
+        />
+      ) : null}
+
+      {showVisibility && task.visibility === "draft" ? (
         <Button
           type="button"
           size="sm"
@@ -120,24 +147,7 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {showVisibilityButton && task.visibility === "active" ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() =>
-            runAction(() =>
-              transitionVisibility({ taskId: task.id, to: "archived" }),
-            )
-          }
-          disabled={isPending}
-        >
-          <ArchiveIcon />
-          Archivar
-        </Button>
-      ) : null}
-
-      {showVisibilityButton && task.visibility === "archived" ? (
+      {showVisibility && task.visibility === "archived" ? (
         <Button
           type="button"
           size="sm"
@@ -154,53 +164,92 @@ export function TaskDetailActions({
         </Button>
       ) : null}
 
-      {showStatusButton ? (
-        <ChangeStatusDialog
-          taskId={task.id}
-          currentStatus={task.status}
-          presetStatus={presetForStatus(task.status)}
-          trigger={
+      {showStatus ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setStatusDialogOpen(true)}
+          disabled={isPending}
+        >
+          <statusMeta.Icon />
+          {statusMeta.label}
+        </Button>
+      ) : null}
+
+      {hasOverflow ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
               type="button"
-              size="sm"
-              variant="outline"
+              variant="ghost"
+              size="icon-sm"
               disabled={isPending}
+              aria-label="Más acciones"
             >
-              {(() => {
-                const { Icon } = statusButtonLabel(task.status);
-                return <Icon />;
-              })()}
-              {statusButtonLabel(task.status).label}
+              <DotsThreeVerticalIcon />
             </Button>
-          }
-        />
-      ) : null}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            {showSecondaryVisibility ? (
+              <>
+                <DropdownMenuItem
+                  disabled={isPending}
+                  onSelect={() =>
+                    runAction(() =>
+                      transitionVisibility({ taskId: task.id, to: "archived" }),
+                    )
+                  }
+                >
+                  <ArchiveIcon />
+                  Archivar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={isPending}
+                  onSelect={() =>
+                    runAction(() =>
+                      transitionVisibility({ taskId: task.id, to: "draft" }),
+                    )
+                  }
+                >
+                  <ArrowCounterClockwiseIcon />
+                  Volver a borrador
+                </DropdownMenuItem>
+              </>
+            ) : null}
 
-      {showClaim ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          onClick={() => runAction(() => claimAuthorship({ taskId: task.id }))}
-          disabled={isPending}
-        >
-          <UserSwitchIcon />
-          Tomar posesión
-        </Button>
-      ) : null}
+            {showClaim ? (
+              <>
+                {showSecondaryVisibility ? <DropdownMenuSeparator /> : null}
+                <DropdownMenuItem
+                  disabled={isPending}
+                  onSelect={() =>
+                    runAction(() => claimAuthorship({ taskId: task.id }))
+                  }
+                >
+                  <UserSwitchIcon />
+                  Tomar posesión
+                </DropdownMenuItem>
+              </>
+            ) : null}
 
-      {showDelete ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          className="text-destructive hover:text-destructive ml-auto"
-          onClick={onDelete}
-          disabled={isPending}
-        >
-          <TrashIcon />
-          Eliminar
-        </Button>
+            {showDelete ? (
+              <>
+                {showSecondaryVisibility || showClaim ? (
+                  <DropdownMenuSeparator />
+                ) : null}
+                <DropdownMenuItem
+                  disabled={isPending}
+                  variant="destructive"
+                  onSelect={onDelete}
+                >
+                  <TrashIcon />
+                  Eliminar
+                </DropdownMenuItem>
+              </>
+            ) : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
       ) : null}
     </div>
   );

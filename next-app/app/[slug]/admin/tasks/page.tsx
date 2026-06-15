@@ -12,7 +12,7 @@ import {
 
 export const metadata = { title: "Tareas — Docentix" };
 
-const ADMIN_DEFAULT_STATUS = ["pending"] as TaskStatus[];
+const ADMIN_DEFAULT_STATUS = [] as TaskStatus[];
 
 export default async function WorkspaceAdminTasksPage({
   params,

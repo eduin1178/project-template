@@ -1,10 +1,31 @@
-# task-board-view Specification
+﻿## ADDED Requirements
 
-## Purpose
+### Requirement: Drag-and-drop trazable en tablero
+El sistema SHALL permitir arrastrar cards entre columnas de `status` únicamente en modo `board`. Soltar una card sobre una columna de estado diferente SHALL iniciar una intención de cambio de estado, pero NO SHALL mutar `task.status` silenciosamente. La UI SHALL abrir un diálogo de justificación que solicite `commentBody` y SHALL invocar la server action existente `changeTaskStatus(taskId, newStatus, commentBody)` al confirmar.
 
-Vista visual de tareas con modos alternables tablero por estado y tarjetas sin columnas, filtros preservados en URL y comportamiento responsive para desktop y mobile.
+La UI SHALL rechazar o revertir visualmente movimientos inválidos conocidos antes de abrir el diálogo, incluyendo soltar en la misma columna y la transición directa `pending → done`. La server action SHALL seguir siendo la fuente de verdad para permisos, vencimiento, comentario obligatorio, transición permitida y rollback transaccional.
 
-## Requirements
+#### Scenario: Drop abre diálogo de justificación
+- **WHEN** un usuario arrastra una card desde `pending` hacia la columna `in_progress`
+- **THEN** la UI abre un diálogo solicitando justificación y NO cambia definitivamente el estado antes de confirmar
+
+#### Scenario: Confirmar drop invoca action trazable
+- **WHEN** el usuario confirma el diálogo con un comentario válido
+- **THEN** el sistema invoca `changeTaskStatus(taskId, "in_progress", commentBody)` y refresca el tablero tras éxito
+
+#### Scenario: Drop inválido pending a done se rechaza
+- **WHEN** un usuario arrastra una card desde `pending` hacia la columna `done`
+- **THEN** la UI rechaza la intención o revierte la card sin invocar cambio de estado
+
+#### Scenario: Error server-side revierte la intención
+- **WHEN** el usuario confirma un drop pero `changeTaskStatus` falla por autorización, vencimiento, comentario inválido o regla de transición
+- **THEN** la tarea permanece en su estado anterior y la UI muestra feedback de error sin persistir cambios
+
+#### Scenario: Modo cards no tiene drag-and-drop
+- **WHEN** un usuario cambia a `view=cards`
+- **THEN** las tarjetas no ofrecen drop targets para cambiar `status`
+
+## MODIFIED Requirements
 
 ### Requirement: Modos visuales de listado de tareas
 El sistema SHALL renderizar las rutas de listado de tareas mediante una experiencia visual con dos modos seleccionables: `board` y `cards`. El modo `board` SHALL agrupar tareas por `status` en columnas `Pendiente`, `En curso` y `Hecha`. El modo `cards` SHALL renderizar las mismas tareas como una grilla/lista de tarjetas sin columnas. Si el modo no está presente en la URL o tiene un valor inválido, el sistema SHALL usar `board` como default.
@@ -67,69 +88,9 @@ El dropdown de visibilidad SHALL permitir seleccionar cero, uno o varios valores
 - **WHEN** un admin limpia todas las opciones del dropdown de visibilidad
 - **THEN** la URL no conserva `visibility` y la consulta no filtra por visibilidad
 
-### Requirement: Tarjeta de tarea informativa y accionable
-Cada tarjeta de tarea SHALL mostrar información suficiente para decidir si abrirla: título, status, visibility cuando aplique, fecha de vencimiento o ausencia de plazo, responsable cuando exista, indicador de vencimiento cuando aplique y resumen breve de descripción si existe. Hacer click en una tarjeta SHALL navegar a la ruta canónica de detalle `[taskId]`, preservando filtros y modo de vista en la URL.
+## REMOVED Requirements
 
-#### Scenario: Tarjeta navega preservando contexto
-- **WHEN** un usuario hace click en una tarjeta desde `/admin/tasks?view=board&visibility=active&status=pending`
-- **THEN** el navegador navega a `/admin/tasks/<id>?view=board&visibility=active&status=pending`
+### Requirement: Sin drag-and-drop en v1
+**Reason**: El tablero ahora debe ser operativo, no solo visual. El cambio de estado por drag-and-drop queda permitido como gesto de intención, manteniendo trazabilidad mediante comentario obligatorio.
 
-#### Scenario: Tarjeta muestra vencimiento
-- **WHEN** una tarea visible tiene `dueAt` vencido y `visibility = "active"`
-- **THEN** su tarjeta muestra un indicador visual de plazo vencido
-
-#### Scenario: Tarjeta sin responsable
-- **WHEN** una tarea no tiene `responsibleId`
-- **THEN** la tarjeta muestra un texto neutral como `Sin responsable` o equivalente, sin romper el layout
-
-### Requirement: Responsividad del listado visual
-El sistema SHALL adaptar ambos modos a pantallas móviles. En mobile, el modo `board` SHALL apilar columnas verticalmente con scroll natural de página, y el modo `cards` SHALL usar una sola columna de tarjetas. Los controles de filtro y toggle SHALL ser accesibles por tacto, visibles o alcanzables desde la cabecera del listado, y no dependerán de hover.
-
-#### Scenario: Board mobile apila columnas
-- **WHEN** un usuario abre el tablero en viewport mobile
-- **THEN** las columnas se muestran apiladas verticalmente y pueden recorrerse con scroll natural
-
-#### Scenario: Cards mobile usa una columna
-- **WHEN** un usuario abre `view=cards` en viewport mobile
-- **THEN** las tarjetas se muestran en una sola columna legible
-
-#### Scenario: Toggle accesible en mobile
-- **WHEN** un usuario usa una pantalla táctil
-- **THEN** el control para alternar `board`/`cards` es visible o alcanzable y tiene tamaño táctil adecuado
-
-### Requirement: Drag-and-drop trazable en tablero
-El sistema SHALL permitir arrastrar cards entre columnas de `status` únicamente
-en modo `board`. Soltar una card sobre una columna de estado diferente y válida
-SHALL mutar `task.status` directamente mediante la server action
-`changeTaskStatus(taskId, newStatus)`, SIN abrir diálogo de justificación y SIN
-exigir comentario. El cambio SHALL aplicarse con **actualización optimista**: la
-card SHALL moverse a la columna destino de inmediato en la UI, antes de la
-confirmación del servidor.
-
-La UI SHALL validar en cliente, antes de mutar, los movimientos inválidos
-conocidos: soltar en la misma columna (no-op), la transición directa
-`pending → done` y soltar una card cuya `visibility` no sea `active`. Si la
-server action falla por autorización, vencimiento o regla de transición, la UI
-SHALL revertir la card a su columna previa y mostrar feedback de error. La server
-action SHALL seguir siendo la fuente de verdad para permisos, vencimiento,
-transición permitida y rollback transaccional.
-
-#### Scenario: Drop válido cambia el estado al instante
-- **WHEN** un usuario arrastra una card `active` desde `pending` hacia la columna `in_progress`
-- **THEN** la card se mueve de inmediato a `in_progress` en la UI y el sistema invoca `changeTaskStatus(taskId, "in_progress")` sin comentario
-
-#### Scenario: Drop inválido pending a done se rechaza
-- **WHEN** un usuario arrastra una card desde `pending` hacia la columna `done`
-- **THEN** la UI rechaza la intención o revierte la card sin invocar cambio de estado
-
-#### Scenario: Error server-side revierte la card
-- **WHEN** el usuario suelta una card pero `changeTaskStatus` falla por autorización, vencimiento o regla de transición
-- **THEN** la card vuelve a su columna anterior y la UI muestra feedback de error sin persistir cambios
-
-#### Scenario: Drop de tarea no activa se bloquea
-- **WHEN** un usuario intenta arrastrar una card cuya `visibility` no es `active`
-- **THEN** la UI bloquea el cambio y muestra feedback sin invocar la action
-
-#### Scenario: Modo cards no tiene drag-and-drop
-- **WHEN** un usuario cambia a `view=cards`
-- **THEN** las tarjetas no ofrecen drop targets para cambiar `status`
+**Migration**: Reemplazar la prohibición por el requirement `Drag-and-drop trazable en tablero`. La implementación debe seguir invocando `changeTaskStatus` y no introducir ninguna mutación alternativa de `task.status`.

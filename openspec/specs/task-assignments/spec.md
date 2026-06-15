@@ -153,13 +153,15 @@ El sistema SHALL exponer una ruta `/tasks` accesible a cualquier usuario con org
 
 La presentación SHALL usar los modos visuales definidos en `task-board-view`: tablero por estado y vista de tarjetas sin columnas. La ruta SHALL reutilizar los mismos componentes presentacionales que `/admin/tasks` cuando sea posible y SHALL honrar el comportamiento responsive: tablero con columnas en desktop y columnas apiladas en mobile; tarjetas en grilla responsive desktop y una columna mobile.
 
+Cuando `/tasks` se renderice sin search param `status`, el listado SHALL NO aplicar filtro de estado por defecto. En modo `board`, esto SHALL mostrar todas las columnas de estado. Si la URL incluye un filtro `status` explícito, el sistema MAY honrarlo para compatibilidad con enlaces existentes.
+
 Las acciones visibles al abrir el detalle dedicado de una tarea SHALL renderizarse condicionalmente según las capabilities del viewer:
 
 - Acciones de transición de `status` (Iniciar, Marcar como hecha, Reabrir) SHALL ser visibles para `admin`/`owner`, para el `authorId`, para el `responsibleId` y para cualquier usuario presente en `task_assignee` de la tarea, siempre que `canChangeStatus` sea true.
 - Acciones de transición de `visibility`, gestión de equipo, edición de contenido y borrado SHALL ser visibles SOLO cuando las capabilities existentes lo permitan.
 - La acción `Tomar posesión` SHALL respetar el contrato existente de visibilidad por rol y autoría.
 
-El panel de filtros del listado en `/tasks` SHALL exponer filtros aplicables al viewer. Para `member` regular, el filtro de `visibility` NO SHALL renderizarse como control editable porque el listado efectivo está fijado a tareas `active` visibles. Para admin/owner, el sistema MAY exponer el filtro de `visibility` si la ruta se usa como vista operativa de toda la organización. El `CreateTaskDialog` NO SHALL renderizarse en `/tasks`; la creación de tareas vive en `/admin/tasks`.
+Los controles directos del listado en `/tasks` SHALL exponer solo filtros aplicables al viewer. Para `member` regular, el filtro de `visibility` NO SHALL renderizarse como control editable porque el listado efectivo está fijado a tareas `active` visibles. Para admin/owner, el sistema MAY exponer el dropdown multiselect de `visibility` si la ruta se usa como vista operativa de toda la organización. El `CreateTaskDialog` NO SHALL renderizarse en `/tasks`; la creación de tareas vive en `/admin/tasks`.
 
 La selección de una tarea SHALL representarse mediante el segmento de URL `/tasks/[taskId]`. El query param `?taskId=<id>` deja de soportarse como mecanismo de navegación; las URLs legacy con `?taskId=` SHALL redirigir 308 a la ruta canónica equivalente según las reglas del requirement `Ruta dedicada para detalle de tarea` en `tasks-core`.
 
@@ -173,9 +175,13 @@ Todo el copy SHALL estar en español neutral en segunda persona singular `tú`, 
 - **WHEN** un `member` regular navega a `/tasks`
 - **THEN** se renderiza el mismo patrón visual con las tareas active donde es author/responsible/assignee
 
+#### Scenario: Member sin status explícito ve tablero completo de sus tareas visibles
+- **WHEN** un `member` regular navega a `/tasks` sin search param `status`
+- **THEN** la consulta no filtra por estado y el board muestra las columnas `Pendiente`, `En curso` y `Hecha`
+
 #### Scenario: Member no ve filtro editable de visibility
 - **WHEN** un `member` regular abre `/tasks`
-- **THEN** el panel de filtros no muestra opciones editables para `draft` ni `archived`
+- **THEN** los controles directos no muestran opciones editables para `draft` ni `archived`
 
 #### Scenario: Member ve acciones de status sobre tarea donde es responsable
 - **WHEN** un `member` que es `responsibleId` de una tarea selecciona esa tarea en `/tasks/<id>` y `canChangeStatus = true`

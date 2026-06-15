@@ -2,9 +2,20 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { KanbanIcon, SquaresFourIcon } from "@phosphor-icons/react";
+import {
+  CaretDownIcon,
+  CheckIcon,
+  KanbanIcon,
+  SquaresFourIcon,
+} from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { TaskListViewMode } from "@/lib/tasks/route-data";
 
 function buildHref({
@@ -31,34 +42,42 @@ export function TasksViewToggle({
   viewMode: TaskListViewMode;
 }) {
   const searchParams = useSearchParams();
+  const current =
+    viewMode === "board"
+      ? { label: "Tablero", icon: KanbanIcon }
+      : { label: "Tarjetas", icon: SquaresFourIcon };
+  const CurrentIcon = current.icon;
 
   return (
-    <div
-      className="border-border bg-muted/40 inline-flex rounded-full border p-1"
-      aria-label="Modo de visualización"
-    >
-      <Button
-        asChild
-        size="sm"
-        variant={viewMode === "board" ? "secondary" : "ghost"}
-        className="h-8 rounded-full px-3"
-      >
-        <Link href={buildHref({ basePath, searchParams, view: "board" })}>
-          <KanbanIcon />
-          Tablero
-        </Link>
-      </Button>
-      <Button
-        asChild
-        size="sm"
-        variant={viewMode === "cards" ? "secondary" : "ghost"}
-        className="h-8 rounded-full px-3"
-      >
-        <Link href={buildHref({ basePath, searchParams, view: "cards" })}>
-          <SquaresFourIcon />
-          Tarjetas
-        </Link>
-      </Button>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          aria-label="Elegir modo de visualización"
+        >
+          <CurrentIcon />
+          Vista: {current.label}
+          <CaretDownIcon />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <Link href={buildHref({ basePath, searchParams, view: "board" })}>
+            <KanbanIcon />
+            <span className="flex-1">Tablero</span>
+            {viewMode === "board" ? <CheckIcon /> : null}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={buildHref({ basePath, searchParams, view: "cards" })}>
+            <SquaresFourIcon />
+            <span className="flex-1">Tarjetas</span>
+            {viewMode === "cards" ? <CheckIcon /> : null}
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

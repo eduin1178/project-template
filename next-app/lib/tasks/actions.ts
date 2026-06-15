@@ -446,18 +446,21 @@ export async function changeTaskStatus(
     }
   }
 
-  const trimmedBody = parsed.data.commentBody.trim();
-  const commentId = randomUUID();
+  const trimmedBody = parsed.data.commentBody?.trim();
   const now = new Date();
 
   try {
     await db.transaction(async (tx) => {
-      await tx.insert(taskComment).values({
-        id: commentId,
-        taskId: parsed.data.taskId,
-        authorId: ctx.userId,
-        body: trimmedBody,
-      });
+      // El comentario justificativo es opcional: solo se inserta cuando el
+      // invocador lo provee. El drag-and-drop cambia el estado sin comentario.
+      if (trimmedBody) {
+        await tx.insert(taskComment).values({
+          id: randomUUID(),
+          taskId: parsed.data.taskId,
+          authorId: ctx.userId,
+          body: trimmedBody,
+        });
+      }
 
       const updated = await tx
         .update(task)

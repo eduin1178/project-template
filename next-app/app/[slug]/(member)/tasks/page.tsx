@@ -11,7 +11,7 @@ import {
 
 export const metadata = { title: "Mis tareas — Docentix" };
 
-const MEMBER_DEFAULT_STATUS = ["pending", "in_progress"] as TaskStatus[];
+const MEMBER_DEFAULT_STATUS = [] as TaskStatus[];
 
 export default async function WorkspaceTasksPage({
   params,

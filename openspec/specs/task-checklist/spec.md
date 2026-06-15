@@ -264,13 +264,13 @@ El sistema SHALL cargar la lista completa de items del checklist al cargar el de
 - **THEN** los items contienen `id`, `label`, `checked`, `createdAt` pero NO contienen `checkedById` ni `checkedAt`
 
 ### Requirement: UI inline del checklist en el tab `Detalle`
-El sistema SHALL renderizar el bloque `TaskChecklistPanel` como una sección visible del detalle full-page de la tarea, ubicado debajo del bloque de descripción en la columna principal. Aunque el nombre histórico del requirement menciona el tab `Detalle`, la nueva presentación ya no SHALL requerir un tab para acceder al checklist.
+El sistema SHALL renderizar el bloque `TaskChecklistPanel` dentro de un tab `Checklist` ubicado debajo del bloque de descripción en la columna principal del detalle full-page. El label del tab SHALL incluir el conteo de items del checklist. El contenido del checklist SHALL mostrarse solo cuando su tab esté activo.
 
-El render del bloque SHALL ser condicional según el estado del checklist y la capability:
+El render del contenido del tab SHALL ser condicional según el estado del checklist y la capability:
 
-- Si NO hay items Y `canManageChecklist = false`: el bloque NO SHALL renderizarse o SHALL mostrarse como estado vacío mínimo solo si el diseño necesita balance visual; no debe introducir ruido operativo.
-- Si NO hay items Y `canManageChecklist = true`: el bloque SHALL renderizarse con título `Checklist` y un input `Agrega un item` o equivalente.
-- Si hay items: el bloque SHALL renderizarse con título `Checklist`, la lista de items en orden `createdAt ASC`, y si `canManageChecklist = true`, un input para agregar item al final.
+- Si NO hay items Y `canManageChecklist = false`: el tab SHALL mostrar un estado vacío mínimo sin controles accionables.
+- Si NO hay items Y `canManageChecklist = true`: el tab SHALL renderizar el título `Checklist` y un input `Agrega un item` o equivalente.
+- Si hay items: el tab SHALL renderizar la lista de items en orden `createdAt ASC`, y si `canManageChecklist = true`, un input para agregar item al final.
 
 Cada fila de item SHALL mostrar un checkbox y el `label`. El comportamiento por fila depende de `canManageChecklist`:
 
@@ -279,21 +279,21 @@ Cada fila de item SHALL mostrar un checkbox y el `label`. El comportamiento por 
 
 Todo el copy SHALL usar español neutral en segunda persona singular `tú` (ej. `Checklist`, `Agrega un item`, `Elimina`); NO SHALL usar voseo.
 
-#### Scenario: Bloque oculto sin items ni capability
-- **WHEN** un viewer abre una tarea con checklist vacío y `canManageChecklist = false`
-- **THEN** el detalle muestra la descripción y no introduce controles de checklist accionables
+#### Scenario: Checklist accesible desde su tab
+- **WHEN** un viewer abre el detalle y selecciona el tab `Checklist`
+- **THEN** el tab muestra el contenido del checklist según la capability del viewer
 
-#### Scenario: Bloque con input de agregar para viewer con capability sin items
-- **WHEN** un viewer con `canManageChecklist = true` abre una tarea con checklist vacío
-- **THEN** el detalle muestra el bloque `Checklist` con un input para agregar item
+#### Scenario: Tab con input de agregar para viewer con capability sin items
+- **WHEN** un viewer con `canManageChecklist = true` abre el tab `Checklist` de una tarea con checklist vacío
+- **THEN** el tab muestra el título `Checklist` con un input para agregar item
 
-#### Scenario: Bloque solo-lectura para viewer sin capability
-- **WHEN** un viewer con `canManageChecklist = false` abre una tarea que tiene tres items en su checklist
-- **THEN** el bloque `Checklist` se renderiza con los tres items, checkboxes deshabilitados, sin edición inline ni botón eliminar, sin input para agregar item
+#### Scenario: Tab solo-lectura para viewer sin capability
+- **WHEN** un viewer con `canManageChecklist = false` abre el tab `Checklist` de una tarea que tiene tres items
+- **THEN** el tab se renderiza con los tres items, checkboxes deshabilitados, sin edición inline ni botón eliminar, sin input para agregar item
 
-#### Scenario: Bloque interactivo para viewer con capability
-- **WHEN** un viewer con `canManageChecklist = true` abre una tarea con dos items
-- **THEN** el bloque `Checklist` muestra los dos items con checkboxes interactivos, labels editables, botones eliminar y un input para agregar item
+#### Scenario: Tab interactivo para viewer con capability
+- **WHEN** un viewer con `canManageChecklist = true` abre el tab `Checklist` de una tarea con dos items
+- **THEN** el tab muestra los dos items con checkboxes interactivos, labels editables, botones eliminar y un input para agregar item
 
 #### Scenario: Click en checkbox dispara toggle
 - **WHEN** un viewer con `canManageChecklist = true` hace click en el checkbox de un item destildado

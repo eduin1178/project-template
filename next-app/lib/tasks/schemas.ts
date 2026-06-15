@@ -56,23 +56,21 @@ export const transitionStatusSchema = z.object({
   to: taskStatusSchema,
 });
 
-export const STATUS_CHANGE_COMMENT_MIN = 30;
 export const STATUS_CHANGE_COMMENT_MAX = 2000;
 
 export const changeTaskStatusSchema = z.object({
   taskId: taskIdSchema,
   newStatus: taskStatusSchema,
+  // El comentario justificativo es OPCIONAL: el drag-and-drop cambia el estado
+  // sin comentario; el diálogo del detalle lo ofrece pero no lo obliga.
   commentBody: z
     .string()
     .trim()
-    .min(
-      STATUS_CHANGE_COMMENT_MIN,
-      `Justifica el cambio con al menos ${STATUS_CHANGE_COMMENT_MIN} caracteres.`,
-    )
     .max(
       STATUS_CHANGE_COMMENT_MAX,
       `El comentario no puede superar los ${STATUS_CHANGE_COMMENT_MAX} caracteres.`,
-    ),
+    )
+    .optional(),
 });
 
 export const claimAuthorshipSchema = z.object({

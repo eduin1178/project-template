@@ -235,21 +235,21 @@ El sistema SHALL extender `TaskCapabilities` con un campo `canUploadDocument: bo
 - **THEN** solo los documentos cuyo `uploaderId` coincida con el viewer viajan con `canDelete = true`; los demás con `canDelete = false`
 
 ### Requirement: Tab "Documentos" en `TaskDetailPane`
-El sistema SHALL renderizar documentos adjuntos como una sección visible del detalle full-page de la tarea. Aunque el nombre histórico del requirement menciona el tab `Documentos`, la nueva presentación NO SHALL requerir un tab para acceder a documentos. La sección SHALL mostrar un título `Documentos adjuntos` o equivalente, un contador cuando existan documentos y el panel `TaskDocumentsPanel` con la lista y acciones permitidas.
+El sistema SHALL renderizar documentos adjuntos dentro de un tab `Documentos` ubicado debajo del bloque de descripción en la columna principal del detalle full-page, junto al tab `Checklist`. El label del tab SHALL incluir el conteo de documentos cuando existan. El tab SHALL mostrar el panel `TaskDocumentsPanel` con la lista y acciones permitidas, visible solo cuando su tab esté activo.
 
-La sección SHALL recibir la lista de documentos con sus campos proyectados, el flag `canUploadDocument` y los identificadores necesarios para invocar las server actions. En desktop, la sección SHALL ubicarse en la columna principal debajo del checklist; en mobile, SHALL mantener el mismo orden dentro del flujo vertical.
+El tab SHALL recibir la lista de documentos con sus campos proyectados, el flag `canUploadDocument` y los identificadores necesarios para invocar las server actions. Tanto en desktop como en mobile, documentos y checklist SHALL compartir el mismo control de tabs; el orden de los tabs SHALL ser estable (`Checklist` primero, `Documentos` después).
 
-#### Scenario: Documentos visibles para cualquier viewer del detalle
-- **WHEN** un viewer autorizado abre el detalle full-page de una tarea
-- **THEN** la sección de documentos se muestra dentro del contenido principal cuando corresponda, sin exigir navegación por tabs
+#### Scenario: Documentos accesibles desde su tab
+- **WHEN** un viewer autorizado abre el detalle y selecciona el tab `Documentos`
+- **THEN** el tab muestra el panel de documentos con la lista y acciones permitidas
 
-#### Scenario: Contador refleja el total de documentos
+#### Scenario: Contador refleja el total de documentos en el label del tab
 - **WHEN** una tarea tiene tres documentos asociados
-- **THEN** la sección muestra un contador o etiqueta equivalente que comunica que hay 3 documentos
+- **THEN** el label del tab `Documentos` comunica que hay 3 documentos
 
 #### Scenario: Estado vacío cuando no hay documentos
-- **WHEN** una tarea no tiene documentos
-- **THEN** la sección o el panel muestra un estado vacío claro según las reglas de `TaskDocumentsPanel`
+- **WHEN** una tarea no tiene documentos y el viewer abre el tab `Documentos`
+- **THEN** el panel muestra un estado vacío claro según las reglas de `TaskDocumentsPanel`
 
 ### Requirement: UI del panel `TaskDocumentsPanel`
 El sistema SHALL renderizar dentro de la sección de documentos un panel con los siguientes elementos: (a) un botón `Adjuntar documento` arriba que abre un selector de archivos del sistema operativo; el botón SHALL estar oculto si `canUploadDocument` es false. (b) Una lista de documentos ordenados por `createdAt DESC` (más reciente arriba). (c) Cada fila SHALL mostrar icono coherente con la extensión, `fileName`, tamaño formateado (`X KB` o `X.Y MB`), línea `Subido por {nombre del uploader o Usuario eliminado} hace {timestamp relativo}`, botón `Descargar` y botón `Eliminar` condicional al campo `canDelete` proyectado. (d) Un estado vacío con el texto exacto `Aún no hay documentos adjuntos.` cuando no hay documentos. Todo el copy SHALL usar español neutral en segunda persona singular `tú`, sin voseo.

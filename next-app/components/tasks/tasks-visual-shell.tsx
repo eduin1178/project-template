@@ -1,5 +1,4 @@
-import { TasksFiltersPanel } from "@/components/tasks/tasks-filters-panel";
-import { FiltersTrigger } from "@/components/tasks/tasks-shell";
+import { TasksVisibilityFilter } from "@/components/tasks/tasks-visibility-filter";
 import { TasksViewToggle } from "@/components/tasks/tasks-view-toggle";
 import { TasksVisualList } from "@/components/tasks/tasks-visual-list";
 import {
@@ -30,15 +29,6 @@ export function TasksVisualShell({
   viewMode: TaskListViewMode;
   listHeader?: React.ReactNode;
 }) {
-  const filtersPanel = (
-    <TasksFiltersPanel
-      initialVisibility={initialVisibility}
-      initialStatus={initialStatus}
-      counts={counts}
-      basePath={basePath}
-      showVisibility={showVisibility}
-    />
-  );
   const title = basePath.endsWith("/admin/tasks") ? "Tareas" : "Mis tareas";
   const description = basePath.endsWith("/admin/tasks")
     ? "Organiza y da seguimiento a las tareas de tu institución."
@@ -52,9 +42,14 @@ export function TasksVisualShell({
           <p className="text-muted-foreground text-sm">{description}</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-          <FiltersTrigger activeCount={activeFiltersCount}>
-            {filtersPanel}
-          </FiltersTrigger>
+          {showVisibility ? (
+            <TasksVisibilityFilter
+              initialVisibility={initialVisibility}
+              counts={counts}
+              basePath={basePath}
+              activeCount={activeFiltersCount}
+            />
+          ) : null}
           <TasksViewToggle basePath={basePath} viewMode={viewMode} />
           {listHeader}
         </div>

@@ -153,49 +153,49 @@ El sistema SHALL rechazar la transición `draft → active` (o `archived → act
 
 ### Requirement: Transición de `status`
 
-El sistema SHALL exponer una server action `changeTaskStatus(taskId, newStatus, commentBody)` que es la ÚNICA vía para mutar `task.status`. La action SHALL ejecutarse dentro de una transacción de base de datos atómica y SHALL realizar, en este orden, dentro de la misma transacción:
+El sistema SHALL exponer una server action `changeTaskStatus(taskId, newStatus, commentBody?)` que es la ÚNICA vía para mutar `task.status`. La action SHALL ejecutarse dentro de una transacción de base de datos atómica y SHALL realizar, en este orden, dentro de la misma transacción:
 
 1. Validar autorización del invocador (definida en `task-assignments` para el detalle de qué viewer puede invocar y bajo qué condiciones de vencimiento).
 2. Validar que `newStatus` es alcanzable desde el `status` actual. La regla SHALL permitir libremente cualquier par de transiciones EXCEPTO la transición directa `pending → done`.
-3. Validar que `commentBody`, tras `trim`, tenga al menos 30 caracteres y a lo sumo 2000.
-4. Insertar una fila en `task_comment` con `authorId = invocador.id`, `taskId = taskId`, `body = commentBody.trim()` y `createdAt = NOW()`.
-5. Actualizar `task.status = newStatus` y refrescar `task.updatedAt`.
+3. Si se recibe `commentBody` y, tras `trim`, no queda vacío, SHALL validar que tenga a lo sumo 2000 caracteres e insertar una fila en `task_comment` con `authorId = invocador.id`, `taskId = taskId`, `body = commentBody.trim()` y `createdAt = NOW()`. Si `commentBody` está ausente o queda vacío tras `trim`, NO SHALL insertar comentario.
+4. Actualizar `task.status = newStatus` y refrescar `task.updatedAt`.
 
-Si CUALQUIER paso falla, la transacción SHALL hacer rollback completo: ni el comentario ni el cambio de `status` SHALL persistirse. La base de datos SHALL aplicar un CHECK constraint sobre los valores permitidos del enum de `status` sin codificar la regla de transición ni la de comentario; ambas viven en la action.
+Si CUALQUIER paso falla, la transacción SHALL hacer rollback completo: ni el comentario (cuando aplique) ni el cambio de `status` SHALL persistirse. La base de datos SHALL aplicar un CHECK constraint sobre los valores permitidos del enum de `status` sin codificar la regla de transición; esa regla vive en la action.
 
-La acción NO SHALL aceptar formas de cambiar `status` sin `commentBody`, ni siquiera para `admin` u `owner`: la justificación textual es un requisito universal de trazabilidad.
+El `commentBody` SHALL ser opcional para todos los roles. La justificación textual es un mecanismo de trazabilidad DISPONIBLE pero NO obligatorio.
 
-#### Scenario: Transición válida con comentario válido
-- **WHEN** un admin invoca `changeTaskStatus` con `taskId` de una tarea `pending`, `newStatus = "in_progress"` y `commentBody = "Arranco la revisión del contrato hoy"` (más de 30 chars)
+#### Scenario: Transición válida con comentario
+- **WHEN** un usuario invoca `changeTaskStatus` con `taskId` de una tarea `pending`, `newStatus = "in_progress"` y `commentBody = "Arranco la revisión del contrato hoy"`
 - **THEN** se inserta una fila en `task_comment` con ese body y `task.status` queda en `in_progress` en la misma transacción
 
+#### Scenario: Transición válida sin comentario
+- **WHEN** un usuario invoca `changeTaskStatus` con `newStatus = "in_progress"` y sin `commentBody`
+- **THEN** `task.status` queda en `in_progress` y NO se inserta ninguna fila en `task_comment`
+
 #### Scenario: Transición bloqueada pending → done
-- **WHEN** un admin invoca `changeTaskStatus` con `task.status = "pending"`, `newStatus = "done"` y `commentBody` válido
+- **WHEN** un usuario invoca `changeTaskStatus` con `task.status = "pending"` y `newStatus = "done"`
 - **THEN** la acción falla con error de validación; ni el comentario ni el status se persisten
 
-#### Scenario: Comentario menor a 30 caracteres
-- **WHEN** un admin invoca `changeTaskStatus` con `commentBody = "ok"` (post-trim 2 chars)
-- **THEN** la acción falla con error de validación indicando el mínimo de 30 caracteres; ni el comentario ni el status se persisten
-
-#### Scenario: Comentario con solo espacios
-- **WHEN** un admin invoca `changeTaskStatus` con `commentBody` que post-trim queda vacío
-- **THEN** la acción falla con error de validación
-
 #### Scenario: Comentario excede 2000 caracteres
-- **WHEN** un admin invoca `changeTaskStatus` con `commentBody` de 2001 caracteres post-trim
+- **WHEN** un usuario invoca `changeTaskStatus` con `commentBody` de 2001 caracteres post-trim
 - **THEN** la acción falla con error de validación
-
-#### Scenario: Rollback al fallar inserción de comentario
-- **WHEN** la inserción de `task_comment` falla por error de base (por ejemplo, constraint inesperada) durante una invocación válida
-- **THEN** la transacción hace rollback y `task.status` permanece inalterado
 
 #### Scenario: Rollback al fallar update de status
-- **WHEN** el `UPDATE` sobre `task` falla durante una invocación válida tras insertar el comentario en la misma transacción
+- **WHEN** el `UPDATE` sobre `task` falla durante una invocación válida con comentario tras insertar el comentario en la misma transacción
 - **THEN** la transacción hace rollback y la fila de `task_comment` no queda persistida
 
-#### Scenario: Admin debe proveer comentario
-- **WHEN** un admin invoca `changeTaskStatus` sin `commentBody` o con `commentBody = null`
-- **THEN** la acción falla con error de validación; el rol admin NO exime del requisito de justificación
+### Requirement: Cambio de status desde drag-and-drop usa acción existente
+El sistema SHALL tratar cualquier cambio de estado iniciado por drag-and-drop como una invocación de la server action existente `changeTaskStatus(taskId, newStatus)`. Ningún componente de UI, endpoint alternativo ni acción nueva SHALL mutar `task.status` directamente como resultado de un drop sin pasar por la action.
+
+El drag-and-drop NO SHALL exigir comentario: invoca `changeTaskStatus` sin `commentBody`. La autorización, reglas de transición, bloqueo de `pending → done` y gate de vencimiento SHALL seguir rigiéndose por los requirements de `changeTaskStatus` y sus capabilities relacionadas.
+
+#### Scenario: Drag-and-drop no crea vía alternativa de mutación
+- **WHEN** una card se suelta sobre una columna de estado diferente y válida
+- **THEN** la mutación real de `task.status` ocurre exclusivamente mediante `changeTaskStatus`
+
+#### Scenario: Drag-and-drop no requiere comentario
+- **WHEN** un usuario suelta una card en otra columna de estado válida
+- **THEN** el estado cambia sin solicitar ni exigir un comentario justificativo
 
 ### Requirement: Default de `dueAt` en `CreateTaskDialog`
 
@@ -297,15 +297,25 @@ Antes de ejecutar el `DELETE FROM task ...`, la acción SHALL leer todos los `ta
 
 ### Requirement: UI mínima en `/admin` con copy en español neutral
 
-El sistema SHALL exponer una sub-vista bajo `/admin/tasks` con: (a) listado de tareas de la organización con controles para filtrar por `visibility` y `status`, (b) acción para crear una nueva tarea (form con `title`, `description`, `dueAt` opcional, `visibility` inicial), (c) edición y transiciones desde el detalle/fila, (d) acción "Tomar posesión" visible para admins/owners distintos del autor. Todo el copy de UI SHALL usar español neutral en segunda persona singular `tú` (ej. "Crea", "Selecciona", "Elige"); NO SHALL usar voseo ni otras formas regionales.
+El sistema SHALL exponer una sub-vista bajo `/admin/tasks` con: (a) listado de tareas de la organización con control directo para filtrar por `visibility` cuando aplique, (b) acción para crear una nueva tarea (form con `title`, `description`, `dueAt` opcional, `visibility` inicial), (c) edición y transiciones desde el detalle/fila, (d) acción "Tomar posesión" visible para admins/owners distintos del autor. Todo el copy de UI SHALL usar español neutral en segunda persona singular `tú` (ej. "Crea", "Selecciona", "Elige"); NO SHALL usar voseo ni otras formas regionales.
+
+El listado admin SHALL NO aplicar filtro de `status` por defecto cuando la URL no incluya `status`. El tablero SHALL mostrar todas las columnas por estado en esa condición. Si la URL incluye un filtro `status` explícito, el sistema MAY honrarlo para compatibilidad con enlaces existentes, pero el control primario visible del listado SHALL ser el filtro de `visibility`.
 
 #### Scenario: Acceso a /admin/tasks
 - **WHEN** un admin u owner navega a `/admin/tasks`
-- **THEN** se renderiza el listado con sus controles de filtro y la acción de crear
+- **THEN** se renderiza el listado con el control directo de `visibility` aplicable y la acción de crear
 
 #### Scenario: Acceso denegado a member
 - **WHEN** un `member` regular navega a `/admin/tasks`
 - **THEN** se le redirige fuera del panel admin (consistente con el resto de rutas `/admin/*`)
+
+#### Scenario: Admin sin status explícito ve todas las tareas
+- **WHEN** un admin navega a `/admin/tasks` sin search param `status`
+- **THEN** la consulta de listado no filtra por `status` y el tablero muestra todas las columnas
+
+#### Scenario: Status explícito se conserva por compatibilidad
+- **WHEN** un admin navega a `/admin/tasks?status=in_progress`
+- **THEN** el listado puede limitarse a tareas en curso y el tablero muestra la columna correspondiente
 
 #### Scenario: Copy en español neutral
 - **WHEN** se inspecciona el copy visible en `/admin/tasks` (botones, labels, placeholders, mensajes de error)
@@ -411,6 +421,8 @@ El sistema SHALL exponer la ruta `/tasks/[taskId]` y `/admin/tasks/[taskId]` com
 
 La selección de una tarea desde el listado visual SHALL navegar al segmento dinámico (`/tasks/<id>` o `/admin/tasks/<id>`), preservando los searchParams existentes, incluyendo filtros y modo de vista (`view=board|cards`). Volver al listado SHALL navegar a la ruta base correspondiente preservando los searchParams vigentes.
 
+El control visual para volver al listado SHALL estar integrado dentro de la card principal/header del detalle full-page. Si se renderiza como botón compacto o solo icono, SHALL tener nombre accesible equivalente a `Volver al listado`.
+
 El sistema NO SHALL leer el query param `?taskId=` como mecanismo de selección. Si una URL legacy con `?taskId=<id>` llega al servidor, el handler SHALL redirigir con HTTP 308 a la ruta canónica equivalente (`/tasks?taskId=X` → `/tasks/X`, `/admin/tasks?taskId=X` → `/admin/tasks/X`), preservando el resto de los searchParams.
 
 #### Scenario: Click en tarjeta navega a /tasks/[taskId]
@@ -437,36 +449,34 @@ El sistema NO SHALL leer el query param `?taskId=` como mecanismo de selección.
 - **WHEN** un usuario en `/tasks/<id>?view=cards&status=in_progress` invoca la acción de volver al listado
 - **THEN** el navegador navega a `/tasks?view=cards&status=in_progress`
 
+#### Scenario: Botón volver está dentro de la card principal
+- **WHEN** un usuario abre `/tasks/<id>` o `/admin/tasks/<id>`
+- **THEN** la acción para volver al listado aparece dentro del header/card principal del detalle con nombre accesible
+
 ### Requirement: Panel de filtros unificado
-El sistema SHALL renderizar el control de filtros de tareas (en `/tasks` y en `/admin/tasks`) mediante un único punto de entrada en todos los viewports: un botón `Filtros` ubicado en la barra superior del listado visual, que al pulsarse abre un componente `Sheet` o panel equivalente con los filtros aplicables.
+El sistema SHALL NO depender de un panel `Sheet` o modal como punto principal para filtrar tareas en `/tasks` ni en `/admin/tasks`. La barra superior del listado visual SHALL renderizar controles directos y compactos: un dropdown multiselect de `visibility` cuando sea aplicable y un dropdown único para elegir el modo de vista (`board` o `cards`).
 
-El sistema NO SHALL renderizar un panel lateral permanente (`aside`) de filtros en ningún viewport. El comportamiento es idéntico en mobile, tablet y desktop.
+El estado seleccionado de `visibility` SHALL reflejarse visualmente en el trigger del dropdown, por ejemplo mediante etiqueta resumida o conteo. El sistema SHALL preservar submit por interacción y persistencia en URL. El filtro de `visibility` SHALL mostrarse solo cuando sea aplicable según permisos efectivos del viewer.
 
-El contenido y la semántica de los filtros SHALL preservar submit por interacción, persistencia en URL y etiquetas de conteo. El estado seleccionado SHALL reflejarse visualmente en el botón `Filtros` cuando hay al menos un filtro distinto del default activo, mediante un badge con el conteo de filtros activos. El filtro de `visibility` SHALL mostrarse solo cuando sea aplicable según permisos efectivos del viewer.
-
-#### Scenario: Desktop NO muestra filtros como columna lateral
+#### Scenario: Desktop NO muestra Sheet de filtros
 - **WHEN** un usuario en viewport ≥1024px abre `/tasks` o `/admin/tasks`
-- **THEN** NO se renderiza un `aside` de filtros visible; el botón `Filtros` aparece en la barra superior del listado visual
+- **THEN** NO se renderiza un `Sheet` de filtros como punto principal; los controles directos aparecen en la barra superior del listado visual
 
-#### Scenario: Mobile muestra botón Filtros que abre Sheet
+#### Scenario: Mobile usa controles directos alcanzables
 - **WHEN** un usuario en viewport <768px abre `/tasks` o `/admin/tasks`
-- **THEN** se muestra un botón `Filtros` en la barra del listado que, al pulsarse, abre un `Sheet` lateral o inferior con los filtros aplicables
+- **THEN** los controles directos de visibilidad y vista son visibles o alcanzables desde la barra del listado y tienen tamaño táctil adecuado
 
-#### Scenario: Botón Filtros visible en todos los viewports
-- **WHEN** un usuario abre `/tasks` o `/admin/tasks` en cualquier viewport
-- **THEN** el botón `Filtros` está presente en la barra superior del listado visual
+#### Scenario: Visibilidad activa reflejada en dropdown
+- **WHEN** un usuario aplica al menos un filtro de `visibility`
+- **THEN** el trigger del dropdown de visibilidad refleja que hay selección activa
 
-#### Scenario: Filtros activos reflejados en el botón
-- **WHEN** un usuario aplica al menos un filtro distinto del default
-- **THEN** el botón `Filtros` muestra un badge con el conteo de filtros activos
-
-#### Scenario: Aplicar filtros actualiza URL y cierra Sheet
-- **WHEN** un usuario abre el panel de filtros, selecciona una opción y la confirma
-- **THEN** la URL se actualiza con los searchParams correspondientes, la lista se refresca y el panel se cierra
+#### Scenario: Aplicar visibilidad actualiza URL
+- **WHEN** un usuario selecciona o deselecciona una opción de `visibility`
+- **THEN** la URL se actualiza con los searchParams correspondientes y la lista se refresca
 
 #### Scenario: Copy en español neutral
-- **WHEN** se inspecciona el copy del botón y el panel de filtros
-- **THEN** todas las cadenas usan formas neutras (`tú`, `Filtros`, `Aplica`, `Cierra`) y NO contienen voseo
+- **WHEN** se inspecciona el copy de los controles directos
+- **THEN** todas las cadenas usan formas neutras (`tú`, `Visibilidad`, `Vista`, `Tablero`, `Tarjetas`) y NO contienen voseo
 
 ### Requirement: Helper interno `createTaskInternal` sin guard de autorización
 
@@ -493,9 +503,19 @@ La server action pública `createTask` SHALL mantener su guard `requireOrgAdmin`
 - **THEN** la fila se persiste con `visibility = "active"`; la regla de "dueAt y responsibleId obligatorios al activar" se cumple por construcción del payload
 
 ### Requirement: Presentación full-page del detalle de tarea
-El sistema SHALL renderizar el detalle de una tarea como página dedicada con composición responsive. El detalle SHALL incluir: header con título y acciones permitidas, badges de `visibility` y `status`, vencimiento, responsable/equipo, descripción, checklist, documentos adjuntos y comentarios.
+El sistema SHALL renderizar el detalle de una tarea como página dedicada con composición responsive. El detalle SHALL incluir: header con título, badges de `visibility` y `status`, vencimiento, responsable/equipo, descripción, checklist, documentos adjuntos y comentarios.
 
-En desktop amplio, el contenido SHALL usar una composición de dos zonas: columna principal para descripción, checklist y documentos; columna secundaria para comentarios. En tablet y mobile, todas las secciones SHALL fluir en una sola columna en orden lógico: header, metadatos, descripción, checklist, documentos y comentarios. Las acciones SHALL seguir renderizándose condicionalmente según `TaskCapabilities`.
+Las acciones permitidas según `TaskCapabilities` SHALL consolidarse en una sola fuente, alineadas a la derecha en la MISMA línea que muestra los metadatos (`visibility`, `status`, vencimiento). Las acciones primarias contextuales (transición de estado y, cuando aplique, la transición de visibilidad primaria) SHALL renderizarse como botones; el resto de acciones SHALL agruparse en un único menú de overflow. NO SHALL existir un segundo conjunto duplicado de las mismas acciones en el header.
+
+Checklist y documentos SHALL presentarse como pestañas (tabs) ubicadas debajo del bloque de descripción en la columna principal, con el conteo en el label de cada tab. En desktop amplio, el contenido SHALL usar una composición de dos zonas: columna principal para descripción y las tabs de checklist/documentos; columna secundaria para comentarios. En tablet y mobile, todas las secciones SHALL fluir en una sola columna en orden lógico: header, metadatos y acciones, descripción, tabs (checklist/documentos) y comentarios.
+
+#### Scenario: Acciones en la línea de metadatos
+- **WHEN** un viewer con capability de cambiar estado abre el detalle
+- **THEN** la acción de estado se muestra como botón alineado a la derecha en la línea de metadatos, no en una fila separada ni duplicada en el header
+
+#### Scenario: Checklist y documentos como tabs
+- **WHEN** un usuario abre el detalle de una tarea con checklist y documentos
+- **THEN** ve un control de tabs bajo la descripción con `Checklist` y `Documentos`, cada uno con su conteo, y solo el contenido del tab activo
 
 #### Scenario: Desktop muestra detalle con comentarios laterales
 - **WHEN** un usuario abre `/tasks/<id>` o `/admin/tasks/<id>` en desktop amplio
@@ -503,12 +523,8 @@ En desktop amplio, el contenido SHALL usar una composición de dos zonas: column
 
 #### Scenario: Mobile muestra detalle en flujo vertical
 - **WHEN** un usuario abre el detalle en mobile
-- **THEN** descripción, checklist, documentos y comentarios se muestran en una sola columna legible
+- **THEN** metadatos con acciones, descripción, tabs de checklist/documentos y comentarios se muestran en una sola columna legible sin romper el layout
 
 #### Scenario: Header conserva acciones por capabilities
 - **WHEN** un viewer no tiene `canEditContent` ni `canEditDueAt`
 - **THEN** el detalle no muestra el botón `Editar`, aunque el layout full-page esté activo
-
-#### Scenario: Detalle muestra metadatos esenciales
-- **WHEN** un usuario abre el detalle de una tarea
-- **THEN** ve título, status, visibility, vencimiento y responsable o ausencia de responsable sin entrar en tabs

@@ -8,6 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
   type TaskStatus,
   type TaskVisibility,
 } from "@/lib/db/schema/task";
@@ -29,7 +35,6 @@ import {
 import { TaskCommentsPanel } from "./task-comments-panel";
 import { TaskDetailActions } from "./task-detail-actions";
 import { TaskDocumentsPanel } from "./task-documents-panel";
-import { TaskRowActions } from "./task-row-actions";
 import { TaskTeamSummary } from "./task-team-summary";
 import { UserAvatar } from "./user-avatar";
 
@@ -124,18 +129,19 @@ export function TaskFullPageDetail({
 
   return (
     <div className="space-y-5 pb-8">
-      <div>
-        <Button asChild variant="ghost" size="sm">
-          <Link href={backHref}>
-            <ArrowLeftIcon />
-            Volver al listado
-          </Link>
-        </Button>
-      </div>
-
       <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
         <header className="flex flex-col gap-4 p-4 lg:flex-row lg:items-start lg:justify-between lg:p-5">
           <div className="flex min-w-0 items-start gap-3">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon-sm"
+              className="-mt-1 shrink-0"
+            >
+              <Link href={backHref} aria-label="Volver al listado">
+                <ArrowLeftIcon />
+              </Link>
+            </Button>
             <UserAvatar
               name={task.authorName}
               email={task.authorEmail}
@@ -175,21 +181,10 @@ export function TaskFullPageDetail({
                 </Button>
               </>
             ) : null}
-            <Separator orientation="vertical" className="hidden h-7 lg:block" />
-            <TaskRowActions
-              task={{
-                id: task.id,
-                visibility,
-                status,
-                dueAt: task.dueAt,
-                responsibleId: task.responsibleId,
-              }}
-              capabilities={capabilities}
-            />
           </div>
         </header>
 
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t px-4 py-3 lg:px-5">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 border-t px-4 py-3 lg:px-5">
           <Badge variant={VISIBILITY_VARIANT[visibility]}>
             {VISIBILITY_LABEL[visibility]}
           </Badge>
@@ -200,12 +195,24 @@ export function TaskFullPageDetail({
             <Badge variant="destructive">Plazo vencido</Badge>
           ) : null}
           <Separator orientation="vertical" className="mx-2 hidden h-4 lg:block" />
-          <div className="text-muted-foreground basis-full text-xs lg:basis-auto">
+          <div className="text-muted-foreground text-xs">
             {task.dueAt ? (
               <>Plazo: {formatDateLong(task.dueAt)}</>
             ) : (
               <>Sin plazo definido</>
             )}
+          </div>
+          <div className="ml-auto">
+            <TaskDetailActions
+              task={{
+                id: task.id,
+                visibility,
+                status,
+                dueAt: task.dueAt,
+                responsibleId: task.responsibleId,
+              }}
+              capabilities={capabilities}
+            />
           </div>
         </div>
 
@@ -217,17 +224,6 @@ export function TaskFullPageDetail({
             autor que extienda el plazo o cambie el estado.
           </div>
         ) : null}
-
-        <TaskDetailActions
-          task={{
-            id: task.id,
-            visibility,
-            status,
-            dueAt: task.dueAt,
-            responsibleId: task.responsibleId,
-          }}
-          capabilities={capabilities}
-        />
       </section>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_26rem]">
@@ -246,38 +242,53 @@ export function TaskFullPageDetail({
             </div>
           </SectionCard>
 
-          <SectionCard title="Checklist" count={checklistItems.length}>
-            <TaskChecklistProvider
-              taskId={task.id}
-              items={checklistItems}
-              canManageChecklist={capabilities.canManageChecklist}
-            >
-              <div className="px-4 py-4 lg:px-5">
-                <TaskChecklistList />
-                {checklistItems.length === 0 &&
-                !capabilities.canManageChecklist ? (
-                  <p className="text-muted-foreground text-sm italic">
-                    Esta tarea no tiene checklist.
-                  </p>
-                ) : null}
+          <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+            <Tabs defaultValue="checklist" className="gap-0">
+              <div className="border-b px-4 py-3 lg:px-5">
+                <TabsList>
+                  <TabsTrigger value="checklist">
+                    Checklist · {checklistItems.length}
+                  </TabsTrigger>
+                  <TabsTrigger value="documents">
+                    Documentos · {documents.length}
+                  </TabsTrigger>
+                </TabsList>
               </div>
-              {capabilities.canManageChecklist ? (
-                <div className="border-t bg-background p-3">
-                  <TaskChecklistAddForm />
-                </div>
-              ) : null}
-            </TaskChecklistProvider>
-          </SectionCard>
 
-          <SectionCard title="Documentos adjuntos" count={documents.length}>
-            <div className="h-[28rem]">
-              <TaskDocumentsPanel
-                taskId={task.id}
-                documents={documents}
-                canUploadDocument={capabilities.canUploadDocument}
-              />
-            </div>
-          </SectionCard>
+              <TabsContent value="checklist" className="min-h-112">
+                <TaskChecklistProvider
+                  taskId={task.id}
+                  items={checklistItems}
+                  canManageChecklist={capabilities.canManageChecklist}
+                >
+                  <div className="px-4 py-4 lg:px-5">
+                    <TaskChecklistList />
+                    {checklistItems.length === 0 &&
+                    !capabilities.canManageChecklist ? (
+                      <p className="text-muted-foreground text-sm italic">
+                        Esta tarea no tiene checklist.
+                      </p>
+                    ) : null}
+                  </div>
+                  {capabilities.canManageChecklist ? (
+                    <div className="border-t bg-background p-3">
+                      <TaskChecklistAddForm />
+                    </div>
+                  ) : null}
+                </TaskChecklistProvider>
+              </TabsContent>
+
+              <TabsContent value="documents" className="min-h-112">
+                <div className="h-112">
+                  <TaskDocumentsPanel
+                    taskId={task.id}
+                    documents={documents}
+                    canUploadDocument={capabilities.canUploadDocument}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </section>
         </div>
 
         <aside className="min-w-0">

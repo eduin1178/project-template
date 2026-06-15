@@ -15,20 +15,17 @@ import {
   type TaskCounts,
   type TaskListItem,
 } from "@/lib/tasks/queries";
+import {
+  parseTaskListViewMode,
+  type TaskListViewMode,
+  type TasksRouteSearchParams,
+} from "@/lib/tasks/route-params";
 
-export type TasksRouteSearchParams = Record<
-  string,
-  string | string[] | undefined
->;
-
-export type TaskListViewMode = "board" | "cards";
-
-export function parseTaskListViewMode(
-  raw: string | string[] | undefined,
-): TaskListViewMode {
-  const value = Array.isArray(raw) ? raw[0] : raw;
-  return value === "cards" ? "cards" : "board";
-}
+export { countActiveFilters, parseTaskListViewMode } from "@/lib/tasks/route-params";
+export type {
+  TaskListViewMode,
+  TasksRouteSearchParams,
+} from "@/lib/tasks/route-params";
 
 function parseMulti<T extends string>(
   raw: string | string[] | undefined,
@@ -50,14 +47,14 @@ export type LoadedTasksRoute = {
 };
 
 /**
- * Carga la data común para las rutas de bandeja de tareas (`/tasks` y `/admin/tasks`).
+ * Carga la data comun para las rutas de bandeja de tareas (`/tasks` y `/admin/tasks`).
  *
  * - Para admins: lista todas las tareas con filtros de visibility y status.
  * - Para members: lista solo tareas active donde participan, con filtro de status.
  *
- * El default de `status` cuando la key NO está presente en la URL difiere por scope:
- * - admin (`/admin/tasks`): `["pending"]`
- * - member (`/tasks`): `["pending", "in_progress"]`
+ * El default de `status` cuando la key NO esta presente en la URL se recibe
+ * desde la ruta. Para el tablero visual, las rutas base pasan `[]` para que
+ * ausencia de `status` signifique "sin filtro de estado".
  *
  * Pasar `defaultStatus` para sobreescribir.
  */
@@ -113,18 +110,4 @@ export function preservedQuery(params: TasksRouteSearchParams): string {
   }
   const qs = out.toString();
   return qs ? `?${qs}` : "";
-}
-
-/**
- * Cuenta los searchParams "activos" (no triviales) para mostrar un badge
- * en el botón de filtros mobile. Solo cuenta keys conocidas.
- */
-export function countActiveFilters(params: TasksRouteSearchParams): number {
-  let n = 0;
-  for (const key of ["visibility", "status"] as const) {
-    const v = params[key];
-    if (typeof v === "string" && v.length > 0) n += v.split(",").length;
-    else if (Array.isArray(v)) n += v.length;
-  }
-  return n;
 }
