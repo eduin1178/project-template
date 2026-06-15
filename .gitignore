@@ -1,0 +1,7 @@
+# Artefactos de herramientas en la raíz del workspace (no pertenecen a ningún subproyecto)
+
+# Capturas y logs del servidor Playwright MCP
+.playwright-mcp/
+
+# misc
+.DS_Store
