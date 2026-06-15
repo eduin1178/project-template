@@ -21,6 +21,15 @@ export type TasksRouteSearchParams = Record<
   string | string[] | undefined
 >;
 
+export type TaskListViewMode = "board" | "cards";
+
+export function parseTaskListViewMode(
+  raw: string | string[] | undefined,
+): TaskListViewMode {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return value === "cards" ? "cards" : "board";
+}
+
 function parseMulti<T extends string>(
   raw: string | string[] | undefined,
   allowed: ReadonlyArray<T>,
@@ -32,6 +41,7 @@ function parseMulti<T extends string>(
 
 export type LoadedTasksRoute = {
   params: TasksRouteSearchParams;
+  viewMode: TaskListViewMode;
   status: TaskStatus[];
   visibility: TaskVisibility[];
   tasks: TaskListItem[];
@@ -65,6 +75,7 @@ export async function loadTasksRouteData({
   defaultStatus: TaskStatus[];
 }): Promise<LoadedTasksRoute> {
   const params = await searchParams;
+  const viewMode = parseTaskListViewMode(params.view);
   const status =
     "status" in params
       ? parseMulti<TaskStatus>(params.status, TASK_STATUS_VALUES)
@@ -83,7 +94,7 @@ export async function loadTasksRouteData({
     listOrgMembers({ orgId }),
   ]);
 
-  return { params, status, visibility, tasks, counts, members };
+  return { params, viewMode, status, visibility, tasks, counts, members };
 }
 
 /**

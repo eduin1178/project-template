@@ -1,9 +1,7 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 
 import { computeTaskCapabilities } from "@/components/tasks/capabilities";
-import { MobileBackToList } from "@/components/tasks/mobile-back-to-list";
-import { TaskDetailPane } from "@/components/tasks/task-detail-pane";
-import { TasksRouteShell } from "@/components/tasks/tasks-route-shell";
+import { TaskFullPageDetail } from "@/components/tasks/task-full-page-detail";
 import { isOrgAdmin, requireWorkspaceMemberBySlug } from "@/lib/auth/guards";
 import { type TaskStatus } from "@/lib/db/schema/task";
 import {
@@ -13,7 +11,6 @@ import {
   listDocumentsForTask,
 } from "@/lib/tasks/queries";
 import {
-  countActiveFilters,
   loadTasksRouteData,
   preservedQuery,
 } from "@/lib/tasks/route-data";
@@ -80,31 +77,18 @@ export default async function WorkspaceTaskDetailPage({
   const backHref = `/${slug}/tasks${preservedQuery(route.params)}`;
 
   return (
-    <TasksRouteShell
-      initialVisibility={route.visibility}
-      initialStatus={route.status}
-      counts={route.counts}
-      tasks={route.tasks}
-      basePath={`/${slug}/tasks`}
-      selectedId={selected.id}
-      showVisibility={false}
-      activeFiltersCount={countActiveFilters(route.params)}
-      detail={
-        <>
-          <MobileBackToList href={backHref} />
-          <TaskDetailPane
-            task={selected}
-            members={route.members}
-            capabilities={computeTaskCapabilities({
-              task: selected,
-              viewer: { userId: ctx.userId, role: ctx.role },
-            })}
-            comments={comments}
-            documents={documents}
-            checklistItems={checklistItems}
-          />
-        </>
-      }
+    <TaskFullPageDetail
+      task={selected}
+      members={route.members}
+      capabilities={computeTaskCapabilities({
+        task: selected,
+        viewer: { userId: ctx.userId, role: ctx.role },
+      })}
+      comments={comments}
+      documents={documents}
+      checklistItems={checklistItems}
+      backHref={backHref}
     />
   );
 }
+

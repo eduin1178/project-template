@@ -1,7 +1,6 @@
 import { notFound, permanentRedirect } from "next/navigation";
 
-import { TasksRouteShell } from "@/components/tasks/tasks-route-shell";
-import { EmptyState } from "@/components/ui/empty-state";
+import { TasksVisualShell } from "@/components/tasks/tasks-visual-shell";
 import { isOrgAdmin, requireWorkspaceMemberBySlug } from "@/lib/auth/guards";
 import { type TaskStatus } from "@/lib/db/schema/task";
 import {
@@ -40,7 +39,7 @@ export default async function WorkspaceTasksPage({
   }
 
   const isAdmin = isOrgAdmin(ctx.role);
-  const { params: routeParams, status, visibility, tasks, counts } =
+  const { params: routeParams, viewMode, status, visibility, tasks, counts } =
     await loadTasksRouteData({
       orgId: ctx.orgId,
       userId: ctx.userId,
@@ -50,23 +49,15 @@ export default async function WorkspaceTasksPage({
     });
 
   return (
-    <TasksRouteShell
+    <TasksVisualShell
       initialVisibility={visibility}
       initialStatus={status}
       counts={counts}
       tasks={tasks}
       basePath={`/${slug}/tasks`}
-      selectedId={null}
       showVisibility={false}
       activeFiltersCount={countActiveFilters(routeParams)}
-      detail={
-        <div className="flex flex-1 items-center justify-center p-8">
-          <EmptyState
-            title="Selecciona una tarea"
-            description="Elige una tarea de la lista para ver su detalle."
-          />
-        </div>
-      }
+      viewMode={viewMode}
     />
   );
 }

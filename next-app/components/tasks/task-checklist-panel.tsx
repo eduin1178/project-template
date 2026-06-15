@@ -103,7 +103,7 @@ function ChecklistItemRow({
   const confirmEditing = useCallback(() => {
     const trimmed = editValue.trim();
     if (trimmed.length === 0) {
-      setEditError("El label no puede estar vacío.");
+      setEditError("El item no puede estar vacío.");
       return;
     }
     if (trimmed.length > LABEL_MAX) {
@@ -234,7 +234,7 @@ function ChecklistItemRow({
           type="button"
           size="icon"
           variant="ghost"
-          className="size-7 shrink-0 text-destructive opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:bg-destructive hover:text-destructive-foreground"
+          className="size-8 shrink-0 text-destructive hover:bg-destructive hover:text-destructive-foreground"
           onClick={handleDelete}
           disabled={isPending}
           title="Elimina"

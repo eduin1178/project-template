@@ -239,10 +239,8 @@ export function TaskCommentsPanel({
                         aria-label="Eliminar comentario"
                         title="Eliminar"
                         className={cn(
-                          "absolute -top-3 size-7 rounded-full border bg-background opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100",
-                          isOwn
-                            ? "-left-3 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                            : "-right-3 text-destructive hover:bg-destructive hover:text-destructive-foreground",
+                          "absolute -top-3 size-8 rounded-full border bg-background text-destructive hover:bg-destructive hover:text-destructive-foreground",
+                          isOwn ? "-left-3" : "-right-3",
                         )}
                         onClick={() => remove(comment.id)}
                         disabled={isPending}

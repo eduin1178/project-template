@@ -1,8 +1,7 @@
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
-import { TasksRouteShell } from "@/components/tasks/tasks-route-shell";
-import { EmptyState } from "@/components/ui/empty-state";
+import { TasksVisualShell } from "@/components/tasks/tasks-visual-shell";
 import { isOrgAdmin, requireWorkspaceMemberBySlug } from "@/lib/auth/guards";
 import { type TaskStatus } from "@/lib/db/schema/task";
 import {
@@ -43,42 +42,41 @@ export default async function WorkspaceAdminTasksPage({
     );
   }
 
-  const { params: routeParams, status, visibility, tasks, counts, members } =
-    await loadTasksRouteData({
-      orgId: ctx.orgId,
-      userId: ctx.userId,
-      isAdmin: true,
-      searchParams: Promise.resolve(rawParams),
-      defaultStatus: ADMIN_DEFAULT_STATUS,
-    });
+  const {
+    params: routeParams,
+    viewMode,
+    status,
+    visibility,
+    tasks,
+    counts,
+    members,
+  } = await loadTasksRouteData({
+    orgId: ctx.orgId,
+    userId: ctx.userId,
+    isAdmin: true,
+    searchParams: Promise.resolve(rawParams),
+    defaultStatus: ADMIN_DEFAULT_STATUS,
+  });
 
   const defaultDueAt = new Date();
   defaultDueAt.setDate(defaultDueAt.getDate() + 7);
   defaultDueAt.setHours(18, 0, 0, 0);
 
   return (
-    <TasksRouteShell
+    <TasksVisualShell
       initialVisibility={visibility}
       initialStatus={status}
       counts={counts}
       tasks={tasks}
       basePath={`/${slug}/admin/tasks`}
-      selectedId={null}
       showVisibility={true}
       activeFiltersCount={countActiveFilters(routeParams)}
+      viewMode={viewMode}
       listHeader={
         <CreateTaskDialog
           members={members}
           defaultDueAt={defaultDueAt.toISOString()}
         />
-      }
-      detail={
-        <div className="flex flex-1 items-center justify-center p-8">
-          <EmptyState
-            title="Selecciona una tarea"
-            description="Elige una tarea de la lista para ver su detalle y administrar su estado."
-          />
-        </div>
       }
     />
   );

@@ -230,20 +230,22 @@ export function TaskDocumentsPanel({
               <li
                 key={doc.id}
                 className={cn(
-                  "bg-card flex items-center gap-3 rounded-md border p-3",
+                  "bg-card flex flex-col gap-3 rounded-md border p-3 sm:flex-row sm:items-center",
                 )}
               >
-                <IconForFile fileName={doc.fileName} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">
-                    {doc.fileName}
-                  </div>
-                  <div className="text-muted-foreground text-xs">
-                    {formatFileSize(doc.sizeBytes)} · Subido por{" "}
-                    {uploaderLabel(doc)} {formatRelative(doc.createdAt, now)}
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <IconForFile fileName={doc.fileName} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">
+                      {doc.fileName}
+                    </div>
+                    <div className="text-muted-foreground text-xs">
+                      {formatFileSize(doc.sizeBytes)} · Subido por{" "}
+                      {uploaderLabel(doc)} {formatRelative(doc.createdAt, now)}
+                    </div>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
+                <div className="flex shrink-0 items-center justify-end gap-1">
                   <Button
                     type="button"
                     size="sm"
